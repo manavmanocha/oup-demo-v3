@@ -8,7 +8,7 @@ build:
       - npm run build
 
 run:
-  command: npx vite preview --host 0.0.0.0 --port $PORT
+  command: npx --yes serve -s dist -l 8080
   network:
     port: 8080
     env: PORT
