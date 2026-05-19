@@ -1,0 +1,268 @@
+import { useState } from 'react';
+import { Link, useParams } from 'react-router';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Input } from './ui/input';
+import { Progress } from './ui/progress';
+import { Search, ArrowLeft, AlertCircle } from 'lucide-react';
+import { getItemsByLevel, bankCapacityData } from '../data/mockData';
+import { CEFRLevel } from '../data/types';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './ui/tooltip';
+
+export function ItemBankCEFRLevel() {
+  const { level } = useParams<{ level: CEFRLevel }>();
+  const [filter, setFilter] = useState<'all' | 'active' | 'compromised' | 'in-pipeline'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const items = getItemsByLevel(level as CEFRLevel);
+  const levelData = bankCapacityData.find(l => l.level === level);
+
+  const filteredItems = items.filter(item => {
+    const matchesFilter = 
+      filter === 'all' ? true :
+      filter === 'active' ? item.status === 'Active' :
+      filter === 'compromised' ? item.status === 'Compromised' :
+      filter === 'in-pipeline' ? ['Draft', 'In Review', 'Approved'].includes(item.workflowState || '') :
+      true;
+
+    const matchesSearch = 
+      item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.content.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesFilter && matchesSearch;
+  });
+
+  const skillDistribution = [
+    { skill: 'Reading', count: items.filter(i => i.skill === 'Reading').length, percentage: 137 },
+    { skill: 'Writing', count: items.filter(i => i.skill === 'Writing').length, percentage: 8 },
+    { skill: 'Listening', count: items.filter(i => i.skill === 'Listening').length, percentage: 12 },
+    { skill: 'Speaking', count: items.filter(i => i.skill === 'Speaking').length, percentage: 8 },
+  ];
+
+  if (!level || !levelData) {
+    return <div className="p-8">Level not found</div>;
+  }
+
+  return (
+    <div className="p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
+          <Link to="/item-bank" className="hover:underline">Item Bank</Link>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-900">{level}</span>
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{level}</h1>
+            <p className="text-gray-600">
+              {levelData.active + levelData.compromised} of {levelData.target} items active · {levelData.gapToTarget} needed to reach target
+            </p>
+          </div>
+          <Button>+ Ingest Items</Button>
+        </div>
+
+        {/* Capacity Bar */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-500 uppercase">Capacity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-2xl font-bold text-gray-900">{levelData.percentage}%</div>
+            </div>
+            <div className="relative h-8 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="absolute left-0 top-0 bottom-0 bg-gray-400 transition-all"
+                style={{ width: `${(levelData.active / levelData.target) * 100}%` }}
+              />
+              {levelData.compromised > 0 && (
+                <div
+                  className="absolute left-0 top-0 bottom-0 bg-red-400 transition-all"
+                  style={{ width: `${(levelData.compromised / levelData.target) * 100}%` }}
+                />
+              )}
+            </div>
+            <div className="flex items-center justify-between mt-2 text-sm">
+              <div className="flex items-center gap-4">
+                <span className="text-gray-700">
+                  <span className="font-semibold">{levelData.active}</span> active
+                </span>
+                {levelData.compromised > 0 && (
+                  <span className="text-red-600">
+                    <span className="font-semibold">{levelData.compromised}</span> compromised
+                  </span>
+                )}
+                <span className="text-gray-500">
+                  <span className="font-semibold">76</span> pending in pipeline
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Skill Distribution */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-500 uppercase">Skill Distribution</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {skillDistribution.map((skill) => (
+              <div key={skill.skill} className="flex items-center gap-4">
+                <div className="w-24 text-sm text-gray-700">{skill.skill}</div>
+                <div className="flex-1">
+                  <div className="h-6 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gray-600 flex items-center justify-end px-2"
+                      style={{ width: `${Math.min(skill.percentage, 100)}%` }}
+                    >
+                      <span className="text-xs text-white font-medium">{skill.percentage}%</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="w-16 text-right text-sm font-semibold text-gray-900">{skill.count}</div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Inventory */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-500 uppercase">Inventory</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Filters */}
+            <div className="flex items-center gap-2 mb-6">
+              <Button
+                variant={filter === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('all')}
+              >
+                All Items
+              </Button>
+              <Button
+                variant={filter === 'active' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('active')}
+              >
+                Active
+              </Button>
+              <Button
+                variant={filter === 'compromised' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('compromised')}
+                className={filter === 'compromised' ? 'bg-red-600 hover:bg-red-700' : ''}
+              >
+                Compromised
+                {levelData.compromised > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {levelData.compromised}
+                  </Badge>
+                )}
+              </Button>
+              <Button
+                variant={filter === 'in-pipeline' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('in-pipeline')}
+              >
+                In Pipeline
+              </Button>
+
+              <div className="ml-auto relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  placeholder="Search by ID or content..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 w-80"
+                />
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="border rounded-lg overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skill</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Content Preview</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Metrics</th>
+                    <th className="px-4 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {filteredItems.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <Link
+                          to={`/item-bank/${level}/${item.id}`}
+                          className="text-sm font-medium text-blue-600 hover:underline"
+                        >
+                          {item.id}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge variant="outline">{item.skill}</Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm text-gray-700 max-w-md truncate">
+                          {item.content}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {item.status === 'Compromised' ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="destructive" className="cursor-help">
+                                  Compromised
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-sm">
+                                  Exposure count: {item.exposureCount || 0}
+                                  <br />
+                                  Item security may be compromised
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <Badge variant="secondary">{item.status}</Badge>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {item.exposureCount !== undefined && (
+                          <span className={`text-sm ${item.exposureCount > 100 ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>
+                            {item.exposureCount > 100 ? 'HIGH EXPOSURE' : 'SIMILARITY FAIL'}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Link to={`/item-bank/${level}/${item.id}`}>
+                          <Button variant="ghost" size="sm">View</Button>
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
