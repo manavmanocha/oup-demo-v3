@@ -494,12 +494,16 @@ export const getFlaggedItems = () => {
 };
 
 export const getItemsForReview = () => {
-  return allMockItems.filter(item => 
-    item.workflowState === 'In Review' || 
+  return allMockItems.filter(item =>
+    item.workflowState === 'In Review' ||
     item.flaggedForReview ||
     item.screening?.similarity === 'Review' ||
     item.screening?.cefrFit === 'Review' ||
     item.screening?.distractorStrength === 'Review' ||
     item.screening?.fairness === 'Review'
   );
+};
+
+export const getAllItems = () => {
+  return allMockItems;
 };

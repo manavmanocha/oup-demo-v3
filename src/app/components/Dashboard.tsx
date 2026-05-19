@@ -1,138 +1,318 @@
-import { Link } from 'react-router';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Database, Workflow, TrendingUp, AlertCircle } from 'lucide-react';
-import { bankCapacityData, getCompromisedItems, getItemsForReview } from '../data/mockData';
+import { Link } from "react-router";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
+import {
+  Sparkles,
+  ScanSearch,
+  Gauge,
+  Target,
+  ArrowRight,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  TrendingUp,
+  Lightbulb,
+} from "lucide-react";
+import { getItemsForReview } from "../data/mockData";
 
 export function Dashboard() {
-  const totalActive = bankCapacityData.reduce((sum, level) => sum + level.active, 0);
-  const totalTarget = bankCapacityData.reduce((sum, level) => sum + level.target, 0);
-  const totalCompromised = getCompromisedItems().length;
-  const itemsNeedingReview = getItemsForReview().length;
+  const itemsNeedingReview = getItemsForReview();
+
+  const recentReviews = [
+    { id: 'ITM-RACE-0238', status: 'Pending', type: 'MCQ', level: 'A2', flaggedFor: 'CEFR Fit' },
+    { id: 'ITM-GEN-0189', status: 'In Review', type: 'Writing', level: 'C1', flaggedFor: 'Clarity' },
+    { id: 'ITM-RACE-0048', status: 'Approved', type: 'MCQ', level: 'A2', flaggedFor: 'Fairness' },
+  ];
+
+  const aiInsights = [
+    { message: '12 items may be over-difficult for their CEFR level', severity: 'warning' },
+    { message: '5 items require metadata review before seeding', severity: 'info' },
+    { message: 'Reading set shows high confidence predictions (avg 89%)', severity: 'success' },
+  ];
 
   return (
-    <div className="p-8">
+    <div className="p-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-600 mb-8">Welcome to the OUP Assessment Builder</p>
-
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Active Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline gap-2">
-                <div className="text-3xl font-bold text-gray-900">{totalActive}</div>
-                <div className="text-sm text-gray-500">of {totalTarget} target</div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Overall Health</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline gap-2">
-                <div className="text-3xl font-bold text-green-600">71%</div>
-                <div className="text-sm text-gray-500 flex items-center gap-1">
-                  <TrendingUp className="w-4 h-4 text-green-600" />
-                  Healthy trajectory
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Compromised Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline gap-2">
-                <div className="text-3xl font-bold text-red-600">{totalCompromised}</div>
-                <div className="text-sm text-gray-500 flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4 text-red-600" />
-                  Needs attention
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">In Pipeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline gap-2">
-                <div className="text-3xl font-bold text-blue-600">19</div>
-                <div className="text-sm text-gray-500">awaiting review</div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            AI Workflow Hub
+          </h1>
+          <p className="text-gray-600">
+            Accelerate your assessment preparation with intelligent workflows
+          </p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="w-5 h-5" />
-                Item Bank
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-gray-600">
-                Manage and monitor your assessment item inventory across CEFR levels.
-              </p>
-              <Link to="/item-bank">
-                <Button className="w-full">View Item Bank</Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Workflow className="w-5 h-5" />
-                Pre-Testing Pipeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-gray-600">
-                Review queue health, run screening and difficulty prediction, and seed approved items.
-              </p>
-              <Link to="/workflows/pre-testing-pipeline">
-                <Button className="w-full">Open Pipeline</Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Review Queue Alert */}
-        {itemsNeedingReview > 0 && (
-          <Card className="mt-6 border-orange-200 bg-orange-50">
+        {/* Top Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="border-gray-200">
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="w-5 h-5 text-orange-600" />
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      {itemsNeedingReview} items need your review
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm font-medium text-gray-600">Items Screened</div>
+                <ScanSearch className="w-4 h-4 text-blue-500" />
+              </div>
+              <div className="text-3xl font-bold text-gray-900">847</div>
+              <p className="text-xs text-gray-500 mt-1">Last 30 days</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-200">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm font-medium text-gray-600">Predictions Generated</div>
+                <Gauge className="w-4 h-4 text-purple-500" />
+              </div>
+              <div className="text-3xl font-bold text-gray-900">412</div>
+              <p className="text-xs text-gray-500 mt-1">82% avg accuracy</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-200">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm font-medium text-gray-600">Ready for Seeding</div>
+                <Target className="w-4 h-4 text-green-500" />
+              </div>
+              <div className="text-3xl font-bold text-gray-900">23</div>
+              <p className="text-xs text-gray-500 mt-1">High confidence</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-200">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm font-medium text-gray-600">Active Reviews</div>
+                <Clock className="w-4 h-4 text-orange-500" />
+              </div>
+              <div className="text-3xl font-bold text-gray-900">{itemsNeedingReview.length}</div>
+              <p className="text-xs text-gray-500 mt-1">Pending action</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Primary Workflow Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Screening */}
+          <Card className="border-blue-200 hover:shadow-lg transition-shadow">
+            <CardHeader className="space-y-4 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <ScanSearch className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-bold">Screening</CardTitle>
+                  <Badge variant="outline" className="mt-1 text-xs">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    AI-Powered
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600">
+                AI-powered content screening for quality and compliance review across 5 dimensions
+              </p>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">Queue Status</span>
+                <span className="font-semibold text-gray-900">6 items waiting</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">Last Run</span>
+                <span className="text-gray-600">21 items · 5 flagged</span>
+              </div>
+              <Link to="/workflows/pre-testing-pipeline/screening">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                  Start Screening
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Difficulty Prediction */}
+          <Card className="border-purple-200 hover:shadow-lg transition-shadow">
+            <CardHeader className="space-y-4 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-purple-100 rounded-lg">
+                  <Gauge className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-bold">Difficulty Prediction</CardTitle>
+                  <Badge variant="outline" className="mt-1 text-xs">
+                    <TrendingUp className="w-3 h-3 mr-1" />
+                    ML Model
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600">
+                AI-predicted CEFR alignment and difficulty with confidence indicators
+              </p>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">Queue Status</span>
+                <span className="font-semibold text-gray-900">3 items waiting</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">Model Accuracy</span>
+                <span className="text-green-600 font-semibold">82%</span>
+              </div>
+              <Link to="/workflows/pre-testing-pipeline/difficulty-prediction">
+                <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                  Run Prediction
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Seeding */}
+          <Card className="border-green-200 hover:shadow-lg transition-shadow">
+            <CardHeader className="space-y-4 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-green-100 rounded-lg">
+                  <Target className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-bold">Seeding</CardTitle>
+                  <Badge variant="outline" className="mt-1 text-xs">
+                    Adaptive Testing
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Prepare items for adaptive testing with intelligent prioritization
+              </p>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">Queue Status</span>
+                <span className="font-semibold text-gray-900">8 items ready</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">Next Window</span>
+                <span className="text-gray-600">15 Mar 2025</span>
+              </div>
+              <Link to="/workflows/pre-testing-pipeline/seeding">
+                <Button className="w-full bg-green-600 hover:bg-green-700">
+                  Start Seeding
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Review Queue */}
+          <Card className="lg:col-span-2 border-gray-200">
+            <CardHeader className="flex flex-row items-center justify-between pb-4">
+              <CardTitle className="text-lg font-semibold">Review Queue</CardTitle>
+              <Link to="/review-queue">
+                <Button variant="ghost" size="sm">
+                  View All
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {recentReviews.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      <div>
+                        <Link
+                          to={`/item-bank/${item.level}/${item.id}`}
+                          className="font-medium text-blue-600 hover:underline text-sm"
+                        >
+                          {item.id}
+                        </Link>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-xs">{item.type}</Badge>
+                          <Badge variant="outline" className="text-xs">{item.level}</Badge>
+                          <span className="text-xs text-gray-500">· {item.flaggedFor}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600">
-                      These items have been flagged by AI screening or require manual review
+                    <div className="flex items-center gap-2">
+                      {item.status === 'Pending' && (
+                        <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                          <Clock className="w-3 h-3 mr-1" />
+                          Pending
+                        </Badge>
+                      )}
+                      {item.status === 'In Review' && (
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                          <AlertCircle className="w-3 h-3 mr-1" />
+                          In Review
+                        </Badge>
+                      )}
+                      {item.status === 'Approved' && (
+                        <Badge variant="secondary" className="bg-green-100 text-green-700">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Approved
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                </div>
-                <Link to="/review-queue">
-                  <Button variant="outline">View Queue</Button>
-                </Link>
+                ))}
               </div>
             </CardContent>
           </Card>
-        )}
+
+          {/* AI Insights Panel */}
+          <Card className="border-gray-200">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <Lightbulb className="w-5 h-5 text-yellow-500" />
+                AI Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {aiInsights.map((insight, index) => (
+                  <div
+                    key={index}
+                    className={`p-3 rounded-lg text-sm ${
+                      insight.severity === 'warning'
+                        ? 'bg-orange-50 border border-orange-200'
+                        : insight.severity === 'success'
+                        ? 'bg-green-50 border border-green-200'
+                        : 'bg-blue-50 border border-blue-200'
+                    }`}
+                  >
+                    <div className="flex gap-2">
+                      {insight.severity === 'warning' && (
+                        <AlertCircle className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" />
+                      )}
+                      {insight.severity === 'success' && (
+                        <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                      )}
+                      {insight.severity === 'info' && (
+                        <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                      )}
+                      <p
+                        className={
+                          insight.severity === 'warning'
+                            ? 'text-orange-800'
+                            : insight.severity === 'success'
+                            ? 'text-green-800'
+                            : 'text-blue-800'
+                        }
+                      >
+                        {insight.message}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

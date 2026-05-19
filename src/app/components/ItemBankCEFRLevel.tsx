@@ -1,11 +1,8 @@
-import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Input } from './ui/input';
-import { Progress } from './ui/progress';
-import { Search, ArrowLeft, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { getItemsByLevel, bankCapacityData } from '../data/mockData';
 import { CEFRLevel } from '../data/types';
 import {
@@ -17,27 +14,9 @@ import {
 
 export function ItemBankCEFRLevel() {
   const { level } = useParams<{ level: CEFRLevel }>();
-  const [filter, setFilter] = useState<'all' | 'active' | 'compromised' | 'in-pipeline'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
 
   const items = getItemsByLevel(level as CEFRLevel);
   const levelData = bankCapacityData.find(l => l.level === level);
-
-  const filteredItems = items.filter(item => {
-    const matchesFilter = 
-      filter === 'all' ? true :
-      filter === 'active' ? item.status === 'Active' :
-      filter === 'compromised' ? item.status === 'Compromised' :
-      filter === 'in-pipeline' ? ['Draft', 'In Review', 'Approved'].includes(item.workflowState || '') :
-      true;
-
-    const matchesSearch = 
-      item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.content.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesFilter && matchesSearch;
-  });
 
   const skillDistribution = [
     { skill: 'Reading', count: items.filter(i => i.skill === 'Reading').length, percentage: 137 },
@@ -55,7 +34,7 @@ export function ItemBankCEFRLevel() {
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
-          <Link to="/item-bank" className="hover:underline">Item Bank</Link>
+          <Link to="/library" className="hover:underline">Library</Link>
           <span className="text-gray-400">/</span>
           <span className="text-gray-900">{level}</span>
         </div>
@@ -135,133 +114,117 @@ export function ItemBankCEFRLevel() {
           </CardContent>
         </Card>
 
-        {/* Inventory */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-500 uppercase">Inventory</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Filters */}
-            <div className="flex items-center gap-2 mb-6">
-              <Button
-                variant={filter === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilter('all')}
-              >
-                All Items
-              </Button>
-              <Button
-                variant={filter === 'active' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilter('active')}
-              >
-                Active
-              </Button>
-              <Button
-                variant={filter === 'compromised' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilter('compromised')}
-                className={filter === 'compromised' ? 'bg-red-600 hover:bg-red-700' : ''}
-              >
-                Compromised
-                {levelData.compromised > 0 && (
-                  <Badge variant="secondary" className="ml-2">
-                    {levelData.compromised}
-                  </Badge>
-                )}
-              </Button>
-              <Button
-                variant={filter === 'in-pipeline' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilter('in-pipeline')}
-              >
-                In Pipeline
-              </Button>
-
-              <div className="ml-auto relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder="Search by ID or content..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 w-80"
-                />
-              </div>
-            </div>
-
-            {/* Table */}
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skill</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Content Preview</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Metrics</th>
-                    <th className="px-4 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {filteredItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <Link
-                          to={`/item-bank/${level}/${item.id}`}
-                          className="text-sm font-medium text-blue-600 hover:underline"
-                        >
-                          {item.id}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge variant="outline">{item.skill}</Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm text-gray-700 max-w-md truncate">
-                          {item.content}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        {item.status === 'Compromised' ? (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Badge variant="destructive" className="cursor-help">
-                                  Compromised
-                                </Badge>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-sm">
-                                  Exposure count: {item.exposureCount || 0}
-                                  <br />
-                                  Item security may be compromised
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ) : (
-                          <Badge variant="secondary">{item.status}</Badge>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        {item.exposureCount !== undefined && (
-                          <span className={`text-sm ${item.exposureCount > 100 ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>
-                            {item.exposureCount > 100 ? 'HIGH EXPOSURE' : 'SIMILARITY FAIL'}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Link to={`/item-bank/${level}/${item.id}`}>
-                          <Button variant="ghost" size="sm">View</Button>
-                        </Link>
-                      </td>
+        {/* Compromised Items */}
+        {items.filter(item => item.status === 'Compromised').length > 0 && (
+          <Card className="mb-8 border-red-200">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-red-600 uppercase">Compromised Items</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skill</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Content Preview</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Exposure Count</th>
+                      <th className="px-4 py-3"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                  </thead>
+                  <tbody className="divide-y">
+                    {items.filter(item => item.status === 'Compromised').map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <Link
+                            to={`/item-bank/${level}/${item.id}`}
+                            className="text-sm font-medium text-blue-600 hover:underline"
+                          >
+                            {item.id}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge variant="outline">{item.skill}</Badge>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm text-gray-700 max-w-md truncate">
+                            {item.content}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-sm text-red-600 font-semibold">
+                            {item.exposureCount || 0}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Link to={`/item-bank/${level}/${item.id}`}>
+                            <Button variant="ghost" size="sm">View</Button>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* In Pipeline Section */}
+        {items.filter(item => ['Draft', 'In Review', 'Approved'].includes(item.workflowState || '')).length > 0 && (
+          <Card className="border-blue-200">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-blue-600 uppercase">In Pipeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skill</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Content Preview</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Workflow State</th>
+                      <th className="px-4 py-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {items.filter(item => ['Draft', 'In Review', 'Approved'].includes(item.workflowState || '')).map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <Link
+                            to={`/item-bank/${level}/${item.id}`}
+                            className="text-sm font-medium text-blue-600 hover:underline"
+                          >
+                            {item.id}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge variant="outline">{item.skill}</Badge>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm text-gray-700 max-w-md truncate">
+                            {item.content}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge variant="outline" className="text-xs">
+                            {item.workflowState}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Link to={`/item-bank/${level}/${item.id}`}>
+                            <Button variant="ghost" size="sm">View</Button>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

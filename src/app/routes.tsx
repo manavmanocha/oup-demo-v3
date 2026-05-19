@@ -1,6 +1,9 @@
 import { createBrowserRouter } from "react-router";
 import { Root } from "./components/Root";
+import { Login } from "./components/Login";
 import { Dashboard } from "./components/Dashboard";
+import { Library } from "./components/Library";
+import { IngestItems } from "./components/IngestItems";
 import { ItemBankOverview } from "./components/ItemBankOverview";
 import { ItemBankCEFRLevel } from "./components/ItemBankCEFRLevel";
 import { ItemDetail } from "./components/ItemDetail";
@@ -15,15 +18,22 @@ import { PredictDifficulty } from "./components/PredictDifficulty";
 
 export const router = createBrowserRouter([
   {
+    path: "/login",
+    Component: Login,
+  },
+  {
     path: "/",
     Component: Root,
     children: [
       { index: true, Component: Dashboard },
+      { path: "library", Component: Library },
+      { path: "library/ingest", Component: IngestItems },
       { path: "item-bank", Component: ItemBankOverview },
       { path: "item-bank/:level", Component: ItemBankCEFRLevel },
       { path: "item-bank/:level/:itemId", Component: ItemDetail },
       { path: "workflows", Component: Workflows },
-      { path: "workflows/pre-testing-pipeline", Component: PreTestingPipeline },
+      { path: "workflows/pre-testing-pipeline", Component: ItemBankOverview },
+      { path: "workflows/pre-testing-pipeline/stages", Component: PreTestingPipeline },
       { path: "workflows/pre-testing-pipeline/screening", Component: Screening },
       { path: "workflows/pre-testing-pipeline/screening/start", Component: ScreenItems },
       { path: "workflows/pre-testing-pipeline/difficulty-prediction", Component: DifficultyPrediction },

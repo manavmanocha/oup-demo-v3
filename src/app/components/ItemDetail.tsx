@@ -48,7 +48,7 @@ export function ItemDetail() {
       <div className="max-w-5xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
-          <Link to="/item-bank" className="hover:underline">Item Bank</Link>
+          <Link to="/library" className="hover:underline">Library</Link>
           <span className="text-gray-400">/</span>
           <Link to={`/item-bank/${level}`} className="hover:underline">{level}</Link>
           <span className="text-gray-400">/</span>

@@ -30,9 +30,9 @@ export function ItemBankOverview() {
               Manage and monitor your assessment item inventory across CEFR levels.
             </p>
           </div>
-          <Button>
-            <Link to="/workflows/pre-testing-pipeline">Review pipeline</Link>
-          </Button>
+          <Link to="/workflows/pre-testing-pipeline/stages">
+            <Button>Review pipeline</Button>
+          </Link>
         </div>
 
         {/* Summary Cards */}
