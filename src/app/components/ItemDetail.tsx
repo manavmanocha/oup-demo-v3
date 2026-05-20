@@ -64,7 +64,7 @@ export function ItemDetail() {
                   • Compromised
                 </Badge>
               )}
-              <Badge variant="outline">{item.cefrLevel}</Badge>
+              <Badge variant="outline">{item.level}</Badge>
               <Badge variant="outline">{item.skill}</Badge>
               <Badge variant="outline">{item.itemType}</Badge>
             </div>

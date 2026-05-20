@@ -1,31 +1,29 @@
-import { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Upload, Download, FileText, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { taxonomies } from '../data/taxonomy';
+import { CheckCircle2, Upload, FileText, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from './ui/dialog';
 
-export function IngestItems() {
+interface IngestItemsFlowProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function IngestItemsFlow({ isOpen, onClose }: IngestItemsFlowProps) {
   const navigate = useNavigate();
-  const [step, setStep] = useState<'upload' | 'metadata' | 'validate' | 'success'>('upload');
+  const [step, setStep] = useState<'upload' | 'configure' | 'validate' | 'success'>('upload');
   const [fileName, setFileName] = useState('');
   const [itemCount, setItemCount] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Metadata configuration state
+  // Configuration state
   const [level, setCefrLevel] = useState('');
   const [skill, setSkill] = useState('');
   const [itemType, setItemType] = useState('');
   const [source, setSource] = useState('');
-
-  // Get taxonomy options
-  const cefrLevelsTaxonomy = taxonomies.find(t => t.id === 'cefrLevels');
-  const skillsTaxonomy = taxonomies.find(t => t.id === 'skills');
-  const itemTypesTaxonomy = taxonomies.find(t => t.id === 'itemTypes');
 
   // Mock uploaded items for validation preview
   const mockItems = [
@@ -36,218 +34,128 @@ export function IngestItems() {
     { id: 'ITM-NEW-005', content: 'Write a short essay about your favorite book.', type: 'Composition', issues: [] },
   ];
 
-  const validItemsCount = mockItems.filter(item => item.issues.length === 0).length;
-  const invalidItemsCount = mockItems.filter(item => item.issues.length > 0).length;
-
-  const supportedItemTypes = [
-    {
-      name: 'MCQ',
-      description: 'Multiple choice question activity with selectable answer options.',
-    },
-    {
-      name: 'Composition',
-      description: 'Writing-based activity for evaluating composition and language skills.',
-    },
-    {
-      name: 'Fill in the Blanks',
-      description: 'Interactive activity where learners complete missing words or phrases.',
-    },
-    {
-      name: 'Match the Following',
-      description: 'Matching activity that connects related items, terms, or concepts.',
-    },
-    {
-      name: 'Reading Comprehension',
-      description: 'Passage-based activity designed to assess reading and understanding skills.',
-    },
-    {
-      name: 'Drag and Drop',
-      description: 'Interactive activity where users drag items into the correct positions.',
-    },
-    {
-      name: 'Vocabulary',
-      description: 'Word and meaning based activity focused on vocabulary building.',
-    },
-    {
-      name: 'Listening Comprehension',
-      description: 'Audio-based activity to evaluate listening and comprehension abilities.',
-    },
-    {
-      name: 'Short Answer',
-      description: 'Open-ended activity requiring brief written responses from learners.',
-    },
-  ];
-
   const handleFileUpload = (file: File) => {
     setFileName(file.name);
     setItemCount(mockItems.length);
-    setStep('metadata');
+    setStep('configure');
   };
 
-  const handleMetadataSubmit = () => {
+  const handleConfigure = () => {
     if (level && skill && itemType && source) {
       setStep('validate');
     }
   };
 
-  const handleValidationSubmit = () => {
+  const handleValidate = () => {
     setStep('success');
   };
 
   const handleFinish = () => {
+    onClose();
     navigate('/library');
+    // Reset state
+    setStep('upload');
+    setFileName('');
+    setItemCount(0);
+    setCefrLevel('');
+    setSkill('');
+    setItemType('');
+    setSource('');
+  };
+
+  const handleCancel = () => {
+    onClose();
+    // Reset state
+    setStep('upload');
+    setFileName('');
+    setItemCount(0);
+    setCefrLevel('');
+    setSkill('');
+    setItemType('');
+    setSource('');
   };
 
   const handleBack = () => {
-    if (step === 'metadata') setStep('upload');
-    else if (step === 'validate') setStep('metadata');
+    if (step === 'configure') setStep('upload');
+    else if (step === 'validate') setStep('configure');
   };
 
+  const validItemsCount = mockItems.filter(item => item.issues.length === 0).length;
+  const invalidItemsCount = mockItems.filter(item => item.issues.length > 0).length;
+
   return (
-    <div className="p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
-          <Link to="/library" className="hover:underline">Library</Link>
-          <span className="text-gray-400">/</span>
-          <span className="text-gray-900">Ingest Items</span>
-        </div>
-
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open && step !== 'success') handleCancel();
+    }}>
+      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
         {step === 'upload' && (
-          <>
-            {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Ingest New Items</h1>
-            </div>
+          <div className="space-y-6">
+            <DialogTitle className="text-2xl font-bold text-gray-900">
+              Upload Items File
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Select a CSV or Excel file containing your assessment items.
+            </DialogDescription>
 
-            {/* Main Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              {/* Left Column - Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold text-gray-900">Upload Items File</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-600">
-                    Upload your assessment items via CSV or Excel file. You will be able to configure metadata, preview, and validate your items before adding them to the global item bank.
+            <Card className="border-2 border-dashed border-gray-300">
+              <CardContent className="pt-12 pb-12">
+                <div className="flex flex-col items-center justify-center text-center">
+                  <Upload className="w-16 h-16 text-gray-400 mb-4" />
+                  <p className="text-gray-700 mb-4">
+                    <span className="font-medium">Drag and drop your file here</span>, or{' '}
+                    <label className="text-blue-600 cursor-pointer hover:underline">
+                      browse
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept=".csv,.xlsx,.xls"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleFileUpload(e.target.files[0]);
+                          }
+                        }}
+                      />
+                    </label>
                   </p>
+                  <p className="text-sm text-gray-500">Supported formats: CSV, XLSX, XLS</p>
+                </div>
+              </CardContent>
+            </Card>
 
-                  <button className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
-                    <Download className="w-4 h-4" />
-                    Download Sample CSV Template
-                  </button>
-
-                  <div
-                    className={`border-2 border-dashed rounded-lg mt-4 cursor-pointer transition-colors ${
-                      isDragging
-                        ? 'border-blue-400 bg-blue-50'
-                        : 'border-gray-300 bg-white hover:border-blue-300 hover:bg-gray-50'
-                    }`}
-                    onClick={() => fileInputRef.current?.click()}
-                    onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
-                    onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
-                    onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsDragging(false);
-                      const file = e.dataTransfer.files?.[0];
-                      if (file) handleFileUpload(file);
-                    }}
-                  >
-                    <div className="pt-12 pb-12 px-6">
-                      <div className="flex flex-col items-center justify-center text-center">
-                        <Upload className={`w-16 h-16 mb-4 ${isDragging ? 'text-blue-400' : 'text-gray-400'}`} />
-                        <p className="text-gray-700 mb-4">
-                          <span className="font-medium">Drag and drop your file here</span>, or{' '}
-                          <span className="text-blue-600 hover:underline">browse</span>
-                        </p>
-                        <p className="text-sm text-gray-500">Supported formats: CSV, XLSX, XLS</p>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          className="hidden"
-                          accept=".csv,.xlsx,.xls"
-                          onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
-                              handleFileUpload(e.target.files[0]);
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-3">
+                  <FileText className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-blue-900">
+                    <p className="font-medium mb-1">File Requirements</p>
+                    <ul className="text-blue-700 space-y-1 list-disc list-inside">
+                      <li>Required columns: Item ID, Content, Type, Answer Key</li>
+                      <li>Optional columns: Distractors, Metadata, Tags</li>
+                      <li>Maximum 500 items per upload</li>
+                    </ul>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                  <Card className="bg-blue-50 border-blue-200">
-                    <CardContent className="pt-6">
-                      <div className="flex items-start gap-3">
-                        <FileText className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                        <div className="text-sm text-blue-900">
-                          <p className="font-medium mb-1">File Requirements</p>
-                          <ul className="text-blue-700 space-y-1 list-disc list-inside">
-                            <li>Required columns: Item ID, Content, Type, Answer Key</li>
-                            <li>Optional columns: Distractors, Metadata, Tags</li>
-                            <li>Maximum 500 items per upload</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CardContent>
-              </Card>
-
-              {/* Right Column - Supported Item Types */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold text-gray-900">Supported Item Types</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Following item types are supported for ingestion.
-                  </p>
-
-                  <div className="space-y-4">
-                    {supportedItemTypes.map((itemType, index) => (
-                      <div key={index} className="flex gap-3">
-                        <FileText className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <div className="font-semibold text-gray-900 text-sm mb-1">
-                            {itemType.name}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {itemType.description}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-3">
-              <Button
-                variant="outline"
-                onClick={() => navigate('/library')}
-              >
-                Back to Library
+            <div className="flex items-center justify-end gap-3 pt-4 border-t">
+              <Button variant="outline" onClick={handleCancel}>
+                Cancel
               </Button>
             </div>
-          </>
+          </div>
         )}
 
-        {step === 'metadata' && (
-          <>
-            {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Configure Metadata</h1>
-              <p className="text-gray-600">
-                Set default metadata for {itemCount} items from <span className="font-medium">{fileName}</span>
-              </p>
-            </div>
+        {step === 'configure' && (
+          <div className="space-y-6">
+            <DialogTitle className="text-2xl font-bold text-gray-900">
+              Configure Metadata
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Set default metadata for {itemCount} items from <span className="font-medium">{fileName}</span>
+            </DialogDescription>
 
-            <Card className="mb-6">
+            <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-gray-500 uppercase">
                   File Information
@@ -267,7 +175,7 @@ export function IngestItems() {
               </CardContent>
             </Card>
 
-            <Card className="mb-8">
+            <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-gray-500 uppercase">
                   Default Metadata
@@ -283,11 +191,12 @@ export function IngestItems() {
                       <SelectValue placeholder="Select CEFR level" />
                     </SelectTrigger>
                     <SelectContent>
-                      {cefrLevelsTaxonomy?.tree.map(level => (
-                        <SelectItem key={level.id} value={level.id}>
-                          {level.label}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="A1">A1</SelectItem>
+                      <SelectItem value="A2">A2</SelectItem>
+                      <SelectItem value="B1">B1</SelectItem>
+                      <SelectItem value="B2">B2</SelectItem>
+                      <SelectItem value="C1">C1</SelectItem>
+                      <SelectItem value="C2">C2</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -301,11 +210,10 @@ export function IngestItems() {
                       <SelectValue placeholder="Select skill" />
                     </SelectTrigger>
                     <SelectContent>
-                      {skillsTaxonomy?.tree.map(skill => (
-                        <SelectItem key={skill.id} value={skill.id}>
-                          {skill.label}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="Reading">Reading</SelectItem>
+                      <SelectItem value="Writing">Writing</SelectItem>
+                      <SelectItem value="Listening">Listening</SelectItem>
+                      <SelectItem value="Speaking">Speaking</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -319,11 +227,13 @@ export function IngestItems() {
                       <SelectValue placeholder="Select item type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {itemTypesTaxonomy?.tree.map(type => (
-                        <SelectItem key={type.id} value={type.id}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="Multiple Choice">Multiple Choice</SelectItem>
+                      <SelectItem value="Fill in the Blanks">Fill in the Blanks</SelectItem>
+                      <SelectItem value="Composition">Composition</SelectItem>
+                      <SelectItem value="Listening Comprehension">Listening Comprehension</SelectItem>
+                      <SelectItem value="Match the Following">Match the Following</SelectItem>
+                      <SelectItem value="Reading Comprehension">Reading Comprehension</SelectItem>
+                      <SelectItem value="Short Answer">Short Answer</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -342,17 +252,17 @@ export function IngestItems() {
               </CardContent>
             </Card>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pt-4 border-t">
               <Button variant="outline" onClick={handleBack}>
                 <ChevronLeft className="w-4 h-4 mr-1" />
                 Back
               </Button>
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => navigate('/library')}>
+                <Button variant="outline" onClick={handleCancel}>
                   Cancel
                 </Button>
                 <Button
-                  onClick={handleMetadataSubmit}
+                  onClick={handleConfigure}
                   disabled={!level || !skill || !itemType || !source}
                 >
                   Continue
@@ -360,21 +270,20 @@ export function IngestItems() {
                 </Button>
               </div>
             </div>
-          </>
+          </div>
         )}
 
         {step === 'validate' && (
-          <>
-            {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Validation & Preview</h1>
-              <p className="text-gray-600">
-                Review the items before adding them to the item bank.
-              </p>
-            </div>
+          <div className="space-y-6">
+            <DialogTitle className="text-2xl font-bold text-gray-900">
+              Validation & Preview
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Review the items before adding them to the item bank.
+            </DialogDescription>
 
             {/* Validation Summary */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-4">
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-center">
@@ -402,7 +311,7 @@ export function IngestItems() {
             </div>
 
             {/* Metadata Summary */}
-            <Card className="mb-6">
+            <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-gray-500 uppercase">
                   Applied Metadata
@@ -410,16 +319,16 @@ export function IngestItems() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">CEFR: {cefrLevelsTaxonomy?.tree.find(l => l.id === level)?.label}</Badge>
-                  <Badge variant="outline">Skill: {skillsTaxonomy?.tree.find(s => s.id === skill)?.label}</Badge>
-                  <Badge variant="outline">Type: {itemTypesTaxonomy?.tree.find(t => t.id === itemType)?.label}</Badge>
+                  <Badge variant="outline">CEFR: {level}</Badge>
+                  <Badge variant="outline">Skill: {skill}</Badge>
+                  <Badge variant="outline">Type: {itemType}</Badge>
                   <Badge variant="outline">Source: {source}</Badge>
                 </div>
               </CardContent>
             </Card>
 
             {/* Items Preview */}
-            <Card className="mb-6">
+            <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-gray-500 uppercase">
                   Items Preview
@@ -461,7 +370,7 @@ export function IngestItems() {
             </Card>
 
             {invalidItemsCount > 0 && (
-              <Card className="bg-orange-50 border-orange-200 mb-8">
+              <Card className="bg-orange-50 border-orange-200">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
@@ -476,43 +385,46 @@ export function IngestItems() {
               </Card>
             )}
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pt-4 border-t">
               <Button variant="outline" onClick={handleBack}>
                 <ChevronLeft className="w-4 h-4 mr-1" />
                 Back
               </Button>
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => navigate('/library')}>
+                <Button variant="outline" onClick={handleCancel}>
                   Cancel
                 </Button>
-                <Button onClick={handleValidationSubmit}>
+                <Button onClick={handleValidate}>
                   Ingest {validItemsCount} Item(s)
                 </Button>
               </div>
             </div>
-          </>
+          </div>
         )}
 
         {step === 'success' && (
-          <>
-            {/* Success Icon */}
-            <div className="flex justify-center mb-6">
+          <div className="space-y-6 py-8">
+            <DialogTitle className="sr-only">Items Ingested Successfully</DialogTitle>
+            <DialogDescription className="sr-only">
+              {validItemsCount} items have been added to the item bank.
+            </DialogDescription>
+
+            <div className="flex justify-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                 <CheckCircle2 className="w-10 h-10 text-green-600" />
               </div>
             </div>
 
-            {/* Header */}
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Items Ingested Successfully
-              </h1>
-              <p className="text-gray-600">
+              </h2>
+              <p className="text-gray-600 mb-6">
                 {validItemsCount} items have been added to the item bank.
               </p>
             </div>
 
-            <Card className="mb-6">
+            <Card>
               <CardContent className="pt-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Ingestion Summary</h3>
                 <div className="space-y-2 text-sm">
@@ -526,11 +438,11 @@ export function IngestItems() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">CEFR Level:</span>
-                    <span className="font-semibold text-gray-900">{cefrLevelsTaxonomy?.tree.find(l => l.id === level)?.label}</span>
+                    <span className="font-semibold text-gray-900">{level}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Skill:</span>
-                    <span className="font-semibold text-gray-900">{skillsTaxonomy?.tree.find(s => s.id === skill)?.label}</span>
+                    <span className="font-semibold text-gray-900">{skill}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Source:</span>
@@ -540,7 +452,7 @@ export function IngestItems() {
               </CardContent>
             </Card>
 
-            <Card className="bg-blue-50 border-blue-200 mb-8">
+            <Card className="bg-blue-50 border-blue-200">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-3">
                   <FileText className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -554,25 +466,14 @@ export function IngestItems() {
               </CardContent>
             </Card>
 
-            <div className="flex items-center justify-center gap-3">
-              <Button variant="outline" onClick={() => {
-                setStep('upload');
-                setFileName('');
-                setItemCount(0);
-                setCefrLevel('');
-                setSkill('');
-                setItemType('');
-                setSource('');
-              }}>
-                Ingest More Items
-              </Button>
+            <div className="flex items-center justify-center gap-3 pt-4">
               <Button onClick={handleFinish}>
                 Go to Library
               </Button>
             </div>
-          </>
+          </div>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

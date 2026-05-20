@@ -5,7 +5,8 @@ import { Badge } from './ui/badge';
 import { allMockItems } from '../data/mockData';
 
 export function Screening() {
-  const flaggedItems = allMockItems.filter(item => 
+
+  const flaggedItems = allMockItems.filter(item =>
     item.screening?.similarity === 'Review' ||
     item.screening?.cefrFit === 'Review' ||
     item.screening?.distractorStrength === 'Review' ||
@@ -91,12 +92,12 @@ export function Screening() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <Link
-                        to={`/item-bank/${item.cefrLevel}/${item.id}`}
+                        to={`/item-bank/${item.level}/${item.id}`}
                         className="text-sm font-medium text-blue-600 hover:underline"
                       >
                         {item.id}
                       </Link>
-                      <Badge variant="outline">{item.cefrLevel}</Badge>
+                      <Badge variant="outline">{item.level}</Badge>
                       <Badge variant="outline">{item.skill}</Badge>
                       <Badge variant="outline">{item.itemType}</Badge>
                     </div>

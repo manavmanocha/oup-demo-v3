@@ -14,7 +14,7 @@ export function DifficultyPrediction() {
   const needsReview = [
     {
       id: 'ITM-GEN-0009',
-      cefrLevel: 'A1',
+      level: 'A1',
       skill: 'Listening',
       itemType: 'Multiple Choice',
       content: 'What does the woman want?',
@@ -24,7 +24,7 @@ export function DifficultyPrediction() {
     },
     {
       id: 'ITM-GEN-0189',
-      cefrLevel: 'C1',
+      level: 'C1',
       skill: 'Writing',
       itemType: 'Multiple Choice',
       content: 'Write a card with a top and a bottom. The top has a picture of a clock...',
@@ -34,7 +34,7 @@ export function DifficultyPrediction() {
     },
     {
       id: 'ITM-GEN-0110',
-      cefrLevel: 'B2',
+      level: 'B2',
       skill: 'Writing',
       itemType: 'Multiple Choice',
       content: 'The fisherman\'s initial results were inconclusive, prompting further investigation.',
@@ -45,11 +45,11 @@ export function DifficultyPrediction() {
   ];
 
   const readyToAccept = [
-    { id: 'ITM-RACE-0027', item: 'This passage primarily deals with...', cefrLevel: 'B1', confidence: 92, difficulty: 'Medium', discrimination: 'Good' },
-    { id: 'ITM-RACE-0077', item: 'Why did the man decide to quit?', cefrLevel: 'B1', confidence: 92, difficulty: 'Medium', discrimination: 'Moderate' },
-    { id: 'ITM-RACE-0150', item: 'How about you? What does the passage mainly tell us?', cefrLevel: 'B1', confidence: 91, difficulty: 'Medium', discrimination: 'Moderate' },
-    { id: 'ITM-RACE-0199', item: 'What\'s the best title of the passage?', cefrLevel: 'B1', confidence: 92, difficulty: 'Medium', discrimination: 'Moderate' },
-    { id: 'ITM-RACE-0202', item: 'What does this passage mainly tell us about?', cefrLevel: 'B1', confidence: 92, difficulty: 'Hard', discrimination: 'Good' },
+    { id: 'ITM-RACE-0027', item: 'This passage primarily deals with...', level: 'B1', confidence: 92, difficulty: 'Medium', discrimination: 'Good' },
+    { id: 'ITM-RACE-0077', item: 'Why did the man decide to quit?', level: 'B1', confidence: 92, difficulty: 'Medium', discrimination: 'Moderate' },
+    { id: 'ITM-RACE-0150', item: 'How about you? What does the passage mainly tell us?', level: 'B1', confidence: 91, difficulty: 'Medium', discrimination: 'Moderate' },
+    { id: 'ITM-RACE-0199', item: 'What\'s the best title of the passage?', level: 'B1', confidence: 92, difficulty: 'Medium', discrimination: 'Moderate' },
+    { id: 'ITM-RACE-0202', item: 'What does this passage mainly tell us about?', level: 'B1', confidence: 92, difficulty: 'Hard', discrimination: 'Good' },
   ];
 
   return (
@@ -218,12 +218,12 @@ export function DifficultyPrediction() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3 flex-wrap">
                       <Link
-                        to={`/item-bank/${item.cefrLevel}/${item.id}`}
+                        to={`/item-bank/${item.level}/${item.id}`}
                         className="text-sm font-medium text-blue-600 hover:underline"
                       >
                         {item.id}
                       </Link>
-                      <Badge variant="outline">{item.cefrLevel}</Badge>
+                      <Badge variant="outline">{item.level}</Badge>
                       <Badge variant="outline">{item.skill}</Badge>
                       <Badge variant="outline">{item.itemType}</Badge>
                     </div>
@@ -287,14 +287,14 @@ export function DifficultyPrediction() {
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3">
                         <Link
-                          to={`/item-bank/${item.cefrLevel}/${item.id}`}
+                          to={`/item-bank/${item.level}/${item.id}`}
                           className="text-sm font-medium text-blue-600 hover:underline"
                         >
                           {item.id}
                         </Link>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 max-w-md truncate">{item.item}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{item.cefrLevel}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{item.level}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{item.confidence}%</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{item.difficulty}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{item.discrimination}</td>

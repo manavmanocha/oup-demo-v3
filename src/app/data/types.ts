@@ -1,6 +1,6 @@
 export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type Skill = 'Reading' | 'Writing' | 'Listening' | 'Speaking';
-export type ItemType = 'Multiple Choice' | 'Essay' | 'Speaking';
+export type ItemType = 'Multiple Choice' | 'Essay' | 'Speaking' | 'Fill in the Blanks' | 'Match the Following';
 export type ItemStatus = 'Active' | 'Compromised' | 'Retired' | 'Draft' | 'In Review' | 'Approved' | 'Calibrated';
 export type Difficulty = 'Easy' | 'Medium' | 'Hard' | 'Very Easy' | 'Very Hard';
 
@@ -33,7 +33,7 @@ export interface AssessmentItem {
   id: string;
   title: string;
   content: string;
-  cefrLevel: CEFRLevel;
+  level: CEFRLevel;
   skill: Skill;
   itemType: ItemType;
   status: ItemStatus;

@@ -28,12 +28,12 @@ export function ReviewQueue() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <Link
-                        to={`/item-bank/${item.cefrLevel}/${item.id}`}
+                        to={`/item-bank/${item.level}/${item.id}`}
                         className="text-sm font-medium text-blue-600 hover:underline"
                       >
                         {item.id}
                       </Link>
-                      <Badge variant="outline">{item.cefrLevel}</Badge>
+                      <Badge variant="outline">{item.level}</Badge>
                       <Badge variant="outline">{item.skill}</Badge>
                       <Badge variant="outline">{item.itemType}</Badge>
                     </div>
@@ -48,7 +48,7 @@ export function ReviewQueue() {
                   )}
 
                   <div className="flex items-center gap-2">
-                    <Link to={`/item-bank/${item.cefrLevel}/${item.id}`}>
+                    <Link to={`/item-bank/${item.level}/${item.id}`}>
                       <Button size="sm">Review Item</Button>
                     </Link>
                   </div>

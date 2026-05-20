@@ -114,6 +114,7 @@ export function ItemBankCEFRLevel() {
           </CardContent>
         </Card>
 
+
         {/* Compromised Items */}
         {items.filter(item => item.status === 'Compromised').length > 0 && (
           <Card className="mb-8 border-red-200">

@@ -7,6 +7,8 @@ import { IngestItems } from "./components/IngestItems";
 import { ItemBankOverview } from "./components/ItemBankOverview";
 import { ItemBankCEFRLevel } from "./components/ItemBankCEFRLevel";
 import { ItemDetail } from "./components/ItemDetail";
+import { Taxonomies } from "./components/Taxonomies";
+import { TaxonomyDetail } from "./components/TaxonomyDetail";
 import { Workflows } from "./components/Workflows";
 import { PreTestingPipeline } from "./components/PreTestingPipeline";
 import { Screening } from "./components/Screening";
@@ -25,12 +27,14 @@ export const router = createBrowserRouter([
     path: "/",
     Component: Root,
     children: [
-      { index: true, Component: Dashboard },
+      { index: true, Component: Library },
       { path: "library", Component: Library },
       { path: "library/ingest", Component: IngestItems },
       { path: "item-bank", Component: ItemBankOverview },
       { path: "item-bank/:level", Component: ItemBankCEFRLevel },
       { path: "item-bank/:level/:itemId", Component: ItemDetail },
+      { path: "taxonomies", Component: Taxonomies },
+      { path: "taxonomies/:taxonomyId", Component: TaxonomyDetail },
       { path: "workflows", Component: Workflows },
       { path: "workflows/pre-testing-pipeline", Component: ItemBankOverview },
       { path: "workflows/pre-testing-pipeline/stages", Component: PreTestingPipeline },

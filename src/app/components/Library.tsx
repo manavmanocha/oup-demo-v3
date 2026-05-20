@@ -14,6 +14,9 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Clock,
 } from "lucide-react";
 import { getAllItems } from "../data/mockData";
 import {
@@ -27,20 +30,32 @@ import {
 const ITEMS_PER_PAGE = 50;
 
 export function Library() {
-  const [filter, setFilter] = useState<"all" | "active">("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLevel, setSelectedLevel] =
-    useState<string>("all");
-  const [selectedSkill, setSelectedSkill] =
-    useState<string>("all");
+  const [selectedStatuses, setSelectedStatuses] = useState<
+    string[]
+  >([]);
+  const [selectedItemTypes, setSelectedItemTypes] = useState<
+    string[]
+  >([]);
+  const [selectedLevels, setSelectedLevels] = useState<
+    string[]
+  >([]);
+  const [selectedSkills, setSelectedSkills] = useState<
+    string[]
+  >([]);
+  const [selectedWorkflowStates, setSelectedWorkflowStates] =
+    useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Collapsible section states
+  const [expandedSections, setExpandedSections] = useState<
+    Set<string>
+  >(new Set(["status"]));
 
   const allItems = getAllItems();
 
   const filteredItems = useMemo(() => {
     return allItems.filter((item) => {
-      const matchesFilter =
-        filter === "all" ? true : item.status === "Active";
       const matchesSearch =
         item.id
           .toLowerCase()
@@ -52,27 +67,44 @@ export function Library() {
           .toLowerCase()
           .includes(searchQuery.toLowerCase());
       const matchesLevel =
-        selectedLevel === "all"
+        selectedLevels.length === 0
           ? true
-          : item.level === selectedLevel;
+          : selectedLevels.includes(item.level);
       const matchesSkill =
-        selectedSkill === "all"
+        selectedSkills.length === 0
           ? true
-          : item.skill === selectedSkill;
+          : selectedSkills.includes(item.skill);
+      const matchesItemType =
+        selectedItemTypes.length === 0
+          ? true
+          : selectedItemTypes.includes(item.itemType);
+      const matchesWorkflowState =
+        selectedWorkflowStates.length === 0
+          ? true
+          : item.workflowState &&
+            selectedWorkflowStates.includes(item.workflowState);
+      const matchesStatus =
+        selectedStatuses.length === 0
+          ? true
+          : selectedStatuses.includes(item.status);
 
       return (
-        matchesFilter &&
         matchesSearch &&
         matchesLevel &&
-        matchesSkill
+        matchesSkill &&
+        matchesItemType &&
+        matchesWorkflowState &&
+        matchesStatus
       );
     });
   }, [
     allItems,
-    filter,
     searchQuery,
-    selectedLevel,
-    selectedSkill,
+    selectedLevels,
+    selectedSkills,
+    selectedItemTypes,
+    selectedWorkflowStates,
+    selectedStatuses,
   ]);
 
   const totalPages = Math.ceil(
@@ -85,33 +117,127 @@ export function Library() {
     endIndex,
   );
 
-  const activeItemsCount = allItems.filter(
-    (item) => item.status === "Active",
-  ).length;
-
-  // Reset to page 1 when filters change
-  const handleFilterChange = (newFilter: "all" | "active") => {
-    setFilter(newFilter);
-    setCurrentPage(1);
+  // Calculate counts for filters
+  const statusCounts = {
+    Active: allItems.filter((item) => item.status === "Active")
+      .length,
+    Retired: allItems.filter(
+      (item) => item.status === "Retired",
+    ).length,
+    Compromised: allItems.filter(
+      (item) => item.status === "Compromised",
+    ).length,
   };
 
+  const itemTypeCounts = {
+    "Multiple Choice": allItems.filter(
+      (item) => item.itemType === "Multiple Choice",
+    ).length,
+    Essay: allItems.filter((item) => item.itemType === "Essay")
+      .length,
+    Speaking: allItems.filter(
+      (item) => item.itemType === "Speaking",
+    ).length,
+    "Fill in the Blanks": allItems.filter(
+      (item) => item.itemType === "Fill in the Blanks",
+    ).length,
+    "Match the Following": allItems.filter(
+      (item) => item.itemType === "Match the Following",
+    ).length,
+  };
+
+  const levelCounts = {
+    A1: allItems.filter((item) => item.level === "A1").length,
+    A2: allItems.filter((item) => item.level === "A2").length,
+    B1: allItems.filter((item) => item.level === "B1").length,
+    B2: allItems.filter((item) => item.level === "B2").length,
+    C1: allItems.filter((item) => item.level === "C1").length,
+    C2: allItems.filter((item) => item.level === "C2").length,
+  };
+
+  const skillCounts = {
+    Reading: allItems.filter((item) => item.skill === "Reading")
+      .length,
+    Writing: allItems.filter((item) => item.skill === "Writing")
+      .length,
+    Listening: allItems.filter(
+      (item) => item.skill === "Listening",
+    ).length,
+    Speaking: allItems.filter(
+      (item) => item.skill === "Speaking",
+    ).length,
+  };
+
+  const workflowStateCounts = {
+    Draft: allItems.filter(
+      (item) => item.workflowState === "Draft",
+    ).length,
+    "In Review": allItems.filter(
+      (item) => item.workflowState === "In Review",
+    ).length,
+    Approved: allItems.filter(
+      (item) => item.workflowState === "Approved",
+    ).length,
+    Published: allItems.filter(
+      (item) => item.workflowState === "Live",
+    ).length,
+  };
+
+  // Reset to page 1 when filters change
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     setCurrentPage(1);
   };
 
-  const handleLevelChange = (value: string) => {
-    setSelectedLevel(value);
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(section)) {
+        next.delete(section);
+      } else {
+        next.add(section);
+      }
+      return next;
+    });
+  };
+
+  const toggleStatus = (status: string) => {
+    setSelectedStatuses((prev) =>
+      prev.includes(status) ? [] : [status],
+    );
     setCurrentPage(1);
   };
 
-  const handleSkillChange = (value: string) => {
-    setSelectedSkill(value);
+  const toggleItemType = (type: string) => {
+    setSelectedItemTypes((prev) =>
+      prev.includes(type) ? [] : [type],
+    );
+    setCurrentPage(1);
+  };
+
+  const toggleLevel = (level: string) => {
+    setSelectedLevels((prev) =>
+      prev.includes(level) ? [] : [level],
+    );
+    setCurrentPage(1);
+  };
+
+  const toggleSkill = (skill: string) => {
+    setSelectedSkills((prev) =>
+      prev.includes(skill) ? [] : [skill],
+    );
+    setCurrentPage(1);
+  };
+
+  const toggleWorkflowState = (state: string) => {
+    setSelectedWorkflowStates((prev) =>
+      prev.includes(state) ? [] : [state],
+    );
     setCurrentPage(1);
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -127,7 +253,7 @@ export function Library() {
         {/* Ingest New Assets Card */}
         <Card className="mb-8 bg-blue-50 border-blue-100">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
                   Ingest New Assets
@@ -140,7 +266,7 @@ export function Library() {
                 </p>
               </div>
               <Link to="/library/ingest">
-                <Button className="ml-6">
+                <Button className="w-full md:w-auto md:ml-6">
                   <Plus className="w-4 h-4 mr-2" />
                   Click here to ingest
                 </Button>
@@ -149,295 +275,433 @@ export function Library() {
           </CardContent>
         </Card>
 
-        {/* Inventory Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold text-gray-900">
-                Item Inventory
-              </CardTitle>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={
-                    filter === "active" ? "default" : "outline"
-                  }
-                  size="sm"
-                  onClick={() => handleFilterChange("active")}
-                >
-                  Active Items
-                  <Badge
-                    variant="secondary"
-                    className="ml-2 bg-white text-gray-900"
-                  >
-                    {activeItemsCount}
-                  </Badge>
-                </Button>
-                <Button
-                  variant={
-                    filter === "all" ? "default" : "outline"
-                  }
-                  size="sm"
-                  onClick={() => handleFilterChange("all")}
-                >
-                  All Items
-                  <Badge
-                    variant="secondary"
-                    className="ml-2 bg-white text-gray-900"
-                  >
-                    {allItems.length}
-                  </Badge>
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {/* Filters */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder="Search by ID, title, or content..."
-                  value={searchQuery}
-                  onChange={(e) =>
-                    handleSearchChange(e.target.value)
-                  }
-                  className="pl-9"
-                />
-              </div>
-              <Select
-                value={selectedLevel}
-                onValueChange={handleLevelChange}
-              >
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="CEFR Level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    All Levels
-                  </SelectItem>
-                  <SelectItem value="A1">A1</SelectItem>
-                  <SelectItem value="A2">A2</SelectItem>
-                  <SelectItem value="B1">B1</SelectItem>
-                  <SelectItem value="B2">B2</SelectItem>
-                  <SelectItem value="C1">C1</SelectItem>
-                  <SelectItem value="C2">C2</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={selectedSkill}
-                onValueChange={handleSkillChange}
-              >
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Skill" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    All Skills
-                  </SelectItem>
-                  <SelectItem value="Reading">
-                    Reading
-                  </SelectItem>
-                  <SelectItem value="Writing">
-                    Writing
-                  </SelectItem>
-                  <SelectItem value="Listening">
-                    Listening
-                  </SelectItem>
-                  <SelectItem value="Speaking">
-                    Speaking
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+        {/* Main Layout: Sidebar + Content */}
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[16rem_minmax(0,1fr)]">
+          {/* Left Sidebar - Filters */}
+          <div className="w-full space-y-6 xl:w-64 xl:flex-shrink-0">
+            {/* Total Count */}
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                Total ({allItems.length})
+              </h3>
+              <p className="text-sm text-gray-600">
+                Selecting an existing asset. Use the filters
+                below to narrow down items in the list.
+              </p>
             </div>
 
-            {/* Table */}
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Item ID
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Level
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Skill
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Title
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Workflow State
-                    </th>
-                    <th className="px-4 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {paginatedItems.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={7}
-                        className="px-4 py-8 text-center text-gray-500"
-                      >
-                        No items found matching your filters.
-                      </td>
-                    </tr>
+            {/* Time Filter */}
+            <div>
+              <button className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900">
+                <Clock className="w-4 h-4" />
+                <span className="font-medium">Time: All</span>
+              </button>
+            </div>
+
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="Keyword..."
+                value={searchQuery}
+                onChange={(e) =>
+                  handleSearchChange(e.target.value)
+                }
+                className="pl-9"
+              />
+            </div>
+
+            {/* Collapsible Filters */}
+            <div className="space-y-4">
+              {/* Status Filter */}
+              <div className="border-b pb-4">
+                <button
+                  onClick={() => toggleSection("status")}
+                  className="flex items-center justify-between w-full text-left mb-3"
+                >
+                  <span className="font-semibold text-gray-900">
+                    Status
+                  </span>
+                  {expandedSections.has("status") ? (
+                    <ChevronUp className="w-5 h-5 text-gray-600" />
                   ) : (
-                    paginatedItems.map((item) => (
-                      <tr
-                        key={item.id}
-                        className="hover:bg-gray-50"
-                      >
-                        <td className="px-4 py-3">
-                          <Link
-                            to={`/item-bank/${item.level}/${item.id}`}
-                            className="text-sm font-medium text-blue-600 hover:underline"
-                          >
-                            {item.id}
-                          </Link>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge
-                            variant="outline"
-                            className="font-medium"
-                          >
-                            {item.level}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge variant="outline">
-                            {item.skill}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-gray-700 max-w-md truncate">
-                            {item.title}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge
-                            variant={
-                              item.status === "Active"
-                                ? "secondary"
-                                : item.status === "Compromised"
-                                  ? "destructive"
-                                  : "outline"
-                            }
-                          >
-                            {item.status}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          {item.workflowState && (
-                            <Badge
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {item.workflowState}
-                            </Badge>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <Link
-                            to={`/item-bank/${item.level}/${item.id}`}
-                          >
-                            <Button variant="ghost" size="sm">
-                              View
-                            </Button>
-                          </Link>
-                        </td>
-                      </tr>
-                    ))
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
                   )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  Showing {startIndex + 1}-
-                  {Math.min(endIndex, filteredItems.length)} of{" "}
-                  {filteredItems.length} items
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setCurrentPage((p) => Math.max(1, p - 1))
-                    }
-                    disabled={currentPage === 1}
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Previous
-                  </Button>
-                  <div className="flex items-center gap-1">
-                    {Array.from(
-                      { length: Math.min(5, totalPages) },
-                      (_, i) => {
-                        let pageNum;
-                        if (totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (
-                          currentPage >=
-                          totalPages - 2
-                        ) {
-                          pageNum = totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
-                        }
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={
-                              currentPage === pageNum
-                                ? "default"
-                                : "outline"
-                            }
-                            size="sm"
-                            onClick={() =>
-                              setCurrentPage(pageNum)
-                            }
-                            className="w-10"
-                          >
-                            {pageNum}
-                          </Button>
-                        );
-                      },
+                </button>
+                {expandedSections.has("status") && (
+                  <div className="space-y-1">
+                    {Object.entries(statusCounts).map(
+                      ([status, count]) => (
+                        <button
+                          key={status}
+                          onClick={() => toggleStatus(status)}
+                          className={`flex items-center justify-between w-full text-sm py-1 px-2 rounded hover:bg-gray-50 ${
+                            selectedStatuses.includes(status)
+                              ? "text-blue-600 font-medium"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <span>{status}</span>
+                          <span className="text-gray-500">
+                            {count}
+                          </span>
+                        </button>
+                      ),
                     )}
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setCurrentPage((p) =>
-                        Math.min(totalPages, p + 1),
-                      )
-                    }
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
+                )}
+              </div>
+
+              {/* Type Filter */}
+              <div className="border-b pb-4">
+                <button
+                  onClick={() => toggleSection("type")}
+                  className="flex items-center justify-between w-full text-left mb-3"
+                >
+                  <span className="font-semibold text-gray-900">
+                    Type
+                  </span>
+                  {expandedSections.has("type") ? (
+                    <ChevronUp className="w-5 h-5 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                  )}
+                </button>
+                {expandedSections.has("type") && (
+                  <div className="space-y-1">
+                    {Object.entries(itemTypeCounts).map(
+                      ([type, count]) => (
+                        <button
+                          key={type}
+                          onClick={() => toggleItemType(type)}
+                          className={`flex items-center justify-between w-full text-sm py-1 px-2 rounded hover:bg-gray-50 ${
+                            selectedItemTypes.includes(type)
+                              ? "text-blue-600 font-medium"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <span>{type}</span>
+                          <span className="text-gray-500">
+                            {count}
+                          </span>
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* CEFR Level Filter */}
+              <div className="border-b pb-4">
+                <button
+                  onClick={() => toggleSection("level")}
+                  className="flex items-center justify-between w-full text-left mb-3"
+                >
+                  <span className="font-semibold text-gray-900">
+                    CEFR Level
+                  </span>
+                  {expandedSections.has("level") ? (
+                    <ChevronUp className="w-5 h-5 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                  )}
+                </button>
+                {expandedSections.has("level") && (
+                  <div className="space-y-1">
+                    {Object.entries(levelCounts).map(
+                      ([level, count]) => (
+                        <button
+                          key={level}
+                          onClick={() => toggleLevel(level)}
+                          className={`flex items-center justify-between w-full text-sm py-1 px-2 rounded hover:bg-gray-50 ${
+                            selectedLevels.includes(level)
+                              ? "text-blue-600 font-medium"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <span>{level}</span>
+                          <span className="text-gray-500">
+                            {count}
+                          </span>
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Skill Filter */}
+              <div className="border-b pb-4">
+                <button
+                  onClick={() => toggleSection("skill")}
+                  className="flex items-center justify-between w-full text-left mb-3"
+                >
+                  <span className="font-semibold text-gray-900">
+                    Skill
+                  </span>
+                  {expandedSections.has("skill") ? (
+                    <ChevronUp className="w-5 h-5 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                  )}
+                </button>
+                {expandedSections.has("skill") && (
+                  <div className="space-y-1">
+                    {Object.entries(skillCounts).map(
+                      ([skill, count]) => (
+                        <button
+                          key={skill}
+                          onClick={() => toggleSkill(skill)}
+                          className={`flex items-center justify-between w-full text-sm py-1 px-2 rounded hover:bg-gray-50 ${
+                            selectedSkills.includes(skill)
+                              ? "text-blue-600 font-medium"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <span>{skill}</span>
+                          <span className="text-gray-500">
+                            {count}
+                          </span>
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Workflow State Filter */}
+              <div className="pb-4">
+                <button
+                  onClick={() => toggleSection("workflow")}
+                  className="flex items-center justify-between w-full text-left mb-3"
+                >
+                  <span className="font-semibold text-gray-900">
+                    Workflow State
+                  </span>
+                  {expandedSections.has("workflow") ? (
+                    <ChevronUp className="w-5 h-5 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                  )}
+                </button>
+                {expandedSections.has("workflow") && (
+                  <div className="space-y-1">
+                    {Object.entries(workflowStateCounts).map(
+                      ([state, count]) => (
+                        <button
+                          key={state}
+                          onClick={() =>
+                            toggleWorkflowState(state)
+                          }
+                          className={`flex items-center justify-between w-full text-sm py-1 px-2 rounded hover:bg-gray-50 ${
+                            selectedWorkflowStates.includes(
+                              state,
+                            )
+                              ? "text-blue-600 font-medium"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <span>{state}</span>
+                          <span className="text-gray-500">
+                            {count}
+                          </span>
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Content - Items */}
+          <div className="min-w-0">
+            {/* Items Table */}
+            <Card>
+              <CardContent className="p-0">
+                {/* Table */}
+                <div className="border rounded-lg overflow-x-auto">
+                  <table className="w-full min-w-[700px]">
+                    <thead className="bg-gray-50 border-b">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap w-40">
+                          Item ID
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          Level
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          Skill
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          Title
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          Status
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          Workflow State
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {paginatedItems.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="px-4 py-8 text-center text-gray-500"
+                          >
+                            No items found matching your
+                            filters.
+                          </td>
+                        </tr>
+                      ) : (
+                        paginatedItems.map((item) => (
+                          <tr
+                            key={item.id}
+                            className="hover:bg-gray-50"
+                          >
+                            <td className="px-4 py-3 whitespace-nowrap w-40">
+                              <Link
+                                to={`/item-bank/${item.level}/${item.id}`}
+                                className="text-sm font-medium text-blue-600 hover:underline">
+                                {item.id}
+                              </Link>
+                            </td>
+                            <td className="px-4 py-3">
+                              <Badge
+                                variant="outline"
+                                className="font-medium"
+                              >
+                                {item.level}
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-3">
+                              <Badge variant="outline">
+                                {item.skill}
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="text-sm text-gray-700 w-60 truncate">
+                                {item.title}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <Badge
+                                variant={
+                                  item.status === "Active"
+                                    ? "secondary"
+                                    : item.status ===
+                                        "Compromised"
+                                      ? "destructive"
+                                      : "outline"
+                                }
+                              >
+                                {item.status}
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-3">
+                              {item.workflowState && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs"
+                                >
+                                  {item.workflowState}
+                                </Badge>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
-            )}
-            {totalPages <= 1 && (
-              <div className="mt-4 text-sm text-gray-600 text-center">
-                Showing {filteredItems.length} of{" "}
-                {allItems.length} items
-              </div>
-            )}
-          </CardContent>
-        </Card>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="mt-6 flex items-center justify-between">
+                    <div className="text-sm text-gray-600">
+                      Showing {startIndex + 1}-
+                      {Math.min(endIndex, filteredItems.length)}{" "}
+                      of {filteredItems.length} items
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((p) =>
+                            Math.max(1, p - 1),
+                          )
+                        }
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                      </Button>
+                      <div className="flex items-center gap-1">
+                        {Array.from(
+                          { length: Math.min(5, totalPages) },
+                          (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                              pageNum = i + 1;
+                            } else if (currentPage <= 3) {
+                              pageNum = i + 1;
+                            } else if (
+                              currentPage >=
+                              totalPages - 2
+                            ) {
+                              pageNum = totalPages - 4 + i;
+                            } else {
+                              pageNum = currentPage - 2 + i;
+                            }
+                            return (
+                              <Button
+                                key={pageNum}
+                                variant={
+                                  currentPage === pageNum
+                                    ? "default"
+                                    : "outline"
+                                }
+                                size="sm"
+                                onClick={() =>
+                                  setCurrentPage(pageNum)
+                                }
+                                className="w-10"
+                              >
+                                {pageNum}
+                              </Button>
+                            );
+                          },
+                        )}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((p) =>
+                            Math.min(totalPages, p + 1),
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {totalPages <= 1 && (
+                  <div className="mt-4 text-sm text-gray-600 text-center">
+                    Showing {filteredItems.length} of{" "}
+                    {allItems.length} items
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

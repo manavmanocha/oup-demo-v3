@@ -12,6 +12,7 @@ import {
   X,
   LogOut,
   User,
+  FolderTree,
 } from "lucide-react";
 import {
   Tooltip,
@@ -137,11 +138,7 @@ export function Root() {
             onClick={() => setCollapsed(!collapsed)}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            {collapsed ? (
-              <Menu className="w-5 h-5" />
-            ) : (
-              <X className="w-5 h-5" />
-            )}
+            <Menu className="w-5 h-5" />
           </button>
         </div>
 
@@ -150,9 +147,9 @@ export function Root() {
           {/* Dashboard */}
           <div className="mb-3">
             <NavItem
-              to="/"
               icon={LayoutDashboard}
               label="Dashboard"
+              disabled
             />
           </div>
 
@@ -186,6 +183,15 @@ export function Root() {
               to="/library"
               icon={LibraryIcon}
               label="Library"
+            />
+          </div>
+
+          {/* Taxonomies */}
+          <div className="mb-1">
+            <NavItem
+              to="/taxonomies"
+              icon={FolderTree}
+              label="Taxonomies"
             />
           </div>
 

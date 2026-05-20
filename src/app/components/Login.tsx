@@ -45,18 +45,18 @@ export function Login() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#f4f4f4] px-4 py-10">
-      <div className="mx-auto w-full max-w-[470px] rounded-lg border border-[#d3d7de] bg-[#f6f7f9] p-8 sm:p-10">
-        <div className="mx-auto mb-8 flex flex-col items-center justify-center gap-2">
+    <div className="relative min-h-screen bg-[#f4f4f4] px-4 py-4 flex items-center justify-center">
+      <div className="w-full max-w-[470px] rounded-lg border border-[#d3d7de] bg-[#f6f7f9] p-6 sm:p-8">
+          <div className="mx-auto mb-5 flex flex-col items-center justify-center gap-2">
           <img
             src={comproDlsLogo}
             alt="comproDLS"
             className="h-7 w-auto"
           />
-          <span className="text-3xl font-bold text-[#5f7590]">BUILDER</span>
+          <span className="text-2xl font-bold text-[#5f7590]">BUILDER</span>
         </div>
 
-        <h1 className="mb-6 text-center text-4xl font-normal leading-none text-[#0f172a]">
+        <h1 className="mb-4 text-center text-3xl font-normal leading-none text-[#0f172a]">
           Sign In
         </h1>
 
@@ -71,7 +71,7 @@ export function Login() {
           <div>
             <Label
               htmlFor="email"
-              className="mb-1 block text-xl font-semibold leading-tight text-[#5e7189]"
+              className="mb-1 block text-base font-semibold leading-tight text-[#5e7189]"
             >
               With Username or Email
             </Label>
@@ -136,7 +136,7 @@ export function Login() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="mt-2 h-12 w-full rounded-lg bg-[#2f66dd] text-xl font-semibold tracking-[0.01em] text-white shadow-[0_8px_18px_rgba(40,85,175,0.24)] hover:bg-[#2a5cc7] disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-2 h-10 w-full rounded-lg bg-[#2f66dd] text-base font-semibold tracking-[0.01em] text-white shadow-[0_8px_18px_rgba(40,85,175,0.24)] hover:bg-[#2a5cc7] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isLoading ? "Logging in..." : "LOGIN"}
           </Button>
@@ -144,7 +144,7 @@ export function Login() {
           <div className="pt-2 text-center">
             <button
               type="button"
-              className="text-lg font-semibold text-[#2f65d8] hover:underline"
+              className="text-sm font-semibold text-[#2f65d8] hover:underline"
             >
               Don't have an account?
             </button>
