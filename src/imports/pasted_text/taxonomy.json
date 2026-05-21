@@ -254,27 +254,27 @@
     "cefrLevels": [
       {
         "id": "A1",
-        "label": "Beginner"
+        "label": "Beginner (A1)"
       },
       {
         "id": "A2",
-        "label": "Elementary"
+        "label": "Elementary (A2)"
       },
       {
         "id": "B1",
-        "label": "Intermediate"
+        "label": "Intermediate (B1)"
       },
       {
         "id": "B2",
-        "label": "Upper Intermediate"
+        "label": "Upper Intermediate (B2)"
       },
       {
         "id": "C1",
-        "label": "Advanced"
+        "label": "Advanced (C1)"
       },
       {
         "id": "C2",
-        "label": "Proficient"
+        "label": "Proficient (C2)"
       }
     ],
 
@@ -392,8 +392,7 @@
         "id": "LISTENING_AUDIO",
         "label": "Listening Audio"
       }
-    ],
-	
+    ]	
 
     }
 }

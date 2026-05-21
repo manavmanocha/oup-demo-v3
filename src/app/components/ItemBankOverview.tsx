@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router';
+import { Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -23,12 +23,6 @@ import {
 } from './ui/select';
 
 export function ItemBankOverview() {
-  const location = useLocation();
-  const isWorkflowView = location.pathname.startsWith('/workflows/pre-testing-pipeline');
-  const pageTitle = isWorkflowView ? 'Pre-Testing Pipeline Overview' : 'Item Bank';
-  const pageDescription = isWorkflowView
-    ? 'Monitor item health and manage the pre-testing pipeline across CEFR levels.'
-    : 'Manage and monitor your assessment item inventory across CEFR levels.';
   const totalActive = bankCapacityData.reduce((sum, level) => sum + level.active, 0);
   const totalTarget = bankCapacityData.reduce((sum, level) => sum + level.target, 0);
   const totalGap = bankCapacityData.reduce((sum, level) => sum + level.gapToTarget, 0);
@@ -109,9 +103,9 @@ export function ItemBankOverview() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{pageTitle}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Pre-Testing Pipeline Overview</h1>
             <p className="text-gray-600">
-              {pageDescription}
+              Monitor item health and manage the pre-testing pipeline across CEFR levels.
             </p>
           </div>
           <Link to="/workflows/pre-testing-pipeline/stages">

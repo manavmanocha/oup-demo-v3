@@ -57,13 +57,8 @@ export function TaxonomyDetail() {
     const isExpanded = expandedNodes.has(node.id);
     const hasChildren = node.children && node.children.length > 0;
 
-    // Calculate item count for this node and its children
-    const getNodeItemCount = (n: TaxonomyNode): number => {
-      const childCount = n.children?.reduce((sum, child) => sum + getNodeItemCount(child), 0) || 0;
-      return childCount > 0 ? childCount : Math.floor(Math.random() * 150) + 50; // Mock count
-    };
-
-    const itemCount = getNodeItemCount(node);
+    // Use the itemCount from the node if available
+    const itemCount = node.itemCount || 0;
 
     return (
       <div key={node.id} style={{ marginLeft: `${level * 24}px` }}>
@@ -241,12 +236,13 @@ export function TaxonomyDetail() {
             </p>
             <div className="space-y-3">
               {taxonomy.tree.map((node: TaxonomyNode) => {
-                const percentage = totalItems > 0 ? (node.itemCount / totalItems) * 100 : 0;
+                const itemCount = node.itemCount || 0;
+                const percentage = totalItems > 0 ? (itemCount / totalItems) * 100 : 0;
                 return (
                   <div key={node.id}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-900">{node.name}</span>
-                      <span className="text-sm text-gray-600">{node.itemCount} items ({percentage.toFixed(0)}%)</span>
+                      <span className="text-sm font-medium text-gray-900">{node.label}</span>
+                      <span className="text-sm text-gray-600">{itemCount} items ({percentage.toFixed(0)}%)</span>
                     </div>
                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                       <div
