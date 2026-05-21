@@ -129,7 +129,7 @@ export function IngestItems() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm text-gray-600">
-                    Upload your assessment items via CSV or Excel file. You will be able to configure metadata, preview, and validate your items before adding them to the global item bank.
+                    Upload your assessment items via CSV or Excel file. You will be able to configure metadata, preview, and validate your items before adding them to the global library.
                   </p>
 
                   <button className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
@@ -369,7 +369,7 @@ export function IngestItems() {
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Validation & Preview</h1>
               <p className="text-gray-600">
-                Review the items before adding them to the item bank.
+                Review the items before adding them to the global library.
               </p>
             </div>
 
@@ -508,7 +508,7 @@ export function IngestItems() {
                 Items Ingested Successfully
               </h1>
               <p className="text-gray-600">
-                {validItemsCount} items have been added to the item bank.
+                {validItemsCount} items have been added to the global library.
               </p>
             </div>
 
@@ -547,7 +547,7 @@ export function IngestItems() {
                   <div className="text-sm text-blue-900">
                     <p className="font-medium mb-1">Next Steps</p>
                     <p className="text-blue-700">
-                      Your items are now in the item bank with "Draft" status. You can review them in the Library and add them to the Pre-Testing Pipeline for screening and difficulty prediction.
+                      Your items are now in the global library with "Draft" status. You can review them in the Library and add them to the Pre-Testing Pipeline for screening and difficulty prediction.
                     </p>
                   </div>
                 </div>

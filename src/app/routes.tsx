@@ -6,7 +6,7 @@ import { Library } from "./components/Library";
 import { IngestItems } from "./components/IngestItems";
 import { ItemBankOverview } from "./components/ItemBankOverview";
 import { ItemBankCEFRLevel } from "./components/ItemBankCEFRLevel";
-import { ItemDetail } from "./components/ItemDetail";
+import { ItemDetailRedesign } from "./components/ItemDetailRedesign";
 import { Taxonomies } from "./components/Taxonomies";
 import { TaxonomyDetail } from "./components/TaxonomyDetail";
 import { Workflows } from "./components/Workflows";
@@ -32,7 +32,7 @@ export const router = createBrowserRouter([
       { path: "library/ingest", Component: IngestItems },
       { path: "item-bank", Component: ItemBankOverview },
       { path: "item-bank/:level", Component: ItemBankCEFRLevel },
-      { path: "item-bank/:level/:itemId", Component: ItemDetail },
+      { path: "item-bank/:level/:itemId", Component: ItemDetailRedesign },
       { path: "taxonomies", Component: Taxonomies },
       { path: "taxonomies/:taxonomyId", Component: TaxonomyDetail },
       { path: "workflows", Component: Workflows },

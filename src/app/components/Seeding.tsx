@@ -6,21 +6,21 @@ import { Check } from 'lucide-react';
 
 export function Seeding() {
   const recommendedItems = [
-    { id: 'ITM-RACE-0238', cefrLevel: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'If Mary are not free in the daytime, she\'d better call...', difficulty: 'Easy', a2Bank: '71%', confidence: '77%', familyRelationship: 'only 6 items at A2', defer: true },
-    { id: 'ITM-RACE-0293', cefrLevel: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'Why did the girl long for the house on the hill?', difficulty: 'Easy', a2Bank: '71%', confidence: '77%', familyRelationship: 'only 6 items at A2' },
-    { id: 'ITM-RACE-0244', cefrLevel: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'The little boy cried because...', difficulty: 'Easy', a2Bank: '71%', confidence: '86%', familyRelationship: 'Passed all screening checks' },
-    { id: 'ITM-RACE-0048', cefrLevel: 'B1', skill: 'Reading', itemType: 'Multiple Choice', content: 'A tale about fairies should be read...', difficulty: 'Medium', b1Bank: '54%', confidence: '87%', familyRelationship: 'Passed all screening checks', defer: true },
-    { id: 'ITM-RACE-0053', cefrLevel: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'The port of London...', difficulty: 'Easy', a2Bank: '71%', confidence: '91%', familyRelationship: 'Passed all screening checks' },
-    { id: 'ITM-RACE-0061', cefrLevel: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'If Mary are not free in the daytime, she\'d better call...', difficulty: 'Easy', a2Bank: '71%', confidence: '87%', familyRelationship: 'only 6 items at A2' },
+    { id: 'ITM-RACE-0238', level: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'If Mary are not free in the daytime, she\'d better call...', difficulty: 'Easy', a2Bank: '71%', confidence: '77%', familyRelationship: 'only 6 items at A2', defer: true },
+    { id: 'ITM-RACE-0293', level: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'Why did the girl long for the house on the hill?', difficulty: 'Easy', a2Bank: '71%', confidence: '77%', familyRelationship: 'only 6 items at A2' },
+    { id: 'ITM-RACE-0244', level: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'The little boy cried because...', difficulty: 'Easy', a2Bank: '71%', confidence: '86%', familyRelationship: 'Passed all screening checks' },
+    { id: 'ITM-RACE-0048', level: 'B1', skill: 'Reading', itemType: 'Multiple Choice', content: 'A tale about fairies should be read...', difficulty: 'Medium', b1Bank: '54%', confidence: '87%', familyRelationship: 'Passed all screening checks', defer: true },
+    { id: 'ITM-RACE-0053', level: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'The port of London...', difficulty: 'Easy', a2Bank: '71%', confidence: '91%', familyRelationship: 'Passed all screening checks' },
+    { id: 'ITM-RACE-0061', level: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'If Mary are not free in the daytime, she\'d better call...', difficulty: 'Easy', a2Bank: '71%', confidence: '87%', familyRelationship: 'only 6 items at A2' },
   ];
 
   const currentlySeeded = [
-    { id: 'ITM-RACE-0080', item: 'It seems that the argument went like clouds of MBAs...', cefrLevel: 'B2', difficulty: 'Hard', responses: '0 / 200', seeded: '1 Mar 2025' },
-    { id: 'ITM-RACE-0081', item: 'Which of the places mentioned is most likely...', cefrLevel: 'A2', difficulty: 'Medium', responses: '0 / 200', seeded: '1 Mar 2025' },
-    { id: 'ITM-RACE-0160', item: 'The Nazis inflected people who is...', cefrLevel: 'B1', difficulty: 'Medium', responses: '0 / 200', seeded: '1 Mar 2025' },
-    { id: 'ITM-RACE-0161', item: 'We know from the text that the customers at "Sam\'s L...', cefrLevel: 'B1', difficulty: 'Easy', responses: '0 / 200', seeded: '1 Mar 2025' },
-    { id: 'ITM-RACE-0182', item: 'When the father felt his baby, he was worried...', cefrLevel: 'B1', difficulty: 'Medium', responses: '0 / 200', seeded: '1 Mar 2025' },
-    { id: 'ITM-RACE-0193', item: 'Why does the author congratulate the male readers...', cefrLevel: 'B1', difficulty: 'Medium', responses: '0 / 200', seeded: '1 Mar 2025' },
+    { id: 'ITM-RACE-0080', item: 'It seems that the argument went like clouds of MBAs...', level: 'B2', difficulty: 'Hard', responses: '0 / 200', seeded: '1 Mar 2025' },
+    { id: 'ITM-RACE-0081', item: 'Which of the places mentioned is most likely...', level: 'A2', difficulty: 'Medium', responses: '0 / 200', seeded: '1 Mar 2025' },
+    { id: 'ITM-RACE-0160', item: 'The Nazis inflected people who is...', level: 'B1', difficulty: 'Medium', responses: '0 / 200', seeded: '1 Mar 2025' },
+    { id: 'ITM-RACE-0161', item: 'We know from the text that the customers at "Sam\'s L...', level: 'B1', difficulty: 'Easy', responses: '0 / 200', seeded: '1 Mar 2025' },
+    { id: 'ITM-RACE-0182', item: 'When the father felt his baby, he was worried...', level: 'B1', difficulty: 'Medium', responses: '0 / 200', seeded: '1 Mar 2025' },
+    { id: 'ITM-RACE-0193', item: 'Why does the author congratulate the male readers...', level: 'B1', difficulty: 'Medium', responses: '0 / 200', seeded: '1 Mar 2025' },
   ];
 
   return (
@@ -124,12 +124,12 @@ export function Seeding() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
                         <Link
-                          to={`/item-bank/${item.cefrLevel}/${item.id}`}
+                          to={`/item-bank/${item.level}/${item.id}`}
                           className="text-sm font-medium text-blue-600 hover:underline"
                         >
                           {item.id}
                         </Link>
-                        <Badge variant="outline">{item.cefrLevel}</Badge>
+                        <Badge variant="outline">{item.level}</Badge>
                         <Badge variant="outline">{item.skill}</Badge>
                         <Badge variant="outline">{item.itemType}</Badge>
                       </div>
@@ -147,7 +147,7 @@ export function Seeding() {
 
                       <div className="mt-3 space-y-1 text-xs text-gray-600">
                         <div>
-                          <span className="font-medium text-orange-600">{item.cefrLevel} bank at {item.a2Bank || item.b1Bank}</span> · 
+                          <span className="font-medium text-orange-600">{item.level} bank at {item.a2Bank || item.b1Bank}</span> · 
                           Model confidence {item.confidence} · {item.familyRelationship}
                         </div>
                         <div className="text-green-600">Passed all screening checks</div>
@@ -197,14 +197,14 @@ export function Seeding() {
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3">
                         <Link
-                          to={`/item-bank/${item.cefrLevel}/${item.id}`}
+                          to={`/item-bank/${item.level}/${item.id}`}
                           className="text-sm font-medium text-blue-600 hover:underline"
                         >
                           {item.id}
                         </Link>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 max-w-md truncate">{item.item}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{item.cefrLevel}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{item.level}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{item.difficulty}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{item.responses}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{item.seeded}</td>

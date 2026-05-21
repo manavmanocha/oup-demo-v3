@@ -1,4 +1,8 @@
-import { AssessmentItem, BankCapacity, CEFRLevel } from './types';
+import { AssessmentItem, BankCapacity, CEFRLevel, ItemType } from './types';
+import { listeningQuestions } from './listeningQuestions';
+import { speakingQuestions } from './speakingQuestions';
+import { writingQuestions } from './writingQuestions';
+import { readingQuestions } from './readingQuestions';
 
 export const bankCapacityData: BankCapacity[] = [
   { level: 'A1', active: 84, compromised: 6, gapToTarget: 28, target: 118, percentage: 71 },
@@ -450,6 +454,155 @@ const additionalMockItems: Partial<AssessmentItem>[] = [
   },
 ];
 
+// Convert listening questions to AssessmentItem format
+const listeningItems: AssessmentItem[] = listeningQuestions.map(q => ({
+  id: q.id,
+  title: q.question,
+  content: q.context || q.question,
+  level: q.level as CEFRLevel,
+  skill: 'Listening',
+  itemType: q.questionType as ItemType,
+  status: 'Active',
+  difficulty: q.difficulty,
+  options: q.options ? q.options.map((opt, idx) => ({
+    label: String.fromCharCode(65 + idx),
+    text: opt,
+    correct: opt === q.correctAnswer
+  })) : undefined,
+  audioAsset: q.audioFile,
+  passage: q.context,
+  subSkill: q.skill,
+  cognitiveLevel: q.difficulty === 'Easy' ? 'L2 Understand' : q.difficulty === 'Medium' ? 'L3 Apply' : 'L4 Analyze',
+  contentDomain: q.topic,
+  languageVariety: 'International',
+  discrimination: q.difficulty === 'Easy' ? 'Low' : q.difficulty === 'Medium' ? 'Moderate' : 'High',
+  confidence: q.difficulty === 'Easy' ? 75 : q.difficulty === 'Medium' ? 85 : 92,
+  workflowState: 'Live',
+  author: 'Content Team',
+  createdDate: '2024-09-01',
+  lastEditedDate: '2024-10-15',
+  reviewHistory: [
+    { date: '2024-09-01', reviewer: 'System', action: 'Created', state: 'Draft' },
+    { date: '2024-10-15', reviewer: 'Audio Team', action: 'Approved', state: 'Live' },
+  ],
+  irtParameters: {
+    b: q.difficulty === 'Easy' ? 0.3 : q.difficulty === 'Medium' ? 0.8 : 1.3,
+    a: 1.2,
+    c: q.options ? 0.25 : 0.0,
+    sampleSize: 500,
+    modelVersion: 'IRT-2.4',
+    calibratedFromFieldTest: true,
+  }
+}));
+
+// Convert speaking questions to AssessmentItem format
+const speakingItems: AssessmentItem[] = speakingQuestions.map(q => ({
+  id: q.id,
+  title: q.question,
+  content: q.question + (q.followUpQuestions ? '\n\nFollow-up questions:\n' + q.followUpQuestions.join('\n') : ''),
+  level: q.level as CEFRLevel,
+  skill: 'Speaking',
+  itemType: 'Speaking' as ItemType,
+  status: 'Active',
+  difficulty: q.difficulty,
+  rubric: q.rubricCriteria ? `Assessment Criteria:\n${q.rubricCriteria.join('\n')}` : undefined,
+  subSkill: q.skill,
+  cognitiveLevel: q.part === 1 ? 'L2 Understand' : q.part === 2 ? 'L3 Apply' : 'L4 Analyze',
+  contentDomain: q.topic,
+  languageVariety: 'International',
+  discrimination: q.difficulty === 'Easy' ? 'Low' : q.difficulty === 'Medium' ? 'Moderate' : 'High',
+  confidence: q.difficulty === 'Easy' ? 75 : q.difficulty === 'Medium' ? 85 : 92,
+  workflowState: 'Live',
+  author: 'Speaking Team',
+  createdDate: '2024-10-01',
+  lastEditedDate: '2024-11-15',
+  reviewHistory: [
+    { date: '2024-10-01', reviewer: 'System', action: 'Created', state: 'Draft' },
+    { date: '2024-11-15', reviewer: 'Speaking Team', action: 'Approved', state: 'Live' },
+  ],
+  irtParameters: {
+    b: q.difficulty === 'Easy' ? 0.4 : q.difficulty === 'Medium' ? 0.9 : 1.4,
+    a: 1.1,
+    c: 0.0,
+    sampleSize: 450,
+    modelVersion: 'IRT-2.4',
+    calibratedFromFieldTest: true,
+  }
+}));
+
+// Convert writing questions to AssessmentItem format
+const writingItems: AssessmentItem[] = writingQuestions.map(q => ({
+  id: q.id,
+  title: q.question,
+  content: q.question,
+  level: q.level as CEFRLevel,
+  skill: 'Writing',
+  itemType: 'Essay' as ItemType,
+  status: 'Active',
+  difficulty: q.difficulty,
+  rubric: q.rubric,
+  passage: q.visualData,
+  subSkill: q.skill,
+  cognitiveLevel: q.task === 1 ? 'L3 Apply' : 'L4 Analyze',
+  contentDomain: q.topic,
+  languageVariety: 'International',
+  discrimination: q.difficulty === 'Easy' ? 'Low' : q.difficulty === 'Medium' ? 'Moderate' : 'High',
+  confidence: q.difficulty === 'Easy' ? 75 : q.difficulty === 'Medium' ? 85 : 92,
+  workflowState: 'Live',
+  author: 'Writing Team',
+  createdDate: '2024-10-15',
+  lastEditedDate: '2024-12-01',
+  reviewHistory: [
+    { date: '2024-10-15', reviewer: 'System', action: 'Created', state: 'Draft' },
+    { date: '2024-12-01', reviewer: 'Writing Team', action: 'Approved', state: 'Live' },
+  ],
+  irtParameters: {
+    b: q.difficulty === 'Easy' ? 0.5 : q.difficulty === 'Medium' ? 1.0 : 1.5,
+    a: 1.3,
+    c: 0.0,
+    sampleSize: 400,
+    modelVersion: 'IRT-2.4',
+    calibratedFromFieldTest: true,
+  }
+}));
+
+// Convert reading questions to AssessmentItem format
+const readingItems: AssessmentItem[] = readingQuestions.map(q => ({
+  id: q.id,
+  title: q.question,
+  content: q.question,
+  level: q.level as CEFRLevel,
+  skill: 'Reading',
+  itemType: q.questionType as ItemType,
+  status: 'Active',
+  difficulty: q.difficulty,
+  passage: q.passageText,
+  passageId: `PSG-${q.id}`,
+  options: q.options,
+  subSkill: q.subSkill,
+  cognitiveLevel: q.difficulty === 'Easy' ? 'L2 Understand' : q.difficulty === 'Medium' ? 'L3 Apply' : 'L4 Analyze',
+  contentDomain: q.topic,
+  languageVariety: 'International',
+  discrimination: q.difficulty === 'Easy' ? 'Low' : q.difficulty === 'Medium' ? 'Moderate' : 'High',
+  confidence: q.difficulty === 'Easy' ? 75 : q.difficulty === 'Medium' ? 85 : 92,
+  workflowState: 'Live',
+  author: 'Reading Team',
+  createdDate: '2024-11-01',
+  lastEditedDate: '2024-12-15',
+  reviewHistory: [
+    { date: '2024-11-01', reviewer: 'System', action: 'Created', state: 'Draft' },
+    { date: '2024-12-15', reviewer: 'Reading Team', action: 'Approved', state: 'Live' },
+  ],
+  irtParameters: {
+    b: q.difficulty === 'Easy' ? 0.35 : q.difficulty === 'Medium' ? 0.85 : 1.35,
+    a: 1.25,
+    c: q.options ? 0.25 : 0.0,
+    sampleSize: 550,
+    modelVersion: 'IRT-2.4',
+    calibratedFromFieldTest: true,
+  }
+}));
+
 // Merge and export all items
 export const allMockItems: AssessmentItem[] = [
   ...mockItems,
@@ -475,6 +628,10 @@ export const allMockItems: AssessmentItem[] = [
       { date: '2024-08-20', reviewer: 'Reviewer', action: 'Approved', state: 'Approved' },
     ],
   })) as AssessmentItem[],
+  ...listeningItems,
+  ...speakingItems,
+  ...writingItems,
+  ...readingItems,
 ];
 
 export const getItemsByLevel = (level: CEFRLevel) => {
