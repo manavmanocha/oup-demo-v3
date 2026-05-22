@@ -15,7 +15,7 @@ import {
   Search,
   ChevronRight,
 } from "lucide-react";
-import { getAllItems } from "../data/mockData";
+import { getAllItems, queueItemsForScreening } from "../data/mockData";
 
 export function ScreenItems() {
   const navigate = useNavigate();
@@ -26,13 +26,13 @@ export function ScreenItems() {
     string[]
   >([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [queuedCount, setQueuedCount] = useState(0);
 
-  // Get all items from library - filter to only Draft/In Review items
+  // Get all items from library - filter to draft or screening-review items
   const allItems = getAllItems();
-  const availableItems = allItems;
-  // const availableItems = allItems.filter(item =>
-  //   item.workflowState === 'Draft' || item.workflowState === 'In Review'
-  // );
+  const availableItems = allItems.filter(
+    (item) => item.workflowState === 'Draft',
+  );
 
   const filteredItems = useMemo(() => {
     return availableItems.filter(
@@ -76,6 +76,8 @@ export function ScreenItems() {
   };
 
   const handleStartScreening = () => {
+    setQueuedCount(selectedItemIds.length);
+    queueItemsForScreening(selectedItemIds);
     setStep("success");
   };
 
@@ -91,23 +93,17 @@ export function ScreenItems() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
-          <Link
-            to="/workflows/pre-testing-pipeline"
-            className="hover:underline"
-          >
-            Pipeline
-          </Link>
+          <Link to="/workflows" className="hover:underline">Workflows</Link>
           <span className="text-gray-400">/</span>
-          <Link
-            to="/workflows/pre-testing-pipeline/screening"
-            className="hover:underline"
-          >
-            Screening
-          </Link>
+          <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline/screening" className="hover:underline">Screening</Link>
           <span className="text-gray-400">/</span>
           <span className="text-gray-900">Screen Items</span>
         </div>
@@ -122,7 +118,7 @@ export function ScreenItems() {
               <p className="text-gray-600">
                 Choose items from the library to add to the
                 screening queue. Only items in Draft or In
-                Review state are available.
+                Screening Review state are available.
               </p>
             </div>
 
@@ -138,7 +134,7 @@ export function ScreenItems() {
             </div>
 
             {/* Selection Summary */}
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+            <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-blue-50 rounded-lg">
               <span className="text-sm font-medium text-gray-900">
                 {selectedItemIds.length} item(s) selected
               </span>
@@ -156,8 +152,8 @@ export function ScreenItems() {
             {/* Items Table */}
             <Card>
               <CardContent className="p-0">
-                <div className="border rounded-lg overflow-hidden">
-                  <table className="w-full">
+                <div className="border rounded-lg overflow-x-auto">
+                  <table className="w-full min-w-[480px]">
                     <thead className="bg-gray-50 border-b">
                       <tr>
                         <th className="px-4 py-3 text-left w-12">
@@ -176,13 +172,13 @@ export function ScreenItems() {
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                           Title
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
                           Type
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                           CEFR
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
                           Skill
                         </th>
                       </tr>
@@ -219,7 +215,7 @@ export function ScreenItems() {
                             <td className="px-4 py-3 text-sm text-gray-900 max-w-md truncate">
                               {item.title}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-700">
+                            <td className="px-4 py-3 text-sm text-gray-700 hidden sm:table-cell">
                               {item.itemType}
                             </td>
                             <td className="px-4 py-3">
@@ -227,7 +223,7 @@ export function ScreenItems() {
                                 {item.level}
                               </Badge>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-700">
+                            <td className="px-4 py-3 text-sm text-gray-700 hidden sm:table-cell">
                               {item.skill}
                             </td>
                           </tr>
@@ -363,7 +359,7 @@ export function ScreenItems() {
                 Items Added to Screening Queue
               </h1>
               <p className="text-gray-600">
-                {selectedItems.length} items have been added
+                {queuedCount} items have been added
                 successfully.
               </p>
             </div>

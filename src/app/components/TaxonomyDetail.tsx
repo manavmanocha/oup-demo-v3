@@ -27,7 +27,7 @@ export function TaxonomyDetail() {
 
   if (!taxonomy) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 md:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Taxonomy Not Found</h1>
@@ -105,7 +105,7 @@ export function TaxonomyDetail() {
   const totalSubcategories = taxonomy.tree.reduce((sum, node) => sum + (node.children?.length || 0), 0);
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
@@ -260,3 +260,4 @@ export function TaxonomyDetail() {
     </div>
   );
 }
+

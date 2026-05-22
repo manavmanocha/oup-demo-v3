@@ -1,4 +1,4 @@
-import taxonomyData from "../../imports/pasted_text/taxonomy.json";
+import taxonomyData from "./taxonomy.json";
 
 export interface TaxonomyNode {
   id: string;

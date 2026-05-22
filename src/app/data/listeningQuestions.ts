@@ -81,7 +81,15 @@ export const listeningTests: ListeningTest[] = [
   }
 ];
 
-export const listeningQuestions: ListeningQuestion[] = [
+const audioFileByTestId: Record<ListeningTest['id'], string> = {
+  'LT-001': '/audio/test-01.mp3',
+  'LT-002': '/audio/test-02.mp3',
+  'LT-003': '/audio/test-03.mp3',
+  'LT-004': '/audio/test-04.mp3',
+  'LT-005': '/audio/test-05.mp3',
+};
+
+const listeningQuestionsBase: ListeningQuestion[] = [
   // Test 1 - Section 1: Form Completion (Social context)
   {
     id: 'LQ-001',
@@ -447,6 +455,11 @@ export const listeningQuestions: ListeningQuestion[] = [
     topic: 'Scientific'
   }
 ];
+
+export const listeningQuestions: ListeningQuestion[] = listeningQuestionsBase.map((question) => ({
+  ...question,
+  audioFile: audioFileByTestId[question.testId],
+}));
 
 export function getQuestionsByTest(testId: string): ListeningQuestion[] {
   return listeningQuestions.filter(q => q.testId === testId);

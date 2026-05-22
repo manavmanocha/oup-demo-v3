@@ -24,13 +24,15 @@ export function Seeding() {
   ];
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
           <Link to="/workflows" className="hover:underline">Workflows</Link>
           <span className="text-gray-400">/</span>
           <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
           <span className="text-gray-400">/</span>
           <span className="text-gray-900">Seeding</span>
         </div>
@@ -219,3 +221,4 @@ export function Seeding() {
     </div>
   );
 }
+

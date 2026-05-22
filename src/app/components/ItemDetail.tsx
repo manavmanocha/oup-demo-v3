@@ -35,7 +35,7 @@ export function ItemDetail() {
 
   if (!item) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 md:p-8">
         <div className="max-w-5xl mx-auto">
           <p className="text-gray-600">Item not found</p>
         </div>
@@ -69,7 +69,7 @@ export function ItemDetail() {
               <Badge variant="outline">{item.itemType}</Badge>
             </div>
           </div>
-          <Button variant="outline">Restore to Active</Button>
+          <Button variant="outline">Restore to Published</Button>
         </div>
 
         {/* Compromised Warning */}
@@ -595,3 +595,5 @@ export function ItemDetail() {
     </div>
   );
 }
+
+

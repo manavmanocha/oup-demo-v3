@@ -7,7 +7,7 @@ import { Progress } from './ui/progress';
 import { Input } from './ui/input';
 import { Checkbox } from './ui/checkbox';
 import { AlertCircle, AlertTriangle, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
-import { bankCapacityData, getCompromisedItems } from '../data/mockData';
+import { bankCapacityData, getAllItems, getCompromisedItems } from '../data/mockData';
 import {
   Tooltip,
   TooltipContent,
@@ -32,26 +32,30 @@ export function ItemBankOverview() {
   // Review Queue State
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Mock review queue data
-  const reviewQueueItems = [
-    { id: 'ITM-RACE-0238', name: 'If Mary are not free in the daytime...', type: 'MCQ', submittedBy: 'Sarah Chen', status: 'Pending Review', priority: 'High', createdDate: '2025-05-15', level: 'A2' },
-    { id: 'ITM-RACE-0048', name: 'If you were a housewife/wife, which program...', type: 'MCQ', submittedBy: 'James Liu', status: 'In Progress', priority: 'High', createdDate: '2025-05-14', level: 'A2' },
-    { id: 'ITM-GEN-0063', name: 'If one wants to be a reporter, he must __', type: 'MCQ', submittedBy: 'Lisa Anderson', status: 'Approved', priority: 'Medium', createdDate: '2025-05-13', level: 'B1' },
-    { id: 'ITM-GEN-0189', name: 'Write a card with a top and a bottom...', type: 'Writing', submittedBy: 'David Kim', status: 'Pending Review', priority: 'Low', createdDate: '2025-05-12', level: 'C1' },
-    { id: 'ITM-RACE-0293', name: 'Why did the girl long for the house...', type: 'MCQ', submittedBy: 'Priya Sharma', status: 'Rejected', priority: 'Low', createdDate: '2025-05-11', level: 'A2' },
-  ];
+  const reviewQueueItems = getAllItems()
+    .filter(
+      (item) =>
+        item.workflowState === 'Screening Review' ||
+        item.workflowState === 'Difficulty Prediction Review',
+    )
+    .map((item) => ({
+      id: item.id,
+      name: item.title || item.content,
+      type: item.itemType,
+      submittedBy: item.author || 'System',
+      status: item.workflowState === 'Difficulty Prediction Review' ? 'DP Review' : 'Screening Review',
+      level: item.level,
+    }));
 
   const filteredReviewItems = reviewQueueItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          item.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || item.priority === priorityFilter;
-    return matchesSearch && matchesStatus && matchesPriority;
+    return matchesSearch && matchesStatus;
   });
 
   const totalPages = Math.ceil(filteredReviewItems.length / itemsPerPage);
@@ -80,26 +84,22 @@ export function ItemBankOverview() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Pending Review': return 'bg-orange-100 text-orange-800';
-      case 'In Progress': return 'bg-blue-100 text-blue-800';
-      case 'Approved': return 'bg-green-100 text-green-800';
-      case 'Rejected': return 'bg-red-100 text-red-800';
+      case 'Screening Review': return 'bg-orange-100 text-orange-800';
+      case 'DP Review': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'High': return 'bg-red-100 text-red-800 border-red-200';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Low': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
+          <Link to="/workflows" className="hover:underline">Workflows</Link>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-900">Pre-Testing Pipeline</span>
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -262,21 +262,8 @@ export function ItemBankOverview() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="Pending Review">Pending Review</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="Approved">Approved</SelectItem>
-                  <SelectItem value="Rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Priority</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
+                  <SelectItem value="Screening Review">Screening Review</SelectItem>
+                  <SelectItem value="DP Review">DP Review</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -307,9 +294,6 @@ export function ItemBankOverview() {
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Level</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted By</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created Date</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -324,7 +308,8 @@ export function ItemBankOverview() {
                           <td className="px-4 py-3">
                             <div className="flex flex-col">
                               <Link
-                                to={`/item-bank/${item.level}/${item.id}`}
+                                to={`/item-bank/${item.level}/${item.id}?from=workflow`}
+                                state={{ fromWorkflow: true }}
                                 className="text-sm font-medium text-blue-600 hover:underline"
                               >
                                 {item.id}
@@ -343,15 +328,6 @@ export function ItemBankOverview() {
                             <Badge className={getStatusColor(item.status)}>
                               {item.status}
                             </Badge>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge variant="outline" className={getPriorityColor(item.priority)}>
-                              {item.priority}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{item.createdDate}</td>
-                          <td className="px-4 py-3">
-                            <Button variant="ghost" size="sm">Review</Button>
                           </td>
                         </tr>
                       ))}
@@ -436,3 +412,4 @@ export function ItemBankOverview() {
     </div>
   );
 }
+

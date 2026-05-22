@@ -26,11 +26,11 @@ export function ItemBankCEFRLevel() {
   ];
 
   if (!level || !levelData) {
-    return <div className="p-8">Level not found</div>;
+    return <div className="p-4 sm:p-6 md:p-8">Level not found</div>;
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
@@ -230,3 +230,4 @@ export function ItemBankCEFRLevel() {
     </div>
   );
 }
+

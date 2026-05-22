@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useParams } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -40,15 +40,20 @@ import {
 
 export function ItemDetailRedesign() {
   const { level, itemId } = useParams<{ level: CEFRLevel; itemId: string }>();
+  const location = useLocation();
   const item = getItemById(itemId!);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioPlaying, setAudioPlaying] = useState(false);
+  const [audioCurrentTime, setAudioCurrentTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [audioError, setAudioError] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
   const [showMetadata, setShowMetadata] = useState(true);
   const [passageExpanded, setPassageExpanded] = useState(true);
 
   if (!item) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 md:p-8">
         <div className="max-w-7xl mx-auto">
           <p className="text-gray-600">Item not found</p>
         </div>
@@ -57,6 +62,18 @@ export function ItemDetailRedesign() {
   }
 
   const isListening = item.skill === 'Listening';
+  const fromWorkflowState = (location.state as { fromWorkflow?: boolean } | null)?.fromWorkflow;
+  const fromWorkflowQuery = new URLSearchParams(location.search).get('from') === 'workflow';
+  const isFromWorkflow = Boolean(fromWorkflowState || fromWorkflowQuery);
+  const screeningEntries = item.screening
+    ? [
+        { label: 'CEFR Fit', value: item.screening.cefrFit },
+        { label: 'Distractor Strength', value: item.screening.distractorStrength },
+        { label: 'Clarity', value: item.screening.clarity },
+        { label: 'Fairness', value: item.screening.fairness },
+        { label: 'Similarity', value: item.screening.similarity },
+      ].filter((entry) => Boolean(entry.value))
+    : [];
   const allItems = getAllItems();
   const relatedItems = allItems
     .filter(i =>
@@ -66,36 +83,124 @@ export function ItemDetailRedesign() {
     )
     .slice(0, 3);
 
+  const formatAudioTime = (seconds: number) => {
+    if (!Number.isFinite(seconds) || seconds < 0) {
+      return '0:00';
+    }
+
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const toggleAudioPlayback = async () => {
+    if (!audioRef.current) {
+      return;
+    }
+
+    if (audioPlaying) {
+      audioRef.current.pause();
+      return;
+    }
+
+    try {
+      setAudioError(null);
+      await audioRef.current.play();
+    } catch {
+      setAudioError('Unable to play this audio file. Please verify the format and file path.');
+      setAudioPlaying(false);
+    }
+  };
+
+  const handleAudioSeek = (nextTime: number) => {
+    if (!audioRef.current || !Number.isFinite(nextTime)) {
+      return;
+    }
+
+    audioRef.current.currentTime = nextTime;
+    setAudioCurrentTime(nextTime);
+  };
+
+  useEffect(() => {
+    if (!audioRef.current || !isListening || !item.audioAsset) {
+      return;
+    }
+
+    const audioEl = audioRef.current;
+
+    const handleTimeUpdate = () => setAudioCurrentTime(audioEl.currentTime || 0);
+    const handleLoadedMetadata = () => setAudioDuration(audioEl.duration || 0);
+    const handleEnded = () => setAudioPlaying(false);
+    const handlePlay = () => setAudioPlaying(true);
+    const handlePause = () => setAudioPlaying(false);
+    const handleError = () => {
+      setAudioError('Unable to load this audio file. Please verify the file exists in public/audio.');
+      setAudioPlaying(false);
+    };
+
+    setAudioCurrentTime(0);
+    setAudioDuration(0);
+    setAudioError(null);
+
+    audioEl.pause();
+    audioEl.currentTime = 0;
+    audioEl.load();
+
+    audioEl.addEventListener('timeupdate', handleTimeUpdate);
+    audioEl.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audioEl.addEventListener('ended', handleEnded);
+    audioEl.addEventListener('play', handlePlay);
+    audioEl.addEventListener('pause', handlePause);
+    audioEl.addEventListener('error', handleError);
+
+    return () => {
+      audioEl.removeEventListener('timeupdate', handleTimeUpdate);
+      audioEl.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audioEl.removeEventListener('ended', handleEnded);
+      audioEl.removeEventListener('play', handlePlay);
+      audioEl.removeEventListener('pause', handlePause);
+      audioEl.removeEventListener('error', handleError);
+    };
+  }, [isListening, item.audioAsset]);
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation Bar */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link to="/library">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Library
-                </Button>
-              </Link>
-              <Separator orientation="vertical" className="h-6" />
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span>{item.skill}</span>
-                <span>•</span>
-                <span>{item.level}</span>
-                <span>•</span>
-                <span className="text-gray-400">{item.id}</span>
+      {/* Top Navigation Bar - Fixed positioning for all zoom levels */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+        <div className="w-full px-8 py-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-center justify-between gap-4">
+              {/* Left section - Back button with proper alignment */}
+              <div className="flex items-center gap-4 min-w-0 flex-shrink-0">
+                <Link to="/library" className="flex-shrink-0">
+                  <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Library
+                  </Button>
+                </Link>
+                <Separator orientation="vertical" className="h-6 flex-shrink-0" />
+                {/* Item metadata badges - highlighted */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="outline" className="font-semibold text-blue-700 border-blue-300 bg-blue-50">
+                    {item.skill}
+                  </Badge>
+                  <Badge variant="outline" className="font-semibold text-gray-700 border-gray-300">
+                    {item.level}
+                  </Badge>
+                  <span className="text-sm font-mono text-gray-500">{item.id}</span>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <FileText className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-              <Button variant="outline" size="sm">
-                Edit Item
-              </Button>
+
+              {/* Right section - Action buttons */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Button variant="outline" size="sm">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Export
+                </Button>
+                <Button variant="outline" size="sm">
+                  Edit Item
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -108,17 +213,18 @@ export function ItemDetailRedesign() {
             {isListening && item.audioAsset && (
               <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
                 <CardContent className="p-6">
+                  <audio ref={audioRef} src={item.audioAsset} preload="metadata" />
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                       <Headphones className="w-8 h-8 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">Audio Recording</h3>
-                      <p className="text-sm text-gray-600 mb-3">{item.audioAsset}</p>
+                      <h3 className="font-semibold text-gray-900 mb-4">Audio Recording</h3>
+                      {/* <p className="text-sm text-gray-600 mb-3">{item.audioAsset}</p> */}
                       <div className="flex items-center gap-3">
                         <Button
                           size="sm"
-                          onClick={() => setAudioPlaying(!audioPlaying)}
+                          onClick={toggleAudioPlayback}
                           className="bg-blue-600 hover:bg-blue-700"
                         >
                           {audioPlaying ? (
@@ -135,12 +241,25 @@ export function ItemDetailRedesign() {
                         </Button>
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <Volume2 className="w-4 h-4" />
-                          <div className="w-32 h-1 bg-gray-300 rounded-full">
-                            <div className="w-3/4 h-full bg-blue-600 rounded-full"></div>
-                          </div>
+                          <input
+                            type="range"
+                            min={0}
+                            max={audioDuration || 0}
+                            step={0.1}
+                            value={Math.min(audioCurrentTime, audioDuration || 0)}
+                            onChange={(event) => handleAudioSeek(Number(event.target.value))}
+                            className="w-40 accent-blue-600 cursor-pointer"
+                            disabled={!audioDuration}
+                            aria-label="Seek audio"
+                          />
                         </div>
-                        <span className="text-sm text-gray-600">0:00 / 2:45</span>
+                        <span className="text-sm text-gray-600">
+                          {formatAudioTime(audioCurrentTime)} / {formatAudioTime(audioDuration)}
+                        </span>
                       </div>
+                      {audioError && (
+                        <p className="text-sm text-red-600 mt-2">{audioError}</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -183,15 +302,15 @@ export function ItemDetailRedesign() {
 
             {/* Main Question */}
             <Card className="border-2 border-blue-200 shadow-md">
-              <CardContent className="p-8">
+              <CardContent className="p-4 sm:p-6 md:p-8">
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                       Q
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900">Question</h2>
+                    <h2 className="text-xl font-bold text-gray-900">Question</h2>
                   </div>
-                  <p className="text-xl text-gray-900 leading-relaxed">
+                  <p className="text-lg text-gray-900 leading-relaxed">
                     {item.title}
                   </p>
                 </div>
@@ -202,7 +321,7 @@ export function ItemDetailRedesign() {
                     {item.options.map((option) => (
                       <div
                         key={option.label}
-                        className={`p-5 rounded-xl border-2 transition-all ${
+                        className={`p-3 rounded-xl border-2 transition-all ${
                           showExplanation && option.correct
                             ? 'border-green-500 bg-green-50 shadow-sm'
                             : showExplanation
@@ -211,7 +330,7 @@ export function ItemDetailRedesign() {
                         }`}
                       >
                         <div className="flex items-start gap-4">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0 ${
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold flex-shrink-0 ${
                             showExplanation && option.correct
                               ? 'bg-green-600 text-white'
                               : 'bg-gray-100 text-gray-700'
@@ -219,7 +338,7 @@ export function ItemDetailRedesign() {
                             {option.label}
                           </div>
                           <div className="flex-1 pt-1">
-                            <p className="text-gray-900">{option.text}</p>
+                            <p className="text-gray-700">{option.text}</p>
                           </div>
                           {showExplanation && option.correct && (
                             <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
@@ -247,7 +366,7 @@ export function ItemDetailRedesign() {
 
                 {/* Show Answer Button */}
                 {!showExplanation && item.options && item.options.length > 0 && (
-                  <div className="mt-6 pt-6 border-t">
+                  <div className="mt-4 pt-4 border-t">
                     <Button
                       onClick={() => setShowExplanation(true)}
                       className="w-full bg-blue-600 hover:bg-blue-700"
@@ -532,6 +651,52 @@ export function ItemDetailRedesign() {
             </Card>
 
             {/* Workflow & Review History */}
+            {isFromWorkflow && screeningEntries.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm tracking-[0.12em] uppercase text-slate-500">Screening</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {screeningEntries.map((entry) => (
+                      <div
+                        key={entry.label}
+                        className={`flex items-center justify-between rounded-xl px-4 py-3 ${
+                          entry.value === 'Review'
+                            ? 'bg-amber-50/80 border border-amber-100'
+                            : entry.value === 'Pass'
+                              ? 'bg-green-50/80 border border-green-100'
+                              : 'bg-red-50/80 border border-red-100'
+                        }`}
+                      >
+                        <div className="text-base font-semibold leading-tight text-gray-900 sm:text-md">
+                          {entry.label}
+                        </div>
+                        <Badge
+                          variant={
+                            entry.value === 'Fail'
+                              ? 'destructive'
+                              : entry.value === 'Review'
+                                ? 'secondary'
+                                : 'outline'
+                          }
+                          className={`rounded-full px-4 py-1 text-xs font-semibold tracking-wide uppercase ${
+                            entry.value === 'Pass'
+                              ? 'bg-green-100 text-green-700 border-green-200'
+                              : entry.value === 'Review'
+                                ? 'bg-amber-200/80 text-amber-800 border-amber-300'
+                                : ''
+                          }`}
+                        >
+                          {entry.value}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader>
                 <CardTitle>Review History & Workflow State</CardTitle>
@@ -540,7 +705,7 @@ export function ItemDetailRedesign() {
                 {/* Current State */}
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                   <div className="text-sm text-gray-600 mb-2">Current State</div>
-                  <Badge className="text-base px-3 py-1">
+                  <Badge className="bg-gray-600 text-white px-3 py-1">
                     {item.workflowState || 'Unknown'}
                   </Badge>
                 </div>
@@ -668,3 +833,5 @@ export function ItemDetailRedesign() {
     </div>
   );
 }
+
+

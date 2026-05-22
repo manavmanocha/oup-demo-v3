@@ -38,6 +38,7 @@ export function Root() {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -116,125 +117,112 @@ export function Root() {
     );
   };
 
+  const SidebarContent = () => (
+    <>
+      {/* Logo & Hamburger */}
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+        {!collapsed && (
+          <div className="flex items-center gap-2">
+            <img src={builderLogo} alt="Builder Logo" className="w-8 h-8" />
+            <span className="font-bold text-lg">BUILDER</span>
+          </div>
+        )}
+        <button
+          onClick={() => { setCollapsed(!collapsed); setMobileOpen(false); }}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 p-3 overflow-y-auto">
+        <div className="mb-3">
+          <NavItem icon={LayoutDashboard} label="Dashboard" disabled />
+        </div>
+        {!collapsed && (
+          <div className="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Products</div>
+        )}
+        <div className="space-y-1 mb-3">
+          {productItems.map((item, index) => (
+            <NavItem key={index} icon={item.icon} label={item.label} disabled />
+          ))}
+        </div>
+        <Separator className="my-4" />
+        {!collapsed && (
+          <div className="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Assets</div>
+        )}
+        <div className="mb-1">
+          <NavItem to="/library" icon={LibraryIcon} label="Library" />
+        </div>
+        <div className="mb-1">
+          <NavItem to="/taxonomies" icon={FolderTree} label="Taxonomies" />
+        </div>
+        <Separator className="my-4" />
+        <div className="mb-1">
+          <NavItem to="/workflows" icon={Workflow} label="Workflows" />
+        </div>
+        <div>
+          <NavItem icon={Upload} label="Publish" disabled />
+        </div>
+      </nav>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-200">
+        {collapsed ? (
+          <div className="flex justify-center">
+            <div className="w-8 h-8 bg-gray-900 text-white flex items-center justify-center font-bold text-xs">DLS</div>
+          </div>
+        ) : (
+          <div className="text-xs text-gray-500">
+            <img src={dlsLogo} alt="comproDLS" className="h-8 w-full max-w-[8.5rem] h-[3rem] display-block m-auto" />
+            <div className="text-gray-400 m-auto text-center mt-1">© 2025 Compro Technologies</div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile Sidebar drawer */}
       <div
-        className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ${
-          collapsed ? "w-16" : "w-64"
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 md:hidden ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Logo & Hamburger */}
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          {!collapsed && (
-            <div className="flex items-center gap-2">
-              <img src={builderLogo} alt="Builder Logo" className="w-8 h-8" />
-              <span className="font-bold text-lg">
-                BUILDER
-              </span>
-            </div>
-          )}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-        </div>
+        <SidebarContent />
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-3 overflow-y-auto">
-          {/* Dashboard */}
-          <div className="mb-3">
-            <NavItem
-              icon={LayoutDashboard}
-              label="Dashboard"
-              disabled
-            />
-          </div>
-
-          {/* Products Section */}
-          {!collapsed && (
-            <div className="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Products
-            </div>
-          )}
-          <div className="space-y-1 mb-3">
-            {productItems.map((item, index) => (
-              <NavItem
-                key={index}
-                icon={item.icon}
-                label={item.label}
-                disabled
-              />
-            ))}
-          </div>
-
-          <Separator className="my-4" />
-
-          {/* Assets Section */}
-          {!collapsed && (
-            <div className="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Assets
-            </div>
-          )}
-          <div className="mb-1">
-            <NavItem
-              to="/library"
-              icon={LibraryIcon}
-              label="Library"
-            />
-          </div>
-
-          {/* Taxonomies */}
-          <div className="mb-1">
-            <NavItem
-              to="/taxonomies"
-              icon={FolderTree}
-              label="Taxonomies"
-            />
-          </div>
-
-          <Separator className="my-4" />
-
-          {/* Workflows */}
-          <div className="mb-1">
-            <NavItem
-              to="/workflows"
-              icon={Workflow}
-              label="Workflows"
-            />
-          </div>
-
-          {/* Publish */}
-          <div>
-            <NavItem icon={Upload} label="Publish" disabled />
-          </div>
-        </nav>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-200">
-          {collapsed ? (
-            <div className="flex justify-center">
-              <div className="w-8 h-8 bg-gray-900 text-white flex items-center justify-center font-bold text-xs">
-                DLS
-              </div>
-            </div>
-          ) : (
-            <div className="text-xs text-gray-500">
-              <img src={dlsLogo} alt="comproDLS" className="h-8 w-full max-w-[8.5rem] h-[3rem] display-block m-auto" />
-              <div className="text-gray-400 m-auto text-center mt-1">
-                © 2025 Compro Technologies
-              </div>
-            </div>
-          )}
-        </div>
+      {/* Desktop Sidebar */}
+      <div
+        className={`hidden md:flex bg-white border-r border-gray-200 flex-col transition-all duration-300 ${
+          collapsed ? 'w-16' : 'w-64'
+        }`}
+      >
+        <SidebarContent />
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-end px-6">
+        <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:justify-end md:px-6">
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors md:hidden"
+            aria-label="Open menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
           <div className="flex items-center gap-4">
             <button className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900">
               <span className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">

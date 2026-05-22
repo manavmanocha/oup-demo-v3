@@ -7,7 +7,27 @@ import { Checkbox } from './ui/checkbox';
 import { Input } from './ui/input';
 import { CheckCircle2, Sparkles, Search, ChevronRight } from 'lucide-react';
 import { Progress } from './ui/progress';
-import { getAllItems } from '../data/mockData';
+import { applyDifficultyPredictions, getAllItems } from '../data/mockData';
+import { Difficulty } from '../data/types';
+
+const toTimestamp = (value?: string): number => {
+  if (!value) return 0;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const sortNewestFirst = <T extends { createdDate?: string; lastEditedDate?: string; id: string }>(items: T[]): T[] => {
+  return [...items].sort((a, b) => {
+    const aTime = Math.max(toTimestamp(a.createdDate), toTimestamp(a.lastEditedDate));
+    const bTime = Math.max(toTimestamp(b.createdDate), toTimestamp(b.lastEditedDate));
+
+    if (bTime !== aTime) {
+      return bTime - aTime;
+    }
+
+    return b.id.localeCompare(a.id);
+  });
+};
 
 export function PredictDifficulty() {
   const navigate = useNavigate();
@@ -15,13 +35,13 @@ export function PredictDifficulty() {
   const [progress, setProgress] = useState(0);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [predictionResults, setPredictionResults] = useState<Record<string, { b: number; confidence: number; difficulty: 'Easy' | 'Medium' | 'Hard' | 'Very Easy' | 'Very Hard'; discrimination: string }>>({});
 
-  // Get all items from library - filter to items that passed screening
+  // Get all items from library - filter to items in Screening Passed state
   const allItems = getAllItems();
-  const availableItems = allItems.filter(item =>
-    item.screening?.cefrFit === 'Pass' ||
-    item.screening?.similarity === 'Pass' ||
-    item.workflowState === 'Approved'
+  const availableItems = useMemo(
+    () => sortNewestFirst(allItems.filter((item) => item.workflowState === 'Screening Passed')),
+    [allItems],
   );
 
   const filteredItems = useMemo(() => {
@@ -32,13 +52,13 @@ export function PredictDifficulty() {
     );
   }, [availableItems, searchQuery]);
 
-  // Generate mock prediction data for selected items
-  const selectedItems = availableItems
+  // Keep selected items resolvable after prediction changes state after prediction starts
+  const selectedItems = allItems
     .filter(item => selectedItemIds.includes(item.id))
     .map(item => ({
       ...item,
-      predictedDifficulty: Math.random() * 2,
-      confidence: Math.floor(Math.random() * 30) + 70,
+      predictedDifficulty: predictionResults[item.id]?.b ?? 0,
+      confidence: predictionResults[item.id]?.confidence ?? 0,
     }));
 
   const toggleItem = (itemId: string) => {
@@ -67,12 +87,34 @@ export function PredictDifficulty() {
     setStep('processing');
     setProgress(0);
 
+    const generatedResults: { id: string; b: number; confidence: number; difficulty: Difficulty; discrimination: string }[] = selectedItemIds.map((id) => {
+      const b = Number((Math.random() * 2).toFixed(2));
+      const confidence = Math.floor(Math.random() * 30) + 70;
+      const difficulty: Difficulty = b < 0.4 ? 'Easy' : b < 1.2 ? 'Medium' : 'Hard';
+      const discrimination = confidence >= 90 ? 'High' : confidence >= 80 ? 'Moderate' : 'Low';
+      return { id, b, confidence, difficulty, discrimination };
+    });
+
     // Simulate prediction processing
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          setTimeout(() => setStep('success'), 500);
+          setTimeout(() => {
+            applyDifficultyPredictions(generatedResults);
+            setPredictionResults(
+              generatedResults.reduce<Record<string, { b: number; confidence: number; difficulty: 'Easy' | 'Medium' | 'Hard' | 'Very Easy' | 'Very Hard'; discrimination: string }>>((acc, result) => {
+                acc[result.id] = {
+                  b: result.b,
+                  confidence: result.confidence,
+                  difficulty: result.difficulty,
+                  discrimination: result.discrimination,
+                };
+                return acc;
+              }, {}),
+            );
+            setStep('success');
+          }, 500);
           return 100;
         }
         return prev + 20;
@@ -86,6 +128,7 @@ export function PredictDifficulty() {
     setSelectedItemIds([]);
     setSearchQuery('');
     setProgress(0);
+    setPredictionResults({});
   };
 
   const handleFinish = () => {
@@ -93,11 +136,15 @@ export function PredictDifficulty() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
-          <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pipeline</Link>
+          <Link to="/workflows" className="hover:underline">Workflows</Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
           <span className="text-gray-400">/</span>
           <Link to="/workflows/pre-testing-pipeline/difficulty-prediction" className="hover:underline">Difficulty Prediction</Link>
           <span className="text-gray-400">/</span>
@@ -147,8 +194,8 @@ export function PredictDifficulty() {
             {/* Items Table */}
             <Card>
               <CardContent className="p-0">
-                <div className="border rounded-lg overflow-hidden">
-                  <table className="w-full">
+                <div className="border rounded-lg overflow-hidden overflow-x-auto">
+                  <table className="w-full min-w-[560px]">
                     <thead className="bg-gray-50 border-b">
                       <tr>
                         <th className="px-4 py-3 text-left w-12">
@@ -166,6 +213,7 @@ export function PredictDifficulty() {
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CEFR</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skill</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -191,6 +239,9 @@ export function PredictDifficulty() {
                               <Badge variant="outline">{item.level}</Badge>
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-700">{item.skill}</td>
+                            <td className="px-4 py-3">
+                              <Badge variant="outline" className='bg-green-100 text-green-800'>Screening Passed</Badge>
+                            </td>
                           </tr>
                         ))
                       )}
@@ -208,7 +259,6 @@ export function PredictDifficulty() {
               <Button
                 onClick={handleContinue}
                 disabled={selectedItemIds.length === 0}
-                className="bg-purple-600 hover:bg-purple-700"
               >
                 Continue
                 <ChevronRight className="w-4 h-4 ml-1" />
@@ -224,7 +274,7 @@ export function PredictDifficulty() {
               <Sparkles className="w-8 h-8 text-purple-600" />
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
-                  Run Difficulty Prediction
+                  Start Difficulty Prediction
                 </h1>
                 <p className="text-gray-600">
                   {selectedItems.length} items selected for ML-based difficulty prediction.
@@ -235,8 +285,8 @@ export function PredictDifficulty() {
             {/* Items Table */}
             <Card>
               <CardContent className="p-0">
-                <div className="border rounded-lg overflow-hidden">
-                  <table className="w-full">
+                <div className="border rounded-lg overflow-hidden overflow-x-auto">
+                  <table className="w-full min-w-[560px]">
                     <thead className="bg-gray-50 border-b">
                       <tr>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
@@ -262,7 +312,7 @@ export function PredictDifficulty() {
               </CardContent>
             </Card>
 
-            <Card className="bg-purple-50 border-purple-200">
+            {/* <Card className="bg-purple-50 border-purple-200">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-3">
                   <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
@@ -275,11 +325,11 @@ export function PredictDifficulty() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             <div className="pt-4">
               <p className="text-sm font-medium text-gray-900 mb-2">
-                Would you like to run difficulty prediction on these items?
+                Would you like to start difficulty prediction on these items?
               </p>
             </div>
 
@@ -292,9 +342,9 @@ export function PredictDifficulty() {
                 <Link to="/workflows/pre-testing-pipeline/difficulty-prediction">
                   <Button variant="outline">Cancel</Button>
                 </Link>
-                <Button onClick={handleStartPrediction} className="bg-purple-600 hover:bg-purple-700">
+                <Button onClick={handleStartPrediction}>
                   <Sparkles className="w-4 h-4 mr-2" />
-                  Run Prediction
+                  Start Prediction
                 </Button>
               </div>
             </div>
@@ -355,6 +405,18 @@ export function PredictDifficulty() {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
+                          <p className="text-xs text-gray-500">Predicted Level</p>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {predictionResults[item.id]?.difficulty ?? 'N/A'}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500">Discrimination</p>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {predictionResults[item.id]?.discrimination ?? 'N/A'}
+                          </p>
+                        </div>
+                        <div className="text-right">
                           <p className="text-xs text-gray-500">Difficulty (b)</p>
                           <p className="text-sm font-semibold text-gray-900">{item.predictedDifficulty.toFixed(2)}</p>
                         </div>
@@ -380,7 +442,7 @@ export function PredictDifficulty() {
               <Button variant="outline" onClick={handleFinish}>
                 No, Finish
               </Button>
-              <Button onClick={handleAddMore} className="bg-purple-600 hover:bg-purple-700">
+              <Button onClick={handleAddMore}>
                 Predict More Items
               </Button>
             </div>
@@ -390,3 +452,4 @@ export function PredictDifficulty() {
     </div>
   );
 }
+

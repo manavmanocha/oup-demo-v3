@@ -1,0 +1,6 @@
+itemId,content,cefrLevel,skill,itemType,answerKey,distractors,audioAsset
+ITM-SMP-0201,"She ____ to school by bus every day.",A1,Reading,Multiple Choice,goes,"go|going|went",
+ITM-SMP-0202,"Jordan said the plan could work but warned that major risks remain and gave no final decision. What is the most likely meaning?",B1,Reading,Multiple Choice,"Qualified or uncertain acceptance","Clear approval|Clear rejection|Strong excitement",
+ITM-SMP-0203,"Listen to the announcement and identify which gate passengers should proceed to.",B1,Listening,Multiple Choice,"Gate 14","Gate 6|Gate 9|Gate 21",/audio/test-01.mp3
+ITM-SMP-0204,"Complete the sentence: The museum will remain closed until _____.",A2,Listening,Sentence Completion,next Monday,,/audio/test-02.mp3
+ITM-SMP-0205,"Describe a memorable journey and explain why it was important to you.",B2,Speaking,Speaking,"Candidate provides a clear, relevant spoken response",,
