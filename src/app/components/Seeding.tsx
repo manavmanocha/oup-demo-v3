@@ -31,7 +31,11 @@ export function Seeding() {
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
 
   const recommendedItems = useMemo(
-    () => sortNewestFirst(allItems.filter((item) => item.workflowState === 'Difficulty Prediction Review')),
+    () => sortNewestFirst(
+      allItems.filter(
+        (item) => item.workflowState === 'Difficulty Prediction Review' && (item.confidence ?? 0) < 60,
+      ),
+    ),
     [allItems],
   );
 
