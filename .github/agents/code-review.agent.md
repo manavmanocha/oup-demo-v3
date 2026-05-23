@@ -1,6 +1,7 @@
 ---
 name: "Code Review Agent"
 description: "Use when you need a code review, PR review, bug-risk scan, regression analysis, security review, or test-gap review. Prioritizes concrete findings over summaries."
+model: "openai/gpt-5.4"
 argument-hint: "What to review (file, folder, diff, or PR context)"
 tools: [read, search, execute]
 user-invocable: true
