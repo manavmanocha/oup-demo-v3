@@ -2,15 +2,15 @@ import { AssessmentItem, BankCapacity, CEFRLevel, ItemType } from './types';
 
 import questionsData from './questions.json';
 
-type ListeningQuestion = (typeof questionsData.listeningQuestionsBase)[number] & {
+type ListeningQuestion = (typeof questionsData.listening.questionsBase)[number] & {
   audioFile?: string;
 };
 type ReadingQuestion = (typeof questionsData.readingQuestions)[number];
 type WritingQuestion = (typeof questionsData.writingQuestions)[number];
 type SpeakingQuestion = (typeof questionsData.speakingQuestions)[number];
 
-const audioFileByTestId = questionsData.audioFileByTestId as Record<string, string>;
-const listeningQuestionsBase = questionsData.listeningQuestionsBase as ListeningQuestion[];
+const audioFileByTestId = questionsData.listening.audioFileByTestId as Record<string, string>;
+const listeningQuestionsBase = questionsData.listening.questionsBase as ListeningQuestion[];
 const listeningQuestions: ListeningQuestion[] = listeningQuestionsBase.map((question) => ({
   ...question,
   audioFile: audioFileByTestId[question.testId] ?? question.audioFile,
