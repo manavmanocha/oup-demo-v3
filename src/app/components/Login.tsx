@@ -11,8 +11,8 @@ export function Login() {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("oupuser1@gmail.com");
-  const [password, setPassword] = useState("demo123");
+  const [email, setEmail] = useState("manav.manocha@comprotechnologies.com");
+  const [password, setPassword] = useState("Compro11");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,7 +34,7 @@ export function Login() {
         navigate("/");
       } else {
         setError(
-          "Invalid email or password. Try: oupuser1@gmail.com / demo123",
+          "Invalid email or password. Try: manav.manocha@comprotechnologies.com or sneha.goel@comprotechnologies.com with password Compro11",
         );
       }
     } catch (err) {
@@ -86,7 +86,7 @@ export function Login() {
               type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="oupuser1@gmail.com"
+              placeholder="manav.manocha@comprotechnologies.com"
               className="h-11 rounded-md border-[#c7d0dc] bg-[#dbe3f0] px-4 text-base text-[#222] focus-visible:ring-1 focus-visible:ring-[#5f88d1]"
               required
             />

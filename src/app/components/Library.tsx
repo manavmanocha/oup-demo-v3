@@ -534,7 +534,8 @@ export function Library() {
           {/* Right Content - Items */}
           <div className="flex-1 min-w-0">
             {/* Active Filters Bar - Top */}
-            {(selectedStatuses.length > 0 ||
+            {(searchQuery.trim().length > 0 ||
+              selectedStatuses.length > 0 ||
               selectedLevels.length > 0 ||
               selectedSkills.length > 0 ||
               selectedItemTypes.length > 0) && (
@@ -542,6 +543,20 @@ export function Library() {
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className="text-sm font-semibold text-gray-700">Filters:</span>
+                    {searchQuery.trim().length > 0 && (
+                      <Badge
+                        variant="secondary"
+                        className="text-sm pl-3 pr-2 py-1 bg-white border border-gray-300"
+                      >
+                        Keyword: {searchQuery}
+                        <button
+                          onClick={() => handleSearchChange("")}
+                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    )}
                     {selectedStatuses.map(status => (
                       <Badge
                         key={status}
@@ -620,7 +635,16 @@ export function Library() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
               <div>
                 <p className="text-sm text-gray-600">
-                  Showing <span className="font-semibold text-gray-900">{filteredItems.length}</span> of {allItems.length} questions
+                  {filteredItems.length > 0 ? (
+                    <>
+                      Showing <span className="font-semibold text-gray-900">{startIndex + 1}</span>-
+                      <span className="font-semibold text-gray-900">{Math.min(endIndex, filteredItems.length)}</span> of {filteredItems.length} items
+                    </>
+                  ) : (
+                    <>
+                      Showing <span className="font-semibold text-gray-900">0</span> of 0 items
+                    </>
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-2">

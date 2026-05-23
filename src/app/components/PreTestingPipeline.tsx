@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -7,10 +6,10 @@ import { ArrowRight } from 'lucide-react';
 import { getAllItems } from '../data/mockData';
 
 export function PreTestingPipeline() {
-  const allItems = useMemo(() => getAllItems(), []);
+  const allItems = getAllItems();
   const screeningQueueCount = allItems.filter((item) => item.workflowState === 'Draft').length;
   const predictionQueueCount = allItems.filter((item) => item.workflowState === 'Screening Passed').length;
-  const seedingQueueCount = allItems.filter((item) => item.workflowState === 'Seeded').length;
+  const seedingQueueCount = allItems.filter((item) => item.workflowState === 'Difficulty Prediction Review').length;
 
   const recentRuns = [
     { id: 'RUN-0051', stage: 'Screening', items: 21, flagged: 5, status: 'Success', date: '11 Mar 2025' },

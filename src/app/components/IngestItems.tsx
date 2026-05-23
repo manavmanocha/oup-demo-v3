@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Upload, Download, FileText, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { taxonomies } from '../data/taxonomy';
@@ -164,6 +163,83 @@ const toTitleFromText = (content: string) => {
   return trimmed.length <= 120 ? trimmed : `${trimmed.slice(0, 117)}...`;
 };
 
+const INGEST_AUTHORS = ['Aisha Verma', 'Daniel Brooks', 'Neha Kapoor', 'Rohan Mehta', 'Elena Petrova'];
+const INGEST_REVIEWERS = ['Maya Thompson', 'Arjun Nair', 'Sofia Martinez', 'Kabir Singh', 'Liam O\'Connell'];
+const INGEST_PREVIEW_ITEMS_STORAGE_KEY = 'ingest-preview-items-v1';
+
+const hashFromId = (id: string) =>
+  id.split('').reduce((sum, char) => sum + (char.codePointAt(0) ?? 0), 0);
+
+const buildPreviewItem = (
+  item: ParsedUploadItem,
+  fileName: string,
+  defaultCognitiveLevelLabel: string,
+  defaultGrammarLabel: string,
+  defaultContentDomainLabel: string,
+  defaultLanguageVarietyLabel: string,
+  defaultTopicLabel: string,
+): AssessmentItem => {
+  const fallbackId = item.id || 'ITM-INGEST-PREVIEW';
+  const itemHash = hashFromId(fallbackId);
+  const author = INGEST_AUTHORS[itemHash % INGEST_AUTHORS.length];
+  const reviewer = INGEST_REVIEWERS[itemHash % INGEST_REVIEWERS.length];
+  const createdDate = new Date().toISOString().slice(0, 10);
+  const resolvedType = resolveItemType(item.type, item.type);
+  const isMCQ = resolvedType === 'Multiple Choice';
+  const distractors = item.distractors
+    .split(/[|;]/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  const optionTexts = isMCQ
+    ? [item.answerKey, ...distractors].filter((value, idx2, arr) => arr.indexOf(value) === idx2)
+    : [];
+
+  const options = isMCQ
+    ? optionTexts.map((text, idx2) => ({
+        label: String.fromCodePoint(65 + idx2),
+        text,
+        correct: text === item.answerKey,
+      }))
+    : undefined;
+
+  return {
+    id: item.id,
+    title: toTitleFromText(item.content || item.id),
+    content: item.content,
+    level: resolveLevel(item.level) ?? 'B1',
+    skill: resolveSkill(item.skill) ?? 'Reading',
+    itemType: resolvedType,
+    status: 'Draft',
+    difficulty: mapLevelToDifficulty(resolveLevel(item.level) ?? 'B1'),
+    options,
+    audioAsset: item.skill === 'Listening' ? item.audioAsset : undefined,
+    subSkill: item.skill,
+    cognitiveLevel: defaultCognitiveLevelLabel || 'L2 Understand',
+    contentDomain: defaultContentDomainLabel || 'General',
+    languageVariety: defaultLanguageVarietyLabel || 'International',
+    topic: defaultTopicLabel || undefined,
+    grammarFocus: defaultGrammarLabel || undefined,
+    discrimination: 'Moderate',
+    confidence: 80,
+    workflowState: 'Draft',
+    author,
+    createdDate,
+    lastEditedDate: createdDate,
+    lastEditedBy: reviewer,
+    reviewers: [reviewer],
+    reviewHistory: [
+      {
+        date: createdDate,
+        reviewer,
+        action: 'Ingested',
+        state: 'Draft',
+        notes: `Imported from ${fileName}`,
+      },
+    ],
+  } as AssessmentItem;
+};
+
 export function IngestItems() {
   const navigate = useNavigate();
   const [step, setStep] = useState<'upload' | 'metadata' | 'validate' | 'success'>('upload');
@@ -177,7 +253,6 @@ export function IngestItems() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Import configuration state
-  const [source, setSource] = useState('');
   const [defaultCognitiveLevel, setDefaultCognitiveLevel] = useState('');
   const [defaultGrammar, setDefaultGrammar] = useState('');
   const [defaultContentDomain, setDefaultContentDomain] = useState('');
@@ -344,7 +419,19 @@ export function IngestItems() {
   };
 
   const handleMetadataSubmit = () => {
-    if (source && parsedItems.length > 0) {
+    if (parsedItems.length > 0) {
+      const previewItems = parsedItems.map((item) =>
+        buildPreviewItem(
+          item,
+          fileName,
+          defaultCognitiveLevelLabel,
+          defaultGrammarLabel,
+          defaultContentDomainLabel,
+          defaultLanguageVarietyLabel,
+          defaultTopicLabel,
+        ),
+      );
+      localStorage.setItem(INGEST_PREVIEW_ITEMS_STORAGE_KEY, JSON.stringify(previewItems));
       setStep('validate');
     }
   };
@@ -384,13 +471,16 @@ export function IngestItems() {
 
         const options = isMCQ
           ? optionTexts.map((text, idx2) => ({
-              label: String.fromCharCode(65 + idx2),
+              label: String.fromCodePoint(65 + idx2),
               text,
               correct: text === item.answerKey,
             }))
           : undefined;
 
         const createdDate = new Date().toISOString().slice(0, 10);
+        const itemHash = hashFromId(uniqueId);
+        const author = INGEST_AUTHORS[itemHash % INGEST_AUTHORS.length];
+        const reviewer = INGEST_REVIEWERS[itemHash % INGEST_REVIEWERS.length];
 
         return {
           id: uniqueId,
@@ -412,13 +502,15 @@ export function IngestItems() {
           discrimination: 'Moderate',
           confidence: 80,
           workflowState: 'Draft',
-          author: source,
+          author,
           createdDate,
           lastEditedDate: createdDate,
+          lastEditedBy: reviewer,
+          reviewers: [reviewer],
           reviewHistory: [
             {
               date: createdDate,
-              reviewer: source,
+              reviewer,
               action: 'Ingested',
               state: 'Draft',
               notes: `Imported from ${fileName}`,
@@ -519,7 +611,7 @@ export function IngestItems() {
                           className="hidden"
                           accept=".csv,.xlsx,.xls"
                           onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
+                            if (e.target.files?.[0]) {
                               void handleFileUpload(e.target.files[0]);
                             }
                           }}
@@ -734,17 +826,6 @@ export function IngestItems() {
                   </Select>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Source <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="e.g., Cambridge Assessment, Internal Development"
-                    value={source}
-                    onChange={(e) => setSource(e.target.value)}
-                  />
-                </div>
               </CardContent>
             </Card>
 
@@ -759,7 +840,6 @@ export function IngestItems() {
                 </Button>
                 <Button
                   onClick={handleMetadataSubmit}
-                  disabled={!source}
                   className="cursor-pointer"
                 >
                   Continue
@@ -825,7 +905,6 @@ export function IngestItems() {
                   {defaultContentDomainLabel && <Badge variant="outline">Content Domain: {defaultContentDomainLabel}</Badge>}
                   {defaultLanguageVarietyLabel && <Badge variant="outline">Language Variety: {defaultLanguageVarietyLabel}</Badge>}
                   {defaultTopicLabel && <Badge variant="outline">Topic: {defaultTopicLabel}</Badge>}
-                  <Badge variant="outline">Source: {source}</Badge>
                 </div>
               </CardContent>
             </Card>
@@ -854,6 +933,9 @@ export function IngestItems() {
                             <CheckCircle2 className="w-4 h-4 text-green-600" />
                           )}
                         </div>
+                        <Link to={`/item-bank/${resolveLevel(item.level) ?? 'B1'}/${item.id}?mode=preview&from=ingest`}>
+                          <Button variant="outline" size="sm">Preview</Button>
+                        </Link>
                       </div>
                       <p className="text-sm text-gray-700 mb-2">{item.content}</p>
                       {item.issues.length > 0 && (
@@ -978,10 +1060,6 @@ export function IngestItems() {
                     <span className="text-gray-600">Topic:</span>
                     <span className="font-semibold text-gray-900">{defaultTopicLabel || 'Not set'}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Source:</span>
-                    <span className="font-semibold text-gray-900">{source}</span>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -1000,6 +1078,32 @@ export function IngestItems() {
               </CardContent>
             </Card>
 
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium text-gray-500 uppercase">
+                  Newly Ingested Items
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {parsedItems
+                    .filter((item) => item.issues.length === 0)
+                    .slice(0, 20)
+                    .map((item) => (
+                      <div key={item.id} className="flex items-start justify-between gap-3 rounded-lg border border-gray-200 p-3">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{item.id}</div>
+                          <div className="text-xs text-gray-600">{item.level} • {item.skill} • {item.type}</div>
+                        </div>
+                        <Link to={`/item-bank/${item.level}/${item.id}?mode=preview`}>
+                          <Button variant="outline" size="sm">Preview</Button>
+                        </Link>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+
             <div className="flex items-center justify-center gap-3">
               <Button variant="outline" onClick={() => {
                 setStep('upload');
@@ -1013,7 +1117,6 @@ export function IngestItems() {
                 setDefaultContentDomain('');
                 setDefaultLanguageVariety('');
                 setDefaultTopic('');
-                setSource('');
               }} className="cursor-pointer">
                 Ingest More Items
               </Button>

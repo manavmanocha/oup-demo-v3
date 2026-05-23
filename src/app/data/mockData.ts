@@ -386,6 +386,32 @@ export const acceptPredictedItems = (itemIds: string[]) => {
   });
 };
 
+export const moveItemsToSeeded = (itemIds: string[]) => {
+  const today = new Date().toISOString().slice(0, 10);
+
+  upsertItemOverrides(itemIds, (item, existingPatch) => {
+    const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
+    const nextHistory = [
+      ...previousHistory,
+      {
+        date: today,
+        reviewer: 'Seeding Team',
+        action: 'Added to Seeding Batch',
+        state: 'Seeded',
+      },
+    ];
+
+    return {
+      workflowState: 'Seeded',
+      status: 'Published',
+      flaggedForReview: false,
+      reviewHistory: nextHistory,
+      lastEditedDate: today,
+      lastEditedBy: 'Seeding Team',
+    };
+  });
+};
+
 export const bankCapacityData: BankCapacity[] = [
   { level: 'A1', active: 84, compromised: 6, gapToTarget: 28, target: 118, percentage: 71 },
   { level: 'A2', active: 67, compromised: 13, gapToTarget: 0, target: 80, percentage: 100 },
@@ -1362,6 +1388,53 @@ const readingItems: AssessmentItem[] = readingQuestions.map((q, index) => {
 });
 
 // Merge and export all items
+const REALISTIC_AUTHORS = [
+  'Aisha Verma',
+  'Daniel Brooks',
+  'Neha Kapoor',
+  'Rohan Mehta',
+  'Elena Petrova',
+];
+
+const REALISTIC_REVIEWERS = [
+  'Maya Thompson',
+  'Arjun Nair',
+  'Sofia Martinez',
+  'Kabir Singh',
+  'Liam O\'Connell',
+];
+
+const hashFromId = (id: string) =>
+  id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+const assignRealisticPeople = (item: AssessmentItem): AssessmentItem => {
+  const hash = hashFromId(item.id);
+  const author = REALISTIC_AUTHORS[hash % REALISTIC_AUTHORS.length];
+  const reviewerOne = REALISTIC_REVIEWERS[hash % REALISTIC_REVIEWERS.length];
+  const reviewerTwo = REALISTIC_REVIEWERS[(hash + 2) % REALISTIC_REVIEWERS.length];
+  const reviewers = reviewerOne === reviewerTwo ? [reviewerOne] : [reviewerOne, reviewerTwo];
+
+  const reviewHistory = (item.reviewHistory ?? []).map((entry, index) => {
+    const assignedReviewer = REALISTIC_REVIEWERS[(hash + index) % REALISTIC_REVIEWERS.length];
+    return {
+      ...entry,
+      reviewer: assignedReviewer,
+    };
+  });
+
+  const lastEditedBy = item.lastEditedBy
+    ? REALISTIC_REVIEWERS[(hash + 1) % REALISTIC_REVIEWERS.length]
+    : undefined;
+
+  return {
+    ...item,
+    author,
+    reviewers,
+    reviewHistory,
+    lastEditedBy,
+  };
+};
+
 export const allMockItems: AssessmentItem[] = [
   ...mockItems,
   ...additionalMockItems.map((item, index) => ({
@@ -1391,7 +1464,7 @@ export const allMockItems: AssessmentItem[] = [
   ...speakingItems,
   ...writingItems,
   ...readingItems,
-];
+].map(assignRealisticPeople);
 
 export const getItemsByLevel = (level: CEFRLevel) => {
   return getAllItems().filter(item => item.level === level);

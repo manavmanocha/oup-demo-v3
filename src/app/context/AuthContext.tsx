@@ -15,11 +15,18 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Hardcoded credentials for demo
-const DEMO_USER = {
-  email: 'oupuser1@gmail.com',
-  password: 'demo123',
-  name: 'OUP User',
-};
+const DEMO_USERS = [
+  {
+    email: 'manav.manocha@comprotechnologies.com',
+    password: 'Compro11',
+    name: 'Manav Manocha',
+  },
+  {
+    email: 'sneha.goel@comprotechnologies.com',
+    password: 'Compro11',
+    name: 'Sneha Goel',
+  },
+];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -42,11 +49,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
+    const normalizedEmail = email.trim().toLowerCase();
+    const matchedUser = DEMO_USERS.find(
+      (demoUser) => demoUser.email.toLowerCase() === normalizedEmail && demoUser.password === password,
+    );
+
     // Check hardcoded credentials
-    if (email === DEMO_USER.email && password === DEMO_USER.password) {
+    if (matchedUser) {
       const userData = {
-        email: DEMO_USER.email,
-        name: DEMO_USER.name,
+        email: matchedUser.email,
+        name: matchedUser.name,
       };
       setUser(userData);
       localStorage.setItem('authUser', JSON.stringify(userData));

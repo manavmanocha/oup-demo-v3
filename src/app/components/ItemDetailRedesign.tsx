@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -14,18 +14,13 @@ import {
   BookOpen,
   Lightbulb,
   AlertCircle,
-  Tag,
-  Calendar,
-  User,
-  BarChart3,
   ChevronDown,
   ChevronUp,
   ArrowLeft,
-  FileText,
   Info,
 } from 'lucide-react';
-import { getItemById, getAllItems } from '../data/mockData';
-import { CEFRLevel } from '../data/types';
+import { getItemById } from '../data/mockData';
+import { AssessmentItem, CEFRLevel } from '../data/types';
 import {
   Collapsible,
   CollapsibleContent,
@@ -39,33 +34,42 @@ import {
 } from './ui/tooltip';
 
 export function ItemDetailRedesign() {
-  const { level, itemId } = useParams<{ level: CEFRLevel; itemId: string }>();
+  const { itemId } = useParams<{ level: CEFRLevel; itemId: string }>();
   const location = useLocation();
-  const item = getItemById(itemId!);
+  const previewItems = useMemo<AssessmentItem[]>(() => {
+    if (globalThis.window === undefined) {
+      return [];
+    }
+
+    try {
+      const previewItemsRaw = localStorage.getItem('ingest-preview-items-v1');
+      if (!previewItemsRaw) {
+        return [];
+      }
+
+      const parsed = JSON.parse(previewItemsRaw);
+      return Array.isArray(parsed) ? (parsed as AssessmentItem[]) : [];
+    } catch {
+      return [];
+    }
+  }, []);
+  const previewItem = previewItems.find((candidate) => candidate.id === itemId);
+  const item = getItemById(itemId ?? '') ?? previewItem;
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [audioCurrentTime, setAudioCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
-  const [showMetadata, setShowMetadata] = useState(true);
   const [passageExpanded, setPassageExpanded] = useState(true);
 
-  if (!item) {
-    return (
-      <div className="p-4 sm:p-6 md:p-8">
-        <div className="max-w-7xl mx-auto">
-          <p className="text-gray-600">Item not found</p>
-        </div>
-      </div>
-    );
-  }
-
-  const isListening = item.skill === 'Listening';
+  const isListening = item?.skill === 'Listening';
   const fromWorkflowState = (location.state as { fromWorkflow?: boolean } | null)?.fromWorkflow;
   const fromWorkflowQuery = new URLSearchParams(location.search).get('from') === 'workflow';
+  const isPreviewMode = new URLSearchParams(location.search).get('mode') === 'preview';
+  const isFromIngest = new URLSearchParams(location.search).get('from') === 'ingest';
   const isFromWorkflow = Boolean(fromWorkflowState || fromWorkflowQuery);
-  const screeningEntries = item.screening
+  const screeningEntries = item?.screening
     ? [
         { label: 'CEFR Fit', value: item.screening.cefrFit },
         { label: 'Distractor Strength', value: item.screening.distractorStrength },
@@ -74,14 +78,6 @@ export function ItemDetailRedesign() {
         { label: 'Similarity', value: item.screening.similarity },
       ].filter((entry) => Boolean(entry.value))
     : [];
-  const allItems = getAllItems();
-  const relatedItems = allItems
-    .filter(i =>
-      i.id !== item.id &&
-      i.skill === item.skill &&
-      i.level === item.level
-    )
-    .slice(0, 3);
 
   const formatAudioTime = (seconds: number) => {
     if (!Number.isFinite(seconds) || seconds < 0) {
@@ -122,7 +118,7 @@ export function ItemDetailRedesign() {
   };
 
   useEffect(() => {
-    if (!audioRef.current || !isListening || !item.audioAsset) {
+    if (!audioRef.current || !isListening || !item?.audioAsset) {
       return;
     }
 
@@ -161,7 +157,17 @@ export function ItemDetailRedesign() {
       audioEl.removeEventListener('pause', handlePause);
       audioEl.removeEventListener('error', handleError);
     };
-  }, [isListening, item.audioAsset]);
+  }, [isListening, item?.audioAsset]);
+
+  if (!item) {
+    return (
+      <div className="p-4 sm:p-6 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <p className="text-gray-600">Item not found</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -172,10 +178,10 @@ export function ItemDetailRedesign() {
             <div className="flex items-center justify-between gap-4">
               {/* Left section - Back button with proper alignment */}
               <div className="flex items-center gap-4 min-w-0 flex-shrink-0">
-                <Link to="/library" className="flex-shrink-0">
+                <Link to={isFromIngest ? '/library/ingest' : '/library'} className="flex-shrink-0">
                   <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Library
+                    {isFromIngest ? 'Back to Ingest Items' : 'Back to Library'}
                   </Button>
                 </Link>
                 <Separator orientation="vertical" className="h-6 flex-shrink-0" />
@@ -191,15 +197,8 @@ export function ItemDetailRedesign() {
                 </div>
               </div>
 
-              {/* Right section - Action buttons */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Button variant="outline" size="sm">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
-                <Button variant="outline" size="sm">
-                  Edit Item
-                </Button>
+              <div className="flex-shrink-0">
+                {isPreviewMode && <Badge variant="secondary">Preview Mode</Badge>}
               </div>
             </div>
           </div>
@@ -209,6 +208,24 @@ export function ItemDetailRedesign() {
       {/* Main Content Area */}
       <div className="max-w-5xl mx-auto px-8 py-8">
         <div className="space-y-6">
+            {isPreviewMode && (
+              <Card className="border-blue-200 bg-blue-50">
+                <CardContent className="pt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="text-sm font-semibold text-blue-900">Preview Mode</div>
+                    <div className="text-sm text-blue-800">
+                      This item is being previewed from the ingest workflow and has not been permanently added yet.
+                    </div>
+                  </div>
+                  <Link to="/library/ingest">
+                    <Button variant="outline" className="border-blue-300 text-blue-800 hover:bg-blue-100">
+                      Back to Ingest Items
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Audio Player for Listening Items */}
             {isListening && item.audioAsset && (
               <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
@@ -785,49 +802,6 @@ export function ItemDetailRedesign() {
               </CardContent>
             </Card>
 
-            {/* Similar Questions - At the bottom */}
-            {relatedItems.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-blue-600" />
-                    Similar Questions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {relatedItems.map((relatedItem) => (
-                      <Link
-                        key={relatedItem.id}
-                        to={`/item-bank/${relatedItem.level}/${relatedItem.id}`}
-                        className="block p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            {relatedItem.skill === 'Listening' ? (
-                              <Headphones className="w-5 h-5 text-gray-600" />
-                            ) : (
-                              <FileText className="w-5 h-5 text-gray-600" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-gray-900 mb-1 line-clamp-2">
-                              {relatedItem.title}
-                            </h4>
-                            <div className="flex items-center gap-2 text-xs text-gray-600">
-                              <Badge variant="outline" className="text-xs">
-                                {relatedItem.level}
-                              </Badge>
-                              <span>{relatedItem.itemType}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
         </div>
       </div>
     </div>
