@@ -218,6 +218,7 @@ export const addIngestedItems = (items: AssessmentItem[]) => {
 
 export const queueItemsForScreening = (itemIds: string[]) => {
   const today = new Date().toISOString().slice(0, 10);
+  const queueTimestamp = new Date().toISOString();
 
   upsertItemOverrides(itemIds, (item, existingPatch) => {
     const dimensions: Array<'cefrFit' | 'distractorStrength' | 'clarity' | 'fairness' | 'similarity'> = [
@@ -249,6 +250,8 @@ export const queueItemsForScreening = (itemIds: string[]) => {
     return {
       workflowState: 'Screening Review',
       flaggedForReview: !allPassed,
+      lastEditedDate: queueTimestamp,
+      lastEditedBy: 'Screening Queue',
       screening: {
         cefrFit: randomResults.cefrFit,
         distractorStrength: randomResults.distractorStrength,
@@ -325,6 +328,7 @@ type DifficultyPredictionResult = {
 
 export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]) => {
   const today = new Date().toISOString().slice(0, 10);
+  const predictionTimestamp = new Date().toISOString();
 
   results.forEach((result) => {
     upsertItemOverrides([result.id], (item, existingPatch) => {
@@ -352,10 +356,12 @@ export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]
           predictedByAI: true,
           calibratedFromFieldTest: false,
           modelVersion: 'IRT-LSTM-3.1',
-          predictionDate: today,
+          predictionDate: predictionTimestamp,
         },
         aiModelVersion: 'IRT-LSTM-3.1',
-        aiPredictionDate: today,
+        aiPredictionDate: predictionTimestamp,
+        lastEditedDate: predictionTimestamp,
+        lastEditedBy: 'Prediction Engine',
         reviewHistory: nextHistory,
       };
     });
@@ -388,6 +394,7 @@ export const acceptPredictedItems = (itemIds: string[]) => {
 
 export const moveItemsToSeeded = (itemIds: string[]) => {
   const today = new Date().toISOString().slice(0, 10);
+  const seededTimestamp = new Date().toISOString();
 
   upsertItemOverrides(itemIds, (item, existingPatch) => {
     const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
@@ -406,7 +413,7 @@ export const moveItemsToSeeded = (itemIds: string[]) => {
       status: 'Published',
       flaggedForReview: false,
       reviewHistory: nextHistory,
-      lastEditedDate: today,
+      lastEditedDate: seededTimestamp,
       lastEditedBy: 'Seeding Team',
     };
   });

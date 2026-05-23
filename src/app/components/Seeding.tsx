@@ -5,6 +5,25 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { getAllItems, moveItemsToSeeded } from '../data/mockData';
 
+const toTimestamp = (value?: string): number => {
+  if (!value) return 0;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const sortNewestFirst = <T extends { id: string; createdDate?: string; lastEditedDate?: string }>(items: T[]): T[] => {
+  return [...items].sort((a, b) => {
+    const aTime = Math.max(toTimestamp(a.lastEditedDate), toTimestamp(a.createdDate));
+    const bTime = Math.max(toTimestamp(b.lastEditedDate), toTimestamp(b.createdDate));
+
+    if (bTime !== aTime) {
+      return bTime - aTime;
+    }
+
+    return b.id.localeCompare(a.id);
+  });
+};
+
 export function Seeding() {
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
@@ -12,12 +31,12 @@ export function Seeding() {
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
 
   const recommendedItems = useMemo(
-    () => allItems.filter((item) => item.workflowState === 'Difficulty Prediction Review'),
+    () => sortNewestFirst(allItems.filter((item) => item.workflowState === 'Difficulty Prediction Review')),
     [allItems],
   );
 
   const currentlySeeded = useMemo(
-    () => allItems.filter((item) => item.workflowState === 'Seeded'),
+    () => sortNewestFirst(allItems.filter((item) => item.workflowState === 'Seeded')),
     [allItems],
   );
 

@@ -12,24 +12,46 @@ import {
   TooltipTrigger,
 } from './ui/tooltip';
 
+const toTimestamp = (value?: string): number => {
+  if (!value) return 0;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
 export function DifficultyPrediction() {
   const [refreshVersion, setRefreshVersion] = useState(0);
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
   const waitingForPrediction = allItems.filter((item) => item.workflowState === 'Screening Passed');
 
-  const calibratedItems = allItems
-    .filter((item) => item.workflowState === 'Difficulty Prediction Review')
-    .map((item) => ({
-      id: item.id,
-      item: item.title,
-      level: item.level,
-      skill: item.skill,
-      itemType: item.itemType,
-      content: item.content,
-      confidence: item.confidence ?? 0,
-      difficulty: item.difficulty ?? 'Medium',
-      discrimination: item.discrimination ?? 'Moderate',
-    }));
+  const calibratedItems = useMemo(
+    () => allItems
+      .filter((item) => item.workflowState === 'Difficulty Prediction Review')
+      .map((item) => ({
+        id: item.id,
+        item: item.title,
+        level: item.level,
+        skill: item.skill,
+        itemType: item.itemType,
+        content: item.content,
+        confidence: item.confidence ?? 0,
+        difficulty: item.difficulty ?? 'Medium',
+        discrimination: item.discrimination ?? 'Moderate',
+        recencyTimestamp: Math.max(
+          toTimestamp(item.aiPredictionDate),
+          toTimestamp(item.irtParameters?.predictionDate),
+          toTimestamp(item.lastEditedDate),
+          toTimestamp(item.createdDate),
+        ),
+      }))
+      .sort((a, b) => {
+        if (b.recencyTimestamp !== a.recencyTimestamp) {
+          return b.recencyTimestamp - a.recencyTimestamp;
+        }
+
+        return b.id.localeCompare(a.id);
+      }),
+    [allItems],
+  );
 
   const needsReview = calibratedItems.filter((item) => item.confidence < 85);
   const readyToAccept = calibratedItems.filter((item) => item.confidence >= 85);
