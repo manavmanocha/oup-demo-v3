@@ -218,7 +218,6 @@ export const addIngestedItems = (items: AssessmentItem[]) => {
 
 export const queueItemsForScreening = (itemIds: string[]) => {
   const today = new Date().toISOString().slice(0, 10);
-  const queueTimestamp = new Date().toISOString();
 
   upsertItemOverrides(itemIds, (item, existingPatch) => {
     const dimensions: Array<'cefrFit' | 'distractorStrength' | 'clarity' | 'fairness' | 'similarity'> = [
@@ -242,16 +241,14 @@ export const queueItemsForScreening = (itemIds: string[]) => {
       {
         date: today,
         reviewer: 'Screening Queue',
-        action: 'Queued for Screening',
-        state: 'Screening Review',
+        action: allPassed ? 'Screening Auto-Passed' : 'Screening Auto-Failed',
+        state: allPassed ? 'Screening Passed' : 'Screening Review',
       },
     ];
 
     return {
-      workflowState: 'Screening Review',
+      workflowState: allPassed ? 'Screening Passed' : 'Screening Review',
       flaggedForReview: !allPassed,
-      lastEditedDate: queueTimestamp,
-      lastEditedBy: 'Screening Queue',
       screening: {
         cefrFit: randomResults.cefrFit,
         distractorStrength: randomResults.distractorStrength,
@@ -328,7 +325,6 @@ type DifficultyPredictionResult = {
 
 export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]) => {
   const today = new Date().toISOString().slice(0, 10);
-  const predictionTimestamp = new Date().toISOString();
 
   results.forEach((result) => {
     upsertItemOverrides([result.id], (item, existingPatch) => {
@@ -356,12 +352,10 @@ export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]
           predictedByAI: true,
           calibratedFromFieldTest: false,
           modelVersion: 'IRT-LSTM-3.1',
-          predictionDate: predictionTimestamp,
+          predictionDate: today,
         },
         aiModelVersion: 'IRT-LSTM-3.1',
-        aiPredictionDate: predictionTimestamp,
-        lastEditedDate: predictionTimestamp,
-        lastEditedBy: 'Prediction Engine',
+        aiPredictionDate: today,
         reviewHistory: nextHistory,
       };
     });
@@ -394,7 +388,6 @@ export const acceptPredictedItems = (itemIds: string[]) => {
 
 export const moveItemsToSeeded = (itemIds: string[]) => {
   const today = new Date().toISOString().slice(0, 10);
-  const seededTimestamp = new Date().toISOString();
 
   upsertItemOverrides(itemIds, (item, existingPatch) => {
     const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
@@ -413,7 +406,7 @@ export const moveItemsToSeeded = (itemIds: string[]) => {
       status: 'Published',
       flaggedForReview: false,
       reviewHistory: nextHistory,
-      lastEditedDate: seededTimestamp,
+      lastEditedDate: today,
       lastEditedBy: 'Seeding Team',
     };
   });
@@ -1158,7 +1151,7 @@ const stagedWorkflowItems: AssessmentItem[] = [
     status: 'Draft',
     difficulty: 'Hard',
     workflowState: 'Difficulty Prediction Review',
-    confidence: 56,
+    confidence: 82,
     discrimination: 'Moderate',
     irtParameters: { b: 1.42, a: 1.19, c: 0.24, predictedByAI: true, modelVersion: 'IRT-LSTM-3.1', predictionDate: '2026-05-21' },
     author: 'Workflow Seeder',
@@ -1176,7 +1169,7 @@ const stagedWorkflowItems: AssessmentItem[] = [
     status: 'Draft',
     difficulty: 'Medium',
     workflowState: 'Difficulty Prediction Review',
-    confidence: 58,
+    confidence: 79,
     discrimination: 'Moderate',
     audioAsset: 'audio_stage_listen_dpr_001.mp3',
     irtParameters: { b: 0.96, a: 1.17, c: 0.23, predictedByAI: true, modelVersion: 'IRT-LSTM-3.1', predictionDate: '2026-05-21' },
@@ -1195,7 +1188,7 @@ const stagedWorkflowItems: AssessmentItem[] = [
     status: 'Draft',
     difficulty: 'Hard',
     workflowState: 'Difficulty Prediction Review',
-    confidence: 54,
+    confidence: 84,
     discrimination: 'High',
     rubric: 'Argument quality, cohesion, lexical precision, and grammatical control.',
     irtParameters: { b: 1.36, a: 1.28, c: 0.0, predictedByAI: true, modelVersion: 'IRT-LSTM-3.1', predictionDate: '2026-05-21' },
@@ -1222,53 +1215,6 @@ const stagedWorkflowItems: AssessmentItem[] = [
     createdDate: '2026-05-17',
     lastEditedDate: '2026-05-21',
     reviewHistory: [{ date: '2026-05-21', reviewer: 'Prediction Engine', action: 'Difficulty Predicted', state: 'Difficulty Prediction Review' }],
-  },
-
-  // Seeded
-  {
-    id: 'ITM-READ-SEED-001',
-    title: 'Infer author intent from tone and structure',
-    content: 'Read the article excerpt and infer the author\'s primary intent based on tone and structure.',
-    level: 'B2',
-    skill: 'Reading',
-    itemType: 'Multiple Choice',
-    status: 'Published',
-    difficulty: 'Medium',
-    workflowState: 'Seeded',
-    confidence: 88,
-    discrimination: 'High',
-    irtParameters: { b: 0.91, a: 1.24, c: 0.21, predictedByAI: true, modelVersion: 'IRT-LSTM-3.1', predictionDate: '2026-05-22' },
-    author: 'Workflow Seeder',
-    createdDate: '2026-05-15',
-    lastEditedDate: '2026-05-23',
-    lastEditedBy: 'Seeding Team',
-    reviewHistory: [
-      { date: '2026-05-22', reviewer: 'Prediction Engine', action: 'Difficulty Predicted', state: 'Difficulty Prediction Review' },
-      { date: '2026-05-23', reviewer: 'Seeding Team', action: 'Added to Seeding Batch', state: 'Seeded' },
-    ],
-  },
-  {
-    id: 'ITM-LISTEN-SEED-001',
-    title: 'Select the best summary of a short discussion',
-    content: 'Listen to a short exchange and choose the summary that best captures the speakers\' agreement.',
-    level: 'B1',
-    skill: 'Listening',
-    itemType: 'Multiple Choice',
-    status: 'Published',
-    difficulty: 'Medium',
-    workflowState: 'Seeded',
-    confidence: 86,
-    discrimination: 'Moderate',
-    audioAsset: 'audio_stage_listen_seed_001.mp3',
-    irtParameters: { b: 0.83, a: 1.16, c: 0.22, predictedByAI: true, modelVersion: 'IRT-LSTM-3.1', predictionDate: '2026-05-22' },
-    author: 'Workflow Seeder',
-    createdDate: '2026-05-15',
-    lastEditedDate: '2026-05-23',
-    lastEditedBy: 'Seeding Team',
-    reviewHistory: [
-      { date: '2026-05-22', reviewer: 'Prediction Engine', action: 'Difficulty Predicted', state: 'Difficulty Prediction Review' },
-      { date: '2026-05-23', reviewer: 'Seeding Team', action: 'Added to Seeding Batch', state: 'Seeded' },
-    ],
   },
 ];
 
