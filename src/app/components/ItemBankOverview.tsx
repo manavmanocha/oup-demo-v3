@@ -6,7 +6,7 @@ import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { Input } from './ui/input';
 import { Checkbox } from './ui/checkbox';
-import { AlertCircle, AlertTriangle, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AlertCircle, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { bankCapacityData, getAllItems, getCompromisedItems } from '../data/mockData';
 import {
   Tooltip,
@@ -26,7 +26,7 @@ export function ItemBankOverview() {
   const totalActive = bankCapacityData.reduce((sum, level) => sum + level.active, 0);
   const totalTarget = bankCapacityData.reduce((sum, level) => sum + level.target, 0);
   const totalGap = bankCapacityData.reduce((sum, level) => sum + level.gapToTarget, 0);
-  const overallHealth = Math.round((totalActive / totalTarget) * 100);
+  const overallHealth = totalTarget > 0 ? Math.round((totalActive / totalTarget) * 100) : 0;
   const compromisedItems = getCompromisedItems();
 
   // Review Queue State
@@ -50,6 +50,7 @@ export function ItemBankOverview() {
       status: item.workflowState === 'Difficulty Prediction Review' ? 'DP Review' : 'Screening Review',
       level: item.level,
     }));
+  const highestGapLevel = [...bankCapacityData].sort((a, b) => b.gapToTarget - a.gapToTarget)[0];
 
   const filteredReviewItems = reviewQueueItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -151,7 +152,7 @@ export function ItemBankOverview() {
               <CardTitle className="text-sm font-medium text-gray-500 uppercase">In Pipeline</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">19</div>
+              <div className="text-3xl font-bold text-gray-900">{reviewQueueItems.length}</div>
               <div className="text-sm text-gray-500 mt-1">awaiting review</div>
             </CardContent>
           </Card>
@@ -230,7 +231,9 @@ export function ItemBankOverview() {
             </div>
 
             <div className="mt-4 text-sm text-gray-600 text-center">
-              C1 needs 36 more items to reach target · 1 compromised · 19 pending
+              {highestGapLevel
+                ? `${highestGapLevel.level} needs ${highestGapLevel.gapToTarget} more items to reach target · ${compromisedItems.length} compromised · ${reviewQueueItems.length} pending`
+                : `${compromisedItems.length} compromised · ${reviewQueueItems.length} pending`}
             </div>
           </CardContent>
         </Card>
