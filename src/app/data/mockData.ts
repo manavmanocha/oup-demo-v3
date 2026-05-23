@@ -241,13 +241,13 @@ export const queueItemsForScreening = (itemIds: string[]) => {
       {
         date: today,
         reviewer: 'Screening Queue',
-        action: allPassed ? 'Screening Auto-Passed' : 'Screening Auto-Failed',
-        state: allPassed ? 'Screening Passed' : 'Screening Review',
+        action: 'Queued for Screening',
+        state: 'Screening Review',
       },
     ];
 
     return {
-      workflowState: allPassed ? 'Screening Passed' : 'Screening Review',
+      workflowState: 'Screening Review',
       flaggedForReview: !allPassed,
       screening: {
         cefrFit: randomResults.cefrFit,

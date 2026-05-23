@@ -3,8 +3,6 @@ import { Link, useNavigate } from "react-router";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
 } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -16,6 +14,25 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { getAllItems, queueItemsForScreening } from "../data/mockData";
+
+const toTimestamp = (value?: string): number => {
+  if (!value) return 0;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const sortNewestFirst = <T extends { createdDate?: string; lastEditedDate?: string; id: string }>(items: T[]): T[] => {
+  return [...items].sort((a, b) => {
+    const aTime = Math.max(toTimestamp(a.createdDate), toTimestamp(a.lastEditedDate));
+    const bTime = Math.max(toTimestamp(b.createdDate), toTimestamp(b.lastEditedDate));
+
+    if (bTime !== aTime) {
+      return bTime - aTime;
+    }
+
+    return b.id.localeCompare(a.id);
+  });
+};
 
 export function ScreenItems() {
   const navigate = useNavigate();
@@ -30,8 +47,9 @@ export function ScreenItems() {
 
   // Get all items from library - filter to draft or screening-review items
   const allItems = getAllItems();
-  const availableItems = allItems.filter(
-    (item) => item.workflowState === 'Draft',
+  const availableItems = useMemo(
+    () => sortNewestFirst(allItems.filter((item) => item.workflowState === 'Draft')),
+    [allItems],
   );
 
   const filteredItems = useMemo(() => {

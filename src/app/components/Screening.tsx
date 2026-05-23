@@ -35,19 +35,7 @@ export function Screening() {
   );
 
   const flaggedItems = useMemo(
-    () =>
-      screeningQueue.filter((item) =>
-        item.screening?.similarity === 'Review' ||
-        item.screening?.similarity === 'Fail' ||
-        item.screening?.cefrFit === 'Review' ||
-        item.screening?.cefrFit === 'Fail' ||
-        item.screening?.distractorStrength === 'Review' ||
-        item.screening?.distractorStrength === 'Fail' ||
-        item.screening?.fairness === 'Review' ||
-        item.screening?.fairness === 'Fail' ||
-        item.screening?.clarity === 'Fail' ||
-        item.screening?.clarity === 'Review',
-      ),
+    () => screeningQueue.filter((item) => item.flaggedForReview || item.workflowState === 'Screening Review'),
     [screeningQueue],
   );
 

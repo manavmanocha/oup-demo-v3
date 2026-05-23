@@ -1078,32 +1078,6 @@ export function IngestItems() {
               </CardContent>
             </Card>
 
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-gray-500 uppercase">
-                  Newly Ingested Items
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {parsedItems
-                    .filter((item) => item.issues.length === 0)
-                    .slice(0, 20)
-                    .map((item) => (
-                      <div key={item.id} className="flex items-start justify-between gap-3 rounded-lg border border-gray-200 p-3">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{item.id}</div>
-                          <div className="text-xs text-gray-600">{item.level} • {item.skill} • {item.type}</div>
-                        </div>
-                        <Link to={`/item-bank/${item.level}/${item.id}?mode=preview`}>
-                          <Button variant="outline" size="sm">Preview</Button>
-                        </Link>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-
             <div className="flex items-center justify-center gap-3">
               <Button variant="outline" onClick={() => {
                 setStep('upload');
