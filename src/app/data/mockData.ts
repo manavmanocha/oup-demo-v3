@@ -1,9 +1,23 @@
 import { AssessmentItem, BankCapacity, CEFRLevel, ItemType } from './types';
-import { listeningQuestions } from './listeningQuestions';
-import { speakingQuestions } from './speakingQuestions';
-import { writingQuestions } from './writingQuestions';
-import { readingQuestions } from './readingQuestions';
 
+import questionsData from './questions.json';
+
+type ListeningQuestion = (typeof questionsData.listeningQuestionsBase)[number] & {
+  audioFile?: string;
+};
+type ReadingQuestion = (typeof questionsData.readingQuestions)[number];
+type WritingQuestion = (typeof questionsData.writingQuestions)[number];
+type SpeakingQuestion = (typeof questionsData.speakingQuestions)[number];
+
+const audioFileByTestId = questionsData.audioFileByTestId as Record<string, string>;
+const listeningQuestionsBase = questionsData.listeningQuestionsBase as ListeningQuestion[];
+const listeningQuestions: ListeningQuestion[] = listeningQuestionsBase.map((question) => ({
+  ...question,
+  audioFile: audioFileByTestId[question.testId] ?? question.audioFile,
+}));
+const readingQuestions: ReadingQuestion[] = questionsData.readingQuestions as ReadingQuestion[];
+const writingQuestions: WritingQuestion[] = questionsData.writingQuestions as WritingQuestion[];
+const speakingQuestions: SpeakingQuestion[] = questionsData.speakingQuestions as SpeakingQuestion[];
 const INGESTED_ITEMS_STORAGE_KEY = 'ingested-library-items-v1';
 const WORKFLOW_OVERRIDES_STORAGE_KEY = 'workflow-item-overrides-v1';
 
