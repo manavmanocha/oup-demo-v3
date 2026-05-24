@@ -7,7 +7,6 @@ type ListeningQuestion = UnifiedQuestion & {
   skill: 'Listening';
   skillDetails: {
     listening: {
-      section?: number;
       context?: string;
       audioFile?: string;
       audioAsset?: string | null;
@@ -175,6 +174,7 @@ const setStoredWorkflowOverrides = (overrides: ItemWorkflowOverride[]) => {
 };
 
 const mergeItemWithPatch = (baseItem: AssessmentItem, patch: Partial<AssessmentItem>): AssessmentItem => {
+  const hasIrt = Boolean(baseItem.irtParameters || patch.irtParameters);
   const mergedWorkflowState = patch.workflowState ?? baseItem.workflowState;
   const mergedStatus = patch.status ?? baseItem.status;
 
@@ -187,7 +187,19 @@ const mergeItemWithPatch = (baseItem: AssessmentItem, patch: Partial<AssessmentI
       ...baseItem.screening,
       ...patch.screening,
     },
-    irtParameters: patch.irtParameters ?? baseItem.irtParameters,
+    irtParameters: hasIrt
+      ? {
+          b: patch.irtParameters?.b ?? baseItem.irtParameters?.b ?? 0,
+          a: patch.irtParameters?.a ?? baseItem.irtParameters?.a ?? 1,
+          c: patch.irtParameters?.c ?? baseItem.irtParameters?.c ?? 0,
+          sampleSize: patch.irtParameters?.sampleSize ?? baseItem.irtParameters?.sampleSize,
+          modelVersion: patch.irtParameters?.modelVersion ?? baseItem.irtParameters?.modelVersion,
+          predictionDate: patch.irtParameters?.predictionDate ?? baseItem.irtParameters?.predictionDate,
+          calibratedFromFieldTest:
+            patch.irtParameters?.calibratedFromFieldTest ?? baseItem.irtParameters?.calibratedFromFieldTest,
+          predictedByAI: patch.irtParameters?.predictedByAI ?? baseItem.irtParameters?.predictedByAI,
+        }
+      : undefined,
   };
 };
 
@@ -443,6 +455,15 @@ export const moveItemsToSeeded = (itemIds: string[]) => {
   });
 };
 
+export const bankCapacityData: BankCapacity[] = [
+  { level: 'A1', active: 84, compromised: 6, gapToTarget: 28, target: 118, percentage: 71 },
+  { level: 'A2', active: 67, compromised: 13, gapToTarget: 0, target: 80, percentage: 100 },
+  { level: 'B1', active: 80, compromised: 5, gapToTarget: 15, target: 100, percentage: 85 },
+  { level: 'B2', active: 55, compromised: 0, gapToTarget: 0, target: 55, percentage: 100 },
+  { level: 'C1', active: 14, compromised: 0, gapToTarget: 36, target: 50, percentage: 28 },
+  { level: 'C2', active: 67, compromised: 3, gapToTarget: 13, target: 83, percentage: 84 },
+];
+
 type QuestionWithMetadata = UnifiedQuestion & {
   workflowState?: AssessmentItem['workflowState'];
   status?: AssessmentItem['status'];
@@ -500,19 +521,18 @@ const getQuestionMetadata = (question: UnifiedQuestion): Partial<AssessmentItem>
 // Convert listening questions to AssessmentItem format
 const listeningItems: AssessmentItem[] = listeningQuestions.map((q) => {
   const metadata = getQuestionMetadata(q);
-  const hasOptions = Array.isArray(q.options) && q.options.length > 0;
-  const options = hasOptions
+  const options = Array.isArray(q.options)
     ? q.options.map((opt, idx) => {
         if (typeof opt === 'string') {
           return {
-            label: String.fromCharCode(65 + idx),
+            label: String.fromCodePoint(65 + idx),
             text: opt,
             correct: opt === q.correctAnswer,
           };
         }
 
         return {
-          label: opt.label ?? String.fromCharCode(65 + idx),
+          label: opt.label ?? String.fromCodePoint(65 + idx),
           text: opt.text,
           correct: Boolean(opt.correct),
         };
@@ -637,19 +657,18 @@ const writingItems: AssessmentItem[] = writingQuestions.map((q) => {
 // Convert reading questions to AssessmentItem format
 const readingItems: AssessmentItem[] = readingQuestions.map((q) => {
   const metadata = getQuestionMetadata(q);
-  const hasOptions = Array.isArray(q.options) && q.options.length > 0;
-  const options = hasOptions
+  const options = Array.isArray(q.options)
     ? q.options.map((opt, idx) => {
         if (typeof opt === 'string') {
           return {
-            label: String.fromCharCode(65 + idx),
+            label: String.fromCodePoint(65 + idx),
             text: opt,
             correct: opt === q.correctAnswer,
           };
         }
 
         return {
-          label: opt.label ?? String.fromCharCode(65 + idx),
+          label: opt.label ?? String.fromCodePoint(65 + idx),
           text: opt.text,
           correct: typeof opt.correct === 'boolean' ? opt.correct : undefined,
         };
@@ -700,27 +719,6 @@ const mappedItemsById = new Map<string, AssessmentItem>();
 export const allMockItems: AssessmentItem[] = allQuestions
   .map((question) => mappedItemsById.get(question.id))
   .filter((item): item is AssessmentItem => Boolean(item));
-
-const CEFR_LEVELS: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-const CEFR_LEVEL_TARGET = 75;
-
-export const bankCapacityData: BankCapacity[] = CEFR_LEVELS.map((level) => {
-  const levelItems = allMockItems.filter((item) => item.level === level);
-  const compromised = levelItems.filter((item) => item.status === 'Compromised').length;
-  const active = levelItems.length - compromised;
-  const target = CEFR_LEVEL_TARGET;
-  const gapToTarget = Math.max(target - active, 0);
-  const percentage = Math.round((active / target) * 100);
-
-  return {
-    level,
-    active,
-    compromised,
-    gapToTarget,
-    target,
-    percentage,
-  };
-});
 
 export const getItemsByLevel = (level: CEFRLevel) => {
   return getAllItems().filter(item => item.level === level);
