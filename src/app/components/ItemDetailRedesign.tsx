@@ -741,7 +741,7 @@ export function ItemDetailRedesign() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Review History & Workflow State</CardTitle>
+                <CardTitle>Review History</CardTitle>
               </CardHeader>
               <CardContent>
                 {/* Current State */}

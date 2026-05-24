@@ -468,7 +468,7 @@ export function ItemDetail() {
         {/* Workflow & Review History */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Review History & Workflow State</CardTitle>
+            <CardTitle>Review History</CardTitle>
           </CardHeader>
           <CardContent>
             {/* Current State */}
