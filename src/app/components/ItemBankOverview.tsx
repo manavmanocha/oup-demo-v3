@@ -8,6 +8,7 @@ import { Input } from './ui/input';
 import { Checkbox } from './ui/checkbox';
 import { AlertCircle, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { bankCapacityData, getAllItems, getCompromisedItems } from '../data/mockData';
+import { isWorkflowState } from '../data/workflowState';
 import {
   Tooltip,
   TooltipContent,
@@ -39,15 +40,15 @@ export function ItemBankOverview() {
   const reviewQueueItems = getAllItems()
     .filter(
       (item) =>
-        item.workflowState === 'Screening Review' ||
-        item.workflowState === 'Difficulty Prediction Review',
+        isWorkflowState(item.workflowState, 'PENDING_SCREENING_REVIEW') ||
+        isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW'),
     )
     .map((item) => ({
       id: item.id,
       name: item.title || item.content,
       type: item.itemType,
       submittedBy: item.author || 'System',
-      status: item.workflowState === 'Difficulty Prediction Review' ? 'DP Review' : 'Screening Review',
+      status: isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW') ? 'DP Review' : 'Screening Review',
       level: item.level,
     }));
   const highestGapLevel = [...bankCapacityData].sort((a, b) => b.gapToTarget - a.gapToTarget)[0];

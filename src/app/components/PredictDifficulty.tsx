@@ -9,6 +9,7 @@ import { CheckCircle2, Sparkles, Search, ChevronRight } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { applyDifficultyPredictions, getAllItems } from '../data/mockData';
 import { Difficulty } from '../data/types';
+import { isWorkflowState } from '../data/workflowState';
 
 const toTimestamp = (value?: string): number => {
   if (!value) return 0;
@@ -40,7 +41,7 @@ export function PredictDifficulty() {
   // Get all items from library - filter to items in Screening Passed state
   const allItems = getAllItems();
   const availableItems = useMemo(
-    () => sortNewestFirst(allItems.filter((item) => item.workflowState === 'Screening Passed')),
+    () => sortNewestFirst(allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED'))),
     [allItems],
   );
 

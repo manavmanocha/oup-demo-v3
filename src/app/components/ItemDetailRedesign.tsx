@@ -35,6 +35,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
+import { getWorkflowStateLabel } from '../data/workflowState';
 
 export function ItemDetailRedesign() {
   const { itemId } = useParams<{ level: CEFRLevel; itemId: string }>();
@@ -747,7 +748,7 @@ export function ItemDetailRedesign() {
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                   <div className="text-sm text-gray-600 mb-2">Current State</div>
                   <Badge className="bg-gray-600 text-white px-3 py-1">
-                    {item.workflowState || 'Unknown'}
+                    {getWorkflowStateLabel(item.workflowState)}
                   </Badge>
                 </div>
 
@@ -766,7 +767,7 @@ export function ItemDetailRedesign() {
                         <div className="flex-1 pb-4">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-medium text-gray-900">{entry.action}</span>
-                            <Badge variant="outline" className="text-xs">{entry.state}</Badge>
+                            <Badge variant="outline" className="text-xs">{getWorkflowStateLabel(entry.state)}</Badge>
                           </div>
                           <div className="text-sm text-gray-600 mb-1">
                             {entry.reviewer} · {new Date(entry.date).toLocaleDateString('en-US', {

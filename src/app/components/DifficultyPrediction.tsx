@@ -11,6 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
+import { isWorkflowState } from '../data/workflowState';
 
 const toTimestamp = (value?: string): number => {
   if (!value) return 0;
@@ -21,11 +22,11 @@ const toTimestamp = (value?: string): number => {
 export function DifficultyPrediction() {
   const [refreshVersion, setRefreshVersion] = useState(0);
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
-  const waitingForPrediction = allItems.filter((item) => item.workflowState === 'Screening Passed');
+  const waitingForPrediction = allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED'));
 
   const calibratedItems = useMemo(
     () => allItems
-      .filter((item) => item.workflowState === 'Difficulty Prediction Review')
+      .filter((item) => isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW'))
       .map((item) => ({
         id: item.id,
         item: item.title,

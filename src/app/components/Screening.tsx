@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { approveScreenedItems, getAllItems, rejectScreenedItems } from '../data/mockData';
+import { isWorkflowState } from '../data/workflowState';
 
 const toTimestamp = (value?: string): number => {
   if (!value) return 0;
@@ -30,18 +31,18 @@ export function Screening() {
   const allItems = useMemo(() => getAllItems(), [refreshKey]);
 
   const screeningQueue = useMemo(
-    () => sortNewestFirst(allItems.filter((item) => item.workflowState === 'Screening Review')),
+    () => sortNewestFirst(allItems.filter((item) => isWorkflowState(item.workflowState, 'PENDING_SCREENING_REVIEW'))),
     [allItems],
   );
 
   const flaggedItems = useMemo(
-    () => screeningQueue.filter((item) => item.flaggedForReview || item.workflowState === 'Screening Review'),
+    () => screeningQueue.filter((item) => item.flaggedForReview || isWorkflowState(item.workflowState, 'PENDING_SCREENING_REVIEW')),
     [screeningQueue],
   );
 
-  const awaitingScreening = allItems.filter((item) => item.workflowState === 'Draft').length;
+  const awaitingScreening = allItems.filter((item) => isWorkflowState(item.workflowState, 'NOT_STARTED')).length;
   const flaggedCount = flaggedItems.length;
-  const passedCount = allItems.filter((item) => item.workflowState === 'Screening Passed').length;
+  const passedCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED')).length;
 
   const handleApprove = (itemId: string) => {
     approveScreenedItems([itemId]);

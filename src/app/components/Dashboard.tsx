@@ -15,6 +15,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { getItemsForReview } from "../data/mockData";
+import { isWorkflowState } from '../data/workflowState';
 
 export function Dashboard() {
   const itemsNeedingReview = getItemsForReview();
@@ -22,13 +23,13 @@ export function Dashboard() {
   const recentReviews = itemsNeedingReview
     .filter(
       (item) =>
-        item.workflowState === 'Screening Review' ||
-        item.workflowState === 'Difficulty Prediction Review',
+        isWorkflowState(item.workflowState, 'PENDING_SCREENING_REVIEW') ||
+        isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW'),
     )
     .slice(0, 8)
     .map((item) => ({
       id: item.id,
-      status: item.workflowState === 'Difficulty Prediction Review' ? 'DP Review' : 'Screening Review',
+      status: isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW') ? 'DP Review' : 'Screening Review',
       type: item.itemType,
       level: item.level,
       flaggedFor:
@@ -37,7 +38,7 @@ export function Dashboard() {
         item.screening?.distractorStrength === 'Fail' ? 'Distractor Strength' :
         item.screening?.clarity === 'Fail' ? 'Clarity' :
         item.screening?.fairness === 'Fail' ? 'Fairness' :
-        item.workflowState === 'Difficulty Prediction Review' ? 'Confidence' : 'Screening',
+        isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW') ? 'Confidence' : 'Screening',
     }));
 
   const aiInsights = [

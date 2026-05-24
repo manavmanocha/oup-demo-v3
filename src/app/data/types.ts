@@ -3,14 +3,17 @@ export type Skill = 'Reading' | 'Writing' | 'Listening' | 'Speaking';
 export type ItemType = 'Multiple Choice' | 'Essay' | 'Speaking' | 'Form Completion' | 'Note Completion' | 'Table Completion' | 'Flow Chart' | 'Map Labeling' | 'Matching' | 'Short Answer' | 'Sentence Completion' | 'True/False/Not Given' | 'Yes/No/Not Given' | 'Matching Headings' | 'Summary Completion' | 'Matching Information';
 export type ItemStatus = 'Draft' | 'Retired' | 'Compromised' | 'Published';
 export type WorkflowState =
-  | 'Draft'
-  | 'In Screening'
-  | 'Screening Review'
-  | 'Screening Passed'
-  | 'In Difficulty Prediction'
-  | 'Difficulty Prediction Review'
-  | 'Seeded'
-  | 'Live';
+  | 'NOT_STARTED'
+  | 'IN_SCREENING'
+  | 'PENDING_SCREENING_REVIEW'
+  | 'SCREENING_APPROVED'
+  | 'SCREENING_REJECTED'
+  | 'IN_DIFFICULTY_ESTIMATION'
+  | 'PENDING_DP_REVIEW'
+  | 'DP_APPROVED'
+  | 'DP_REJECTED'
+  | 'RECOMMENDED_FOR_SEEDING'
+  | 'SEEDED';
 export type Difficulty = 'Easy' | 'Medium' | 'Hard' | 'Very Easy' | 'Very Hard';
 
 export interface IRTParameters {

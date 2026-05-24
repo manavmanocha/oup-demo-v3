@@ -53,7 +53,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "Draft",
+      "workflowState": "NOT_STARTED",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -107,7 +107,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "Draft",
+      "workflowState": "NOT_STARTED",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -161,7 +161,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "In Review",
+      "workflowState": "PENDING_SCREENING_REVIEW",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -222,7 +222,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "In Review",
+      "workflowState": "PENDING_SCREENING_REVIEW",
       "reviewHistory": [
         {
           "date": "2026-05-19",
@@ -283,7 +283,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "Draft",
+      "workflowState": "NOT_STARTED",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -337,7 +337,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "Draft",
+      "workflowState": "NOT_STARTED",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -410,7 +410,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "In Review",
+      "workflowState": "PENDING_SCREENING_REVIEW",
       "reviewHistory": [
         {
           "date": "2026-05-18",
@@ -472,7 +472,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "Draft",
+      "workflowState": "NOT_STARTED",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -527,7 +527,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "In Review",
+      "workflowState": "PENDING_SCREENING_REVIEW",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -589,7 +589,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "Draft",
+      "workflowState": "NOT_STARTED",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -644,7 +644,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "Draft",
+      "workflowState": "NOT_STARTED",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -700,7 +700,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "Draft",
+      "workflowState": "NOT_STARTED",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -756,7 +756,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "In Review",
+      "workflowState": "PENDING_SCREENING_REVIEW",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -820,7 +820,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "In Review",
+      "workflowState": "PENDING_SCREENING_REVIEW",
       "reviewHistory": [
         {
           "date": "2026-05-16",
@@ -883,7 +883,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "Draft",
+      "workflowState": "NOT_STARTED",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -940,7 +940,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "Draft",
+      "workflowState": "NOT_STARTED",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -996,7 +996,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "Draft",
+      "workflowState": "NOT_STARTED",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -1052,7 +1052,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "Draft",
+      "workflowState": "NOT_STARTED",
       "reviewHistory": [
         {
           "date": "2026-05-22",
@@ -1108,7 +1108,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "In Review",
+      "workflowState": "PENDING_SCREENING_REVIEW",
       "reviewHistory": [
         {
           "date": "2026-05-17",
@@ -1174,7 +1174,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "workflowState": "Draft",
+      "workflowState": "NOT_STARTED",
       "reviewHistory": [
         {
           "date": "2026-05-22",

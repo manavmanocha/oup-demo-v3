@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { getAllItems, queueItemsForScreening } from "../data/mockData";
+import { isWorkflowState } from '../data/workflowState';
 
 const toTimestamp = (value?: string): number => {
   if (!value) return 0;
@@ -48,7 +49,7 @@ export function ScreenItems() {
   // Get all items from library - filter to draft or screening-review items
   const allItems = getAllItems();
   const availableItems = useMemo(
-    () => sortNewestFirst(allItems.filter((item) => item.workflowState === 'Draft')),
+    () => sortNewestFirst(allItems.filter((item) => isWorkflowState(item.workflowState, 'NOT_STARTED'))),
     [allItems],
   );
 

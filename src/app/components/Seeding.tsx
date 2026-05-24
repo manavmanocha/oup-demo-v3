@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { getAllItems, moveItemsToSeeded } from '../data/mockData';
+import { isWorkflowState } from '../data/workflowState';
 
 const toTimestamp = (value?: string): number => {
   if (!value) return 0;
@@ -33,14 +34,14 @@ export function Seeding() {
   const recommendedItems = useMemo(
     () => sortNewestFirst(
       allItems.filter(
-        (item) => item.workflowState === 'Difficulty Prediction Review' && (item.confidence ?? 0) < 60,
+        (item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING') && (item.confidence ?? 0) < 60,
       ),
     ),
     [allItems],
   );
 
   const currentlySeeded = useMemo(
-    () => sortNewestFirst(allItems.filter((item) => item.workflowState === 'Seeded')),
+    () => sortNewestFirst(allItems.filter((item) => isWorkflowState(item.workflowState, 'SEEDED'))),
     [allItems],
   );
 

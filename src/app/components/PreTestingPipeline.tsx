@@ -4,12 +4,13 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ArrowRight } from 'lucide-react';
 import { getAllItems } from '../data/mockData';
+import { isWorkflowState } from '../data/workflowState';
 
 export function PreTestingPipeline() {
   const allItems = getAllItems();
-  const screeningQueueCount = allItems.filter((item) => item.workflowState === 'Draft').length;
-  const predictionQueueCount = allItems.filter((item) => item.workflowState === 'Screening Passed').length;
-  const seedingQueueCount = allItems.filter((item) => item.workflowState === 'Difficulty Prediction Review').length;
+  const screeningQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'NOT_STARTED')).length;
+  const predictionQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED')).length;
+  const seedingQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')).length;
 
   const recentRuns = [
     { id: 'RUN-0051', stage: 'Screening', items: 21, flagged: 5, status: 'Success', date: '11 Mar 2025' },

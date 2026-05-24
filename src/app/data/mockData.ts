@@ -1,4 +1,5 @@
 import { AssessmentItem, BankCapacity, CEFRLevel, ItemType } from './types';
+import { isAnyWorkflowState, normalizeWorkflowStateInput, REVIEW_WORKFLOW_STATES } from './workflowState';
 
 import questionsData from './questions.json';
 
@@ -56,31 +57,7 @@ type ItemWorkflowOverride = {
 };
 
 const normalizeWorkflowState = (state: string | undefined): AssessmentItem['workflowState'] => {
-  if (!state) {
-    return undefined;
-  }
-
-  switch (state) {
-    case 'Draft':
-    case 'In Screening':
-    case 'Screening Review':
-    case 'Screening Passed':
-    case 'In Difficulty Prediction':
-    case 'Difficulty Prediction Review':
-    case 'Seeded':
-    case 'Live':
-      return state;
-    case 'In Review':
-      return 'Screening Review';
-    case 'Approved':
-      return 'Screening Passed';
-    case 'Calibrated':
-      return 'Difficulty Prediction Review';
-    case 'Retired':
-      return 'Screening Review';
-    default:
-      return undefined;
-  }
+  return normalizeWorkflowStateInput(state);
 };
 
 const normalizeItemStatus = (status: string | undefined): AssessmentItem['status'] => {
@@ -287,12 +264,12 @@ export const queueItemsForScreening = (itemIds: string[]) => {
         date: today,
         reviewer: 'Screening Queue',
         action: allPassed ? 'Screening Auto-Completed (Pass)' : 'Screening Auto-Completed (Needs Review)',
-        state: 'Screening Review',
+        state: 'PENDING_SCREENING_REVIEW',
       },
     ];
 
     return {
-      workflowState: 'Screening Review',
+      workflowState: 'PENDING_SCREENING_REVIEW',
       flaggedForReview: true,
       screening: {
         cefrFit: randomResults.cefrFit,
@@ -321,12 +298,12 @@ export const approveScreenedItems = (itemIds: string[]) => {
         date: today,
         reviewer: 'Screening Team',
         action: 'Screening Approved',
-        state: 'Screening Passed',
+        state: 'SCREENING_APPROVED',
       },
     ];
 
     return {
-      workflowState: 'Screening Passed',
+      workflowState: 'SCREENING_APPROVED',
       flaggedForReview: false,
       screening: {
         cefrFit: 'Pass',
@@ -355,12 +332,12 @@ export const rejectScreenedItems = (itemIds: string[]) => {
         date: today,
         reviewer: 'Screening Team',
         action: 'Screening Rejected',
-        state: 'Screening Review',
+        state: 'SCREENING_REJECTED',
       },
     ];
 
     return {
-      workflowState: 'Screening Review',
+      workflowState: 'SCREENING_REJECTED',
       status: 'Retired',
       flaggedForReview: false,
       reviewHistory: nextHistory,
@@ -392,12 +369,12 @@ export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]
           date: today,
           reviewer: 'Prediction Engine',
           action: 'Difficulty Predicted',
-          state: 'Difficulty Prediction Review',
+          state: 'PENDING_DP_REVIEW',
         },
       ];
 
       return {
-        workflowState: 'Difficulty Prediction Review',
+        workflowState: 'PENDING_DP_REVIEW',
         difficulty: result.difficulty,
         confidence: result.confidence,
         discrimination: result.discrimination,
@@ -434,12 +411,12 @@ export const acceptPredictedItems = (itemIds: string[]) => {
         date: today,
         reviewer: 'Difficulty Review Team',
         action: 'DP Approved',
-        state: 'Live',
+        state: 'RECOMMENDED_FOR_SEEDING',
       },
     ];
 
     return {
-      workflowState: 'Live',
+      workflowState: 'RECOMMENDED_FOR_SEEDING',
       status: 'Published',
       flaggedForReview: false,
       reviewHistory: nextHistory,
@@ -460,12 +437,12 @@ export const moveItemsToSeeded = (itemIds: string[]) => {
         date: today,
         reviewer: 'Seeding Team',
         action: 'Added to Seeding Batch',
-        state: 'Seeded',
+        state: 'SEEDED',
       },
     ];
 
     return {
-      workflowState: 'Seeded',
+      workflowState: 'SEEDED',
       status: 'Published',
       flaggedForReview: false,
       reviewHistory: nextHistory,
@@ -758,8 +735,7 @@ export const getFlaggedItems = () => {
 
 export const getItemsForReview = () => {
   return getAllItems().filter(item =>
-    item.workflowState === 'Screening Review' ||
-    item.workflowState === 'Difficulty Prediction Review' ||
+    isAnyWorkflowState(item.workflowState, REVIEW_WORKFLOW_STATES) ||
     item.flaggedForReview ||
     item.screening?.similarity === 'Review' ||
     item.screening?.similarity === 'Fail' ||
