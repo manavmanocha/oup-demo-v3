@@ -69,7 +69,6 @@ export function ItemDetail() {
               <Badge variant="outline">{item.itemType}</Badge>
             </div>
           </div>
-          <Button variant="outline">Restore to Published</Button>
         </div>
 
         {/* Compromised Warning */}
@@ -558,14 +557,26 @@ export function ItemDetail() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Flag className="w-4 h-4" />
-                Flag for Review
-              </Button>
-              <Button variant="outline" className="flex items-center gap-2 text-red-600 border-red-600 hover:bg-red-50">
-                <Archive className="w-4 h-4" />
-                Retire Item
-              </Button>
+              {item.status === 'Compromised' ? (
+                <>
+                  <Button variant="outline">Restore to Active</Button>
+                  <Button variant="outline" className="flex items-center gap-2 text-red-600 border-red-600 hover:bg-red-50">
+                    <Archive className="w-4 h-4" />
+                    Retire Item
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Flag className="w-4 h-4" />
+                    Mark as Compromised
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2 text-red-600 border-red-600 hover:bg-red-50">
+                    <Archive className="w-4 h-4" />
+                    Retire Item
+                  </Button>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>

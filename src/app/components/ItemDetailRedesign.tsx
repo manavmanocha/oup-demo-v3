@@ -9,10 +9,13 @@ import {
   Play,
   Pause,
   Volume2,
+  Archive,
+  RotateCcw,
   CheckCircle2,
   XCircle,
   BookOpen,
   Lightbulb,
+  AlertTriangle,
   AlertCircle,
   ChevronDown,
   ChevronUp,
@@ -187,6 +190,11 @@ export function ItemDetailRedesign() {
                 <Separator orientation="vertical" className="h-6 flex-shrink-0" />
                 {/* Item metadata badges - highlighted */}
                 <div className="flex items-center gap-2 flex-wrap">
+                  {item.status === 'Compromised' && (
+                    <Badge variant="destructive" className="font-semibold">
+                      Compromised
+                    </Badge>
+                  )}
                   <Badge variant="outline" className="font-semibold text-blue-700 border-blue-300 bg-blue-50">
                     {item.skill}
                   </Badge>
@@ -222,6 +230,23 @@ export function ItemDetailRedesign() {
                       Back to Ingest Items
                     </Button>
                   </Link>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Compromised Warning */}
+            {item.status === 'Compromised' && (
+              <Card className="border-orange-300 bg-orange-50">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5" />
+                    <div>
+                      <div className="font-semibold text-gray-900 mb-1">Compromised — High exposure</div>
+                      <div className="text-sm text-gray-700">
+                        High exposure count ({item.exposureCount ?? 'N/A'}) may compromise item security. Consider retiring this item.
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -667,7 +692,6 @@ export function ItemDetailRedesign() {
               </CardContent>
             </Card>
 
-            {/* Workflow & Review History */}
             {isFromWorkflow && screeningEntries.length > 0 && (
               <Card>
                 <CardHeader>
@@ -798,6 +822,39 @@ export function ItemDetailRedesign() {
                       <div className="text-sm text-gray-500">None</div>
                     )}
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap items-center gap-3">
+                  {item.status === 'Compromised' ? (
+                    <>
+                      <Button variant="outline" className="flex items-center gap-2">
+                        <RotateCcw className="w-4 h-4" />
+                        Restore to Active
+                      </Button>
+                      <Button variant="outline" className="flex items-center gap-2 text-red-600 border-red-600 hover:bg-red-50">
+                        <Archive className="w-4 h-4" />
+                        Retire Item
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="outline" className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" />
+                        Mark as Compromised
+                      </Button>
+                      <Button variant="outline" className="flex items-center gap-2 text-red-600 border-red-600 hover:bg-red-50">
+                        <Archive className="w-4 h-4" />
+                        Retire Item
+                      </Button>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
