@@ -23,20 +23,21 @@
         }
       },
       "status": "Draft",
-      "workflowState": "Draft",
+      "workflowState": "Difficulty Prediction Review",
       "subSkill": "Identifying writer's views",
       "cognitiveLevel": "L4 Analyze",
       "contentDomain": "Medical Science",
       "languageVariety": "International",
       "discrimination": "High",
-      "confidence": 92,
+      "confidence": 55,
       "irtParameters": {
         "b": 1.35,
         "a": 1.1,
         "c": 0,
         "sampleSize": 520,
         "modelVersion": "IRT-2.4",
-        "calibratedFromFieldTest": true
+        "calibratedFromFieldTest": true,
+        "predictionDate": "2026-05-24T15:35:16.938Z"
       },
       "flaggedForReview": false,
       "reviewHistory": [
@@ -49,12 +50,13 @@
       ],
       "author": "Aisha Verma",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Arjun Nair",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Prediction Engine",
       "reviewers": [
         "Maya Thompson",
         "Sofia Martinez"
-      ]
+      ],
+      "aiPredictionDate": "2026-05-24T15:35:16.938Z"
     },
     {
       "id": "RDG-C2-020",
@@ -79,20 +81,21 @@
         }
       },
       "status": "Published",
-      "workflowState": "Live",
+      "workflowState": "Difficulty Prediction Review",
       "subSkill": "Synthesizing information",
       "cognitiveLevel": "L4 Analyze",
       "contentDomain": "Linguistics and Culture",
       "languageVariety": "International",
       "discrimination": "High",
-      "confidence": 92,
+      "confidence": 55,
       "irtParameters": {
         "b": 1.35,
         "a": 1.13,
         "c": 0,
         "sampleSize": 514,
         "modelVersion": "IRT-2.4",
-        "calibratedFromFieldTest": true
+        "calibratedFromFieldTest": true,
+        "predictionDate": "2026-05-24T15:35:16.938Z"
       },
       "screening": {
         "cefrFit": "Pass",
@@ -112,12 +115,13 @@
       ],
       "author": "Elena Petrova",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Maya Thompson",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Prediction Engine",
       "reviewers": [
         "Liam O'Connell",
         "Arjun Nair"
-      ]
+      ],
+      "aiPredictionDate": "2026-05-24T15:35:16.938Z"
     },
     {
       "id": "RDG-B2-011",
@@ -163,20 +167,21 @@
         }
       },
       "status": "Draft",
-      "workflowState": "Screening Review",
+      "workflowState": "Difficulty Prediction Review",
       "subSkill": "Making comparisons",
       "cognitiveLevel": "L3 Apply",
       "contentDomain": "Energy and Technology",
       "languageVariety": "International",
       "discrimination": "Moderate",
-      "confidence": 85,
+      "confidence": 55,
       "irtParameters": {
         "b": 0.85,
         "a": 1.12,
         "c": 0.23,
         "sampleSize": 513,
         "modelVersion": "IRT-2.4",
-        "calibratedFromFieldTest": true
+        "calibratedFromFieldTest": true,
+        "predictionDate": "2026-05-24T15:35:16.938Z"
       },
       "screening": {
         "cefrFit": "Review",
@@ -197,12 +202,13 @@
       ],
       "author": "Rohan Mehta",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Liam O'Connell",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Prediction Engine",
       "reviewers": [
         "Kabir Singh",
         "Maya Thompson"
-      ]
+      ],
+      "aiPredictionDate": "2026-05-24T15:35:16.938Z"
     },
     {
       "id": "LQ-042",
@@ -238,20 +244,21 @@
         }
       },
       "status": "Draft",
-      "workflowState": "Draft",
+      "workflowState": "Difficulty Prediction Review",
       "subSkill": "Listening for specific information",
       "cognitiveLevel": "L2 Understand",
       "contentDomain": "Academic",
       "languageVariety": "International",
       "discrimination": "Low",
-      "confidence": 75,
+      "confidence": 55,
       "irtParameters": {
         "b": 0.35,
         "a": 1.07,
         "c": 0,
         "sampleSize": 772,
         "modelVersion": "IRT-2.4",
-        "calibratedFromFieldTest": true
+        "calibratedFromFieldTest": true,
+        "predictionDate": "2026-05-24T15:35:16.938Z"
       },
       "flaggedForReview": false,
       "reviewHistory": [
@@ -264,12 +271,13 @@
       ],
       "author": "Neha Kapoor",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Kabir Singh",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Prediction Engine",
       "reviewers": [
         "Sofia Martinez",
         "Liam O'Connell"
-      ]
+      ],
+      "aiPredictionDate": "2026-05-24T15:35:16.938Z"
     },
     {
       "id": "RDG-C1-005",
@@ -300,14 +308,15 @@
       "contentDomain": "History and Culture",
       "languageVariety": "International",
       "discrimination": "High",
-      "confidence": 92,
+      "confidence": 55,
       "irtParameters": {
         "b": 1.35,
         "a": 1.06,
         "c": 0,
         "sampleSize": 516,
         "modelVersion": "IRT-2.4",
-        "calibratedFromFieldTest": true
+        "calibratedFromFieldTest": true,
+        "predictionDate": "2026-05-24T15:35:16.938Z"
       },
       "screening": {
         "cefrFit": "Pass",
@@ -327,12 +336,13 @@
       ],
       "author": "Daniel Brooks",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Sofia Martinez",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Prediction Engine",
       "reviewers": [
         "Arjun Nair",
         "Kabir Singh"
-      ]
+      ],
+      "aiPredictionDate": "2026-05-24T15:35:16.938Z"
     },
     {
       "id": "SPK-B2-009",
@@ -375,14 +385,15 @@
       "contentDomain": "Technology and Travel",
       "languageVariety": "International",
       "discrimination": "Moderate",
-      "confidence": 85,
+      "confidence": 55,
       "irtParameters": {
         "b": 0.85,
         "a": 1.09,
         "c": 0,
         "sampleSize": 537,
         "modelVersion": "IRT-2.4",
-        "calibratedFromFieldTest": true
+        "calibratedFromFieldTest": true,
+        "predictionDate": "2026-05-24T15:35:16.938Z"
       },
       "screening": {
         "cefrFit": "Pass",
@@ -402,12 +413,13 @@
       ],
       "author": "Neha Kapoor",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Kabir Singh",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Prediction Engine",
       "reviewers": [
         "Sofia Martinez",
         "Liam O'Connell"
-      ]
+      ],
+      "aiPredictionDate": "2026-05-24T15:35:16.938Z"
     },
     {
       "id": "WRT-C2-020",
@@ -435,20 +447,21 @@
         }
       },
       "status": "Draft",
-      "workflowState": "Screening Passed",
+      "workflowState": "Difficulty Prediction Review",
       "subSkill": "Writing - Task 2",
       "cognitiveLevel": "L4 Analyze",
       "contentDomain": "Economics and Globalization",
       "languageVariety": "International",
       "discrimination": "High",
-      "confidence": 92,
+      "confidence": 55,
       "irtParameters": {
         "b": 1.35,
         "a": 1.09,
         "c": 0,
         "sampleSize": 546,
         "modelVersion": "IRT-2.4",
-        "calibratedFromFieldTest": true
+        "calibratedFromFieldTest": true,
+        "predictionDate": "2026-05-24T15:35:16.938Z"
       },
       "screening": {
         "cefrFit": "Pass",
@@ -468,12 +481,13 @@
       ],
       "author": "Daniel Brooks",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Sofia Martinez",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Prediction Engine",
       "reviewers": [
         "Arjun Nair",
         "Kabir Singh"
-      ]
+      ],
+      "aiPredictionDate": "2026-05-24T15:35:16.938Z"
     },
     {
       "id": "WRT-B2-002",
@@ -502,20 +516,21 @@
         }
       },
       "status": "Draft",
-      "workflowState": "Draft",
+      "workflowState": "Difficulty Prediction Review",
       "subSkill": "Writing - Task 1",
       "cognitiveLevel": "L3 Apply",
       "contentDomain": "Education Statistics",
       "languageVariety": "International",
       "discrimination": "Moderate",
-      "confidence": 85,
+      "confidence": 55,
       "irtParameters": {
         "b": 0.85,
         "a": 1.08,
         "c": 0,
         "sampleSize": 545,
         "modelVersion": "IRT-2.4",
-        "calibratedFromFieldTest": true
+        "calibratedFromFieldTest": true,
+        "predictionDate": "2026-05-24T15:35:16.938Z"
       },
       "flaggedForReview": false,
       "reviewHistory": [
@@ -528,12 +543,13 @@
       ],
       "author": "Aisha Verma",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Arjun Nair",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Prediction Engine",
       "reviewers": [
         "Maya Thompson",
         "Sofia Martinez"
-      ]
+      ],
+      "aiPredictionDate": "2026-05-24T15:35:16.938Z"
     },
     {
       "id": "SPK-C1-011",
@@ -570,20 +586,21 @@
         }
       },
       "status": "Published",
-      "workflowState": "Live",
+      "workflowState": "Difficulty Prediction Review",
       "subSkill": "Speaking - Part 3",
       "cognitiveLevel": "L4 Analyze",
       "contentDomain": "Culture and Tradition",
       "languageVariety": "International",
       "discrimination": "High",
-      "confidence": 92,
+      "confidence": 55,
       "irtParameters": {
         "b": 1.35,
         "a": 1.11,
         "c": 0,
         "sampleSize": 530,
         "modelVersion": "IRT-2.4",
-        "calibratedFromFieldTest": true
+        "calibratedFromFieldTest": true,
+        "predictionDate": "2026-05-24T15:35:16.938Z"
       },
       "screening": {
         "cefrFit": "Review",
@@ -604,12 +621,13 @@
       ],
       "author": "Aisha Verma",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Arjun Nair",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Prediction Engine",
       "reviewers": [
         "Maya Thompson",
         "Sofia Martinez"
-      ]
+      ],
+      "aiPredictionDate": "2026-05-24T15:35:16.938Z"
     },
     {
       "id": "WRT-C1-016",
@@ -637,20 +655,21 @@
         }
       },
       "status": "Compromised",
-      "workflowState": "Live",
+      "workflowState": "Difficulty Prediction Review",
       "subSkill": "Writing - Task 2",
       "cognitiveLevel": "L4 Analyze",
       "contentDomain": "Media and Society",
       "languageVariety": "International",
       "discrimination": "High",
-      "confidence": 92,
+      "confidence": 55,
       "irtParameters": {
         "b": 1.35,
         "a": 1.13,
         "c": 0,
         "sampleSize": 550,
         "modelVersion": "IRT-2.4",
-        "calibratedFromFieldTest": true
+        "calibratedFromFieldTest": true,
+        "predictionDate": "2026-05-24T15:35:16.938Z"
       },
       "screening": {
         "cefrFit": "Pass",
@@ -670,13 +689,14 @@
       ],
       "author": "Aisha Verma",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Arjun Nair",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Prediction Engine",
       "reviewers": [
         "Maya Thompson",
         "Sofia Martinez"
       ],
-      "flagReason": "Marked as compromised during curation."
+      "flagReason": "Marked as compromised during curation.",
+      "aiPredictionDate": "2026-05-24T15:35:16.938Z"
     },
     {
       "id": "SPK-B2-006",
@@ -709,20 +729,21 @@
         }
       },
       "status": "Draft",
-      "workflowState": "Draft",
+      "workflowState": "Difficulty Prediction Review",
       "subSkill": "Speaking - Part 2",
       "cognitiveLevel": "L3 Apply",
       "contentDomain": "People and Relationships",
       "languageVariety": "International",
       "discrimination": "Moderate",
-      "confidence": 85,
+      "confidence": 55,
       "irtParameters": {
         "b": 0.85,
         "a": 1.06,
         "c": 0,
         "sampleSize": 534,
         "modelVersion": "IRT-2.4",
-        "calibratedFromFieldTest": true
+        "calibratedFromFieldTest": true,
+        "predictionDate": "2026-05-24T15:35:16.938Z"
       },
       "flaggedForReview": false,
       "reviewHistory": [
@@ -735,12 +756,13 @@
       ],
       "author": "Elena Petrova",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Maya Thompson",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Prediction Engine",
       "reviewers": [
         "Liam O'Connell",
         "Arjun Nair"
-      ]
+      ],
+      "aiPredictionDate": "2026-05-24T15:35:16.938Z"
     },
     {
       "id": "LQ-062",
@@ -775,8 +797,8 @@
           }
         }
       },
-      "status": "Draft",
-      "workflowState": "Difficulty Prediction Review",
+      "status": "Published",
+      "workflowState": "Seeded",
       "subSkill": "Listening for specific information",
       "cognitiveLevel": "L2 Understand",
       "contentDomain": "Travel",
@@ -809,8 +831,8 @@
       ],
       "author": "Elena Petrova",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Maya Thompson",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Seeding Team",
       "reviewers": [
         "Liam O'Connell",
         "Arjun Nair"
@@ -849,8 +871,8 @@
           "testName": "IELTS Speaking Mock Test 1"
         }
       },
-      "status": "Draft",
-      "workflowState": "Draft",
+      "status": "Published",
+      "workflowState": "Seeded",
       "subSkill": "Speaking - Part 1",
       "cognitiveLevel": "L2 Understand",
       "contentDomain": "Work and Study",
@@ -876,8 +898,8 @@
       ],
       "author": "Elena Petrova",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Maya Thompson",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Seeding Team",
       "reviewers": [
         "Liam O'Connell",
         "Arjun Nair"
@@ -909,8 +931,8 @@
           "testName": "IELTS Writing Practice Test 4"
         }
       },
-      "status": "Draft",
-      "workflowState": "Screening Review",
+      "status": "Published",
+      "workflowState": "Seeded",
       "subSkill": "Writing - Task 1",
       "cognitiveLevel": "L4 Analyze",
       "contentDomain": "Water Resources",
@@ -932,7 +954,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "flaggedForReview": true,
+      "flaggedForReview": false,
       "flagReason": "Needs manual screening review.",
       "reviewHistory": [
         {
@@ -944,8 +966,8 @@
       ],
       "author": "Aisha Verma",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Arjun Nair",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Seeding Team",
       "reviewers": [
         "Maya Thompson",
         "Sofia Martinez"
@@ -977,8 +999,8 @@
           "testName": "IELTS Writing Practice Test 1"
         }
       },
-      "status": "Draft",
-      "workflowState": "Difficulty Prediction Review",
+      "status": "Published",
+      "workflowState": "Seeded",
       "subSkill": "Writing - Task 1",
       "cognitiveLevel": "L3 Apply",
       "contentDomain": "Technology and Demographics",
@@ -1011,8 +1033,8 @@
       ],
       "author": "Elena Petrova",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Maya Thompson",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Seeding Team",
       "reviewers": [
         "Liam O'Connell",
         "Arjun Nair"
@@ -1040,8 +1062,8 @@
           "testName": "IELTS Academic Reading Practice Test 4"
         }
       },
-      "status": "Draft",
-      "workflowState": "Screening Passed",
+      "status": "Published",
+      "workflowState": "Seeded",
       "subSkill": "Matching examples to concepts",
       "cognitiveLevel": "L3 Apply",
       "contentDomain": "Urban Planning",
@@ -1074,8 +1096,8 @@
       ],
       "author": "Rohan Mehta",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Liam O'Connell",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Seeding Team",
       "reviewers": [
         "Kabir Singh",
         "Maya Thompson"
@@ -1114,8 +1136,8 @@
           }
         }
       },
-      "status": "Draft",
-      "workflowState": "Difficulty Prediction Review",
+      "status": "Published",
+      "workflowState": "Seeded",
       "subSkill": "Note taking and completion",
       "cognitiveLevel": "L3 Apply",
       "contentDomain": "Environment",
@@ -1148,8 +1170,8 @@
       ],
       "author": "Aisha Verma",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Arjun Nair",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Seeding Team",
       "reviewers": [
         "Maya Thompson",
         "Sofia Martinez"
@@ -1209,8 +1231,8 @@
           }
         }
       },
-      "status": "Draft",
-      "workflowState": "Screening Review",
+      "status": "Published",
+      "workflowState": "Seeded",
       "subSkill": "Inferring speaker meaning",
       "cognitiveLevel": "L4 Analyze",
       "contentDomain": "Culture & Society",
@@ -1232,7 +1254,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "flaggedForReview": true,
+      "flaggedForReview": false,
       "flagReason": "Needs manual screening review.",
       "reviewHistory": [
         {
@@ -1244,8 +1266,8 @@
       ],
       "author": "Aisha Verma",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Arjun Nair",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Seeding Team",
       "reviewers": [
         "Maya Thompson",
         "Sofia Martinez"
@@ -1276,8 +1298,8 @@
           "testName": "IELTS Writing Practice Test 4"
         }
       },
-      "status": "Draft",
-      "workflowState": "Difficulty Prediction Review",
+      "status": "Published",
+      "workflowState": "Seeded",
       "subSkill": "Writing - Task 2",
       "cognitiveLevel": "L3 Apply",
       "contentDomain": "Healthcare Policy",
@@ -1310,8 +1332,8 @@
       ],
       "author": "Daniel Brooks",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Sofia Martinez",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Seeding Team",
       "reviewers": [
         "Arjun Nair",
         "Kabir Singh"
@@ -1350,8 +1372,8 @@
           }
         }
       },
-      "status": "Compromised",
-      "workflowState": "Live",
+      "status": "Published",
+      "workflowState": "Seeded",
       "subSkill": "Listening for specific information",
       "cognitiveLevel": "L2 Understand",
       "contentDomain": "Health & Lifestyle",
@@ -1373,7 +1395,7 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "flaggedForReview": true,
+      "flaggedForReview": false,
       "reviewHistory": [
         {
           "date": "2026-05-21",
@@ -1384,8 +1406,8 @@
       ],
       "author": "Elena Petrova",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Maya Thompson",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Seeding Team",
       "reviewers": [
         "Liam O'Connell",
         "Arjun Nair"
@@ -1414,8 +1436,8 @@
           "testName": "IELTS Academic Reading Practice Test 3"
         }
       },
-      "status": "Draft",
-      "workflowState": "Draft",
+      "status": "Published",
+      "workflowState": "Seeded",
       "subSkill": "Paraphrasing and synonyms",
       "cognitiveLevel": "L4 Analyze",
       "contentDomain": "Psychology and Neuroscience",
@@ -1441,8 +1463,8 @@
       ],
       "author": "Daniel Brooks",
       "createdDate": "2026-05-17",
-      "lastEditedDate": "2026-05-21",
-      "lastEditedBy": "Sofia Martinez",
+      "lastEditedDate": "2026-05-24T15:35:16.938Z",
+      "lastEditedBy": "Seeding Team",
       "reviewers": [
         "Arjun Nair",
         "Kabir Singh"

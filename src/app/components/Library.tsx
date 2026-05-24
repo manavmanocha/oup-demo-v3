@@ -43,7 +43,7 @@ const sortNewestFirst = <T extends { createdDate?: string; lastEditedDate?: stri
       return bTime - aTime;
     }
 
-    return 0;
+    return b.id.localeCompare(a.id);
   });
 };
 

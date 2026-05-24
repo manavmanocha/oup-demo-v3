@@ -260,7 +260,9 @@ export const addIngestedItems = (items: AssessmentItem[]) => {
 };
 
 export const queueItemsForScreening = (itemIds: string[]) => {
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const nowIso = now.toISOString();
 
   upsertItemOverrides(itemIds, (item, existingPatch) => {
     const dimensions: Array<'cefrFit' | 'distractorStrength' | 'clarity' | 'fairness' | 'similarity'> = [
@@ -284,14 +286,14 @@ export const queueItemsForScreening = (itemIds: string[]) => {
       {
         date: today,
         reviewer: 'Screening Queue',
-        action: allPassed ? 'Screening Auto-Passed' : 'Screening Auto-Failed',
-        state: allPassed ? 'Screening Passed' : 'Screening Review',
+        action: allPassed ? 'Screening Auto-Completed (Pass)' : 'Screening Auto-Completed (Needs Review)',
+        state: 'Screening Review',
       },
     ];
 
     return {
-      workflowState: allPassed ? 'Screening Passed' : 'Screening Review',
-      flaggedForReview: !allPassed,
+      workflowState: 'Screening Review',
+      flaggedForReview: true,
       screening: {
         cefrFit: randomResults.cefrFit,
         distractorStrength: randomResults.distractorStrength,
@@ -300,12 +302,16 @@ export const queueItemsForScreening = (itemIds: string[]) => {
         similarity: randomResults.similarity,
       },
       reviewHistory: nextHistory,
+      lastEditedDate: nowIso,
+      lastEditedBy: 'Screening Queue',
     };
   });
 };
 
 export const approveScreenedItems = (itemIds: string[]) => {
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const nowIso = now.toISOString();
 
   upsertItemOverrides(itemIds, (item, existingPatch) => {
     const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
@@ -330,12 +336,16 @@ export const approveScreenedItems = (itemIds: string[]) => {
         similarity: 'Pass',
       },
       reviewHistory: nextHistory,
+      lastEditedDate: nowIso,
+      lastEditedBy: 'Screening Team',
     };
   });
 };
 
 export const rejectScreenedItems = (itemIds: string[]) => {
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const nowIso = now.toISOString();
 
   upsertItemOverrides(itemIds, (item, existingPatch) => {
     const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
@@ -354,6 +364,8 @@ export const rejectScreenedItems = (itemIds: string[]) => {
       status: 'Retired',
       flaggedForReview: false,
       reviewHistory: nextHistory,
+      lastEditedDate: nowIso,
+      lastEditedBy: 'Screening Team',
     };
   });
 };
@@ -367,7 +379,9 @@ type DifficultyPredictionResult = {
 };
 
 export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]) => {
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const nowIso = now.toISOString();
 
   results.forEach((result) => {
     upsertItemOverrides([result.id], (item, existingPatch) => {
@@ -395,18 +409,22 @@ export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]
           predictedByAI: true,
           calibratedFromFieldTest: false,
           modelVersion: 'IRT-LSTM-3.1',
-          predictionDate: today,
+          predictionDate: nowIso,
         },
         aiModelVersion: 'IRT-LSTM-3.1',
-        aiPredictionDate: today,
+        aiPredictionDate: nowIso,
         reviewHistory: nextHistory,
+        lastEditedDate: nowIso,
+        lastEditedBy: 'Prediction Engine',
       };
     });
   });
 };
 
 export const acceptPredictedItems = (itemIds: string[]) => {
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const nowIso = now.toISOString();
 
   upsertItemOverrides(itemIds, (item, existingPatch) => {
     const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
@@ -425,6 +443,8 @@ export const acceptPredictedItems = (itemIds: string[]) => {
       status: 'Published',
       flaggedForReview: false,
       reviewHistory: nextHistory,
+      lastEditedDate: nowIso,
+      lastEditedBy: 'Difficulty Review Team',
     };
   });
 };
