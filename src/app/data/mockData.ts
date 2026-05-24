@@ -702,13 +702,14 @@ export const allMockItems: AssessmentItem[] = allQuestions
   .filter((item): item is AssessmentItem => Boolean(item));
 
 const CEFR_LEVELS: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const CEFR_LEVEL_TARGET = 75;
 
 export const bankCapacityData: BankCapacity[] = CEFR_LEVELS.map((level) => {
   const levelItems = allMockItems.filter((item) => item.level === level);
   const compromised = levelItems.filter((item) => item.status === 'Compromised').length;
   const active = levelItems.length - compromised;
-  const target = Math.max(levelItems.length, 1);
-  const gapToTarget = Math.max(target - levelItems.length, 0);
+  const target = CEFR_LEVEL_TARGET;
+  const gapToTarget = Math.max(target - active, 0);
   const percentage = Math.round((active / target) * 100);
 
   return {
