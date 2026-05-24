@@ -477,7 +477,7 @@ export function IngestItems() {
             }))
           : undefined;
 
-        const createdDate = new Date().toISOString().slice(0, 10);
+        const createdDate = new Date().toISOString();
         const itemHash = hashFromId(uniqueId);
         const author = INGEST_AUTHORS[itemHash % INGEST_AUTHORS.length];
         const reviewer = INGEST_REVIEWERS[itemHash % INGEST_REVIEWERS.length];
