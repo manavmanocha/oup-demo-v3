@@ -60,6 +60,8 @@ export interface AssessmentItem {
   rubric?: string;
   audioAsset?: string;
   passage?: string;
+  passageTitle?: string;
+  instructions?: string;
   passageId?: string;
   
   // Item Properties

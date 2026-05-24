@@ -333,6 +333,11 @@ export function ItemDetailRedesign() {
                   <CollapsibleContent>
                     <CardContent className="pt-0">
                       <div className="prose max-w-none">
+                        {item.passageTitle && (
+                          <h3 className="text-base font-semibold text-gray-900 mb-2">
+                            {item.passageTitle}
+                          </h3>
+                        )}
                         <p className="text-gray-700 leading-relaxed">
                           {item.passage}
                         </p>
@@ -357,6 +362,13 @@ export function ItemDetailRedesign() {
                     {item.title}
                   </p>
                 </div>
+
+                {item.instructions && (
+                  <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+                    <p className="text-sm font-medium text-blue-900">Instructions</p>
+                    <p className="mt-1 text-sm text-blue-800">{item.instructions}</p>
+                  </div>
+                )}
 
                 {/* Answer Options */}
                 {item.options && item.options.length > 0 && (

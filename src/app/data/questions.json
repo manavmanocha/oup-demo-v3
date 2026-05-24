@@ -1,6 +1,85 @@
 {
   "questions": [
     {
+      "id": "ITMBK-RDG-A2-001",
+      "skill": "Reading",
+      "questionNumber": 1,
+      "questionType": "Multiple Choice",
+      "prompt": "Which shuttle should Lina take if her flight leaves at 10:40 and she wants to arrive at the airport at least 90 minutes early?",
+      "correctAnswer": "B",
+      "difficulty": "Easy",
+      "level": "A2",
+      "topic": "Travel",
+      "skillTag": "Reading for specific information",
+      "skillTagId": "reading-reading-for-specific-information",
+      "options": [
+        {
+          "label": "A",
+          "text": "07:30"
+        },
+        {
+          "label": "B",
+          "text": "08:00",
+          "correct": true
+        },
+        {
+          "label": "C",
+          "text": "08:40"
+        },
+        {
+          "label": "D",
+          "text": "09:15"
+        }
+      ],
+      "skillDetails": {
+        "reading": {
+          "passageNumber": 1,
+          "passageTitle": "Airport Shuttle Timetable",
+          "passageText": "CityLink Shuttle Service runs daily from Central Station to Northgate Airport. Buses leave Central Station at 07:30, 08:00, 08:40, 09:15 and 10:00. The journey usually takes 35 minutes, but passengers are advised to arrive at the airport at least 90 minutes before departure for international flights. Tickets can be bought online or from the driver. The 08:40 service is often busy on weekdays because many business travellers use it.",
+          "instructions": "Read the shuttle notice and choose the best answer.",
+          "testId": "GEN-A2-Reading",
+          "testName": "Generated Assessment Items"
+        }
+      },
+      "status": "Draft",
+      "workflowState": "NOT_STARTED",
+      "subSkill": "Reading for specific information",
+      "cognitiveLevel": "L2 Understand",
+      "contentDomain": "Travel",
+      "languageVariety": "International",
+      "confidence": 86,
+      "irtParameters": {
+        "b": -0.35,
+        "a": 1.18,
+        "c": 0.24,
+        "sampleSize": 1180,
+        "modelVersion": "IRT-2.7",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "flaggedForReview": false,
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "AI Content Generator",
+          "action": "Created",
+          "state": "Draft",
+          "notes": "Travel notice item generated for low-intermediate bank coverage."
+        }
+      ],
+      "author": "Daniel Brooks",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22"
+    },
+    {
       "id": "RDG-C1-018",
       "skill": "Reading",
       "questionNumber": 4,

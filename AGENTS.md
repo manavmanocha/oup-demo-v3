@@ -28,3 +28,15 @@ This document defines canonical backend workflow states for this repository.
 - Keep existing UI copy unchanged.
 - Convert backend codes to legacy display labels through the shared mapping helper in src/app/data/workflowState.ts.
 - If a new UI display is added, use getWorkflowStateLabel(...) instead of rendering raw codes.
+
+## Question Data Policy
+
+- Treat src/app/data/questions.json as the runtime source for mapped item data.
+- Do not consume skillDetails.*.extendedData in runtime mapping or UI rendering.
+- Keep runtime fields flattened (for example: passageTitle and instructions on skillDetails.reading) instead of reading nested originalItem/sourceData structures.
+
+## Author Policy
+
+- Never use "AI Content Generator" as an item author.
+- Use realistic human names from the master author list in src/app/components/IngestItems.tsx (`INGEST_AUTHORS`).
+- Apply this policy consistently across src/app/data/questions.json, src/app/data/generatedQuestions.json, and src/app/data/generatedAssessmentItems.json, including nested author fields.

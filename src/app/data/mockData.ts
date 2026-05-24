@@ -19,6 +19,8 @@ type ReadingQuestion = UnifiedQuestion & {
   skillDetails: {
     reading: {
       passageText?: string;
+      passageTitle?: string;
+      instructions?: string;
     };
   };
 };
@@ -654,6 +656,7 @@ const writingItems: AssessmentItem[] = writingQuestions.map((q) => {
 // Convert reading questions to AssessmentItem format
 const readingItems: AssessmentItem[] = readingQuestions.map((q) => {
   const metadata = getQuestionMetadata(q);
+  const readingDetails = q.skillDetails.reading;
   const options = Array.isArray(q.options)
     ? q.options.map((opt, idx) => {
         if (typeof opt === 'string') {
@@ -681,7 +684,9 @@ const readingItems: AssessmentItem[] = readingQuestions.map((q) => {
     itemType: q.questionType as ItemType,
     status: metadata.status as AssessmentItem['status'],
     difficulty: q.difficulty as AssessmentItem['difficulty'],
-    passage: q.skillDetails.reading.passageText,
+    passage: readingDetails.passageText,
+    passageTitle: readingDetails.passageTitle,
+    instructions: readingDetails.instructions,
     passageId: `PSG-${q.id}`,
     options,
     subSkill: metadata.subSkill,
