@@ -3,8 +3,6 @@ import { Link } from "react-router";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
 } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -16,35 +14,31 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  Clock,
   LayoutGrid,
   List,
   X,
   RotateCcw,
 } from "lucide-react";
-import { getAllItems } from "../data/mockData";
+import { getAllItems, getIngestedItems } from "../data/mockData";
 import { QuestionCard } from "./QuestionCard";
 
 const ITEMS_PER_PAGE = 50;
 const LIBRARY_FILTER_STATE_KEY = "library-filter-state-v1";
 
-const toTimestamp = (value?: string): number => {
-  if (!value) return 0;
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? 0 : parsed;
-};
+const prioritizeIngestedFirst = <T extends { id: string }>(items: T[], ingestedIds: Set<string>): T[] => {
+  const ingested: T[] = [];
+  const nonIngested: T[] = [];
 
-const sortNewestFirst = <T extends { createdDate?: string; lastEditedDate?: string; id: string }>(items: T[]): T[] => {
-  return [...items].sort((a, b) => {
-    const aTime = Math.max(toTimestamp(a.createdDate), toTimestamp(a.lastEditedDate));
-    const bTime = Math.max(toTimestamp(b.createdDate), toTimestamp(b.lastEditedDate));
-
-    if (bTime !== aTime) {
-      return bTime - aTime;
+  items.forEach((item) => {
+    if (ingestedIds.has(item.id)) {
+      ingested.push(item);
+      return;
     }
 
-    return b.id.localeCompare(a.id);
+    nonIngested.push(item);
   });
+
+  return [...ingested, ...nonIngested];
 };
 
 type LibraryFilterState = {
@@ -132,6 +126,8 @@ export function Library() {
   const allItems = getAllItems();
 
   const filteredItems = useMemo(() => {
+    const ingestedIdSet = new Set(getIngestedItems().map((item) => item.id));
+
     const matchedItems = allItems.filter((item) => {
       const matchesSearch =
         item.id
@@ -171,7 +167,7 @@ export function Library() {
       );
     });
 
-    return sortNewestFirst(matchedItems);
+    return prioritizeIngestedFirst(matchedItems, ingestedIdSet);
   }, [
     allItems,
     searchQuery,

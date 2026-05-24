@@ -13,26 +13,23 @@ import {
   Search,
   ChevronRight,
 } from "lucide-react";
-import { getAllItems, queueItemsForScreening } from "../data/mockData";
+import { getAllItems, getIngestedItems, queueItemsForScreening } from "../data/mockData";
 import { isWorkflowState } from '../data/workflowState';
 
-const toTimestamp = (value?: string): number => {
-  if (!value) return 0;
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? 0 : parsed;
-};
+const prioritizeIngestedFirst = <T extends { id: string }>(items: T[], ingestedIds: Set<string>): T[] => {
+  const ingested: T[] = [];
+  const nonIngested: T[] = [];
 
-const sortNewestFirst = <T extends { createdDate?: string; lastEditedDate?: string; id: string }>(items: T[]): T[] => {
-  return [...items].sort((a, b) => {
-    const aTime = Math.max(toTimestamp(a.createdDate), toTimestamp(a.lastEditedDate));
-    const bTime = Math.max(toTimestamp(b.createdDate), toTimestamp(b.lastEditedDate));
-
-    if (bTime !== aTime) {
-      return bTime - aTime;
+  items.forEach((item) => {
+    if (ingestedIds.has(item.id)) {
+      ingested.push(item);
+      return;
     }
 
-    return b.id.localeCompare(a.id);
+    nonIngested.push(item);
   });
+
+  return [...ingested, ...nonIngested];
 };
 
 export function ScreenItems() {
@@ -48,9 +45,16 @@ export function ScreenItems() {
 
   // Get all items from library - filter to draft or screening-review items
   const allItems = getAllItems();
-  const availableItems = useMemo(
-    () => sortNewestFirst(allItems.filter((item) => isWorkflowState(item.workflowState, 'NOT_STARTED'))),
+  const ingestedIdSet = useMemo(
+    () => new Set(getIngestedItems().map((item) => item.id)),
     [allItems],
+  );
+  const availableItems = useMemo(
+    () => prioritizeIngestedFirst(
+      allItems.filter((item) => isWorkflowState(item.workflowState, 'NOT_STARTED')),
+      ingestedIdSet,
+    ),
+    [allItems, ingestedIdSet],
   );
 
   const filteredItems = useMemo(() => {
