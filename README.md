@@ -8,4 +8,12 @@
   Run `npm i` to install the dependencies.
 
   Run `npm run dev` to start the development server.
+
+  ## Testing
+
+  Run `pnpm run test:unit` to execute unit tests with coverage.
+
+  Run `pnpm run test:e2e` to execute Playwright end-to-end tests.
+
+  Run `pnpm run test:ci` to execute the full CI-equivalent test pipeline.
   
