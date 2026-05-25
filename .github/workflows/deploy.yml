@@ -6,7 +6,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Configure AWS credentials
@@ -17,6 +17,27 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Trigger App Runner deployment
+        env:
+          SERVICE_ARN: ${{ secrets.APPRUNNER_SERVICE_ARN }}
         run: |
-          aws apprunner start-deployment \
-            --service-arn ${{ secrets.APPRUNNER_SERVICE_ARN }}
+          ATTEMPTS=12
+          SLEEP_SECONDS=30
+
+          for i in $(seq 1 $ATTEMPTS); do
+            STATUS=$(aws apprunner describe-service \
+              --service-arn "$SERVICE_ARN" \
+              --query 'Service.Status' \
+              --output text)
+
+            echo "Attempt $i/$ATTEMPTS - App Runner status: $STATUS"
+
+            if [ "$STATUS" = "RUNNING" ]; then
+              aws apprunner start-deployment --service-arn "$SERVICE_ARN"
+              exit 0
+            fi
+
+            sleep $SLEEP_SECONDS
+          done
+
+          echo "App Runner service did not reach RUNNING state in time."
+          exit 1
