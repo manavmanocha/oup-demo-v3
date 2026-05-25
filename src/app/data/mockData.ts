@@ -11,6 +11,7 @@ type ListeningQuestion = UnifiedQuestion & {
       context?: string;
       audioFile?: string;
       audioAsset?: string | null;
+      instructions?: string;
     };
   };
 };
@@ -29,6 +30,8 @@ type WritingQuestion = UnifiedQuestion & {
   skillDetails: {
     writing: {
       task?: number;
+      instructions?: string;
+      promptContext?: string;
       rubric?: string;
       visualData?: string;
     };
@@ -39,6 +42,9 @@ type SpeakingQuestion = UnifiedQuestion & {
   skillDetails: {
     speaking: {
       part?: number;
+      instructions?: string;
+      cueCard?: string;
+      rubric?: string;
       followUpQuestions?: string[];
       rubricCriteria?: string[];
     };
@@ -542,6 +548,7 @@ const listeningItems: AssessmentItem[] = listeningQuestions.map((q) => {
     id: q.id,
     title: q.prompt,
     content: q.skillDetails.listening.context || q.prompt,
+    answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
     level: q.level as CEFRLevel,
     skill: 'Listening',
     itemType: q.questionType as ItemType,
@@ -550,6 +557,7 @@ const listeningItems: AssessmentItem[] = listeningQuestions.map((q) => {
     options,
     audioAsset: q.skillDetails.listening.audioAsset || q.skillDetails.listening.audioFile,
     passage: q.skillDetails.listening.context,
+    instructions: q.skillDetails.listening.instructions,
     subSkill: metadata.subSkill,
     cognitiveLevel: metadata.cognitiveLevel,
     contentDomain: metadata.contentDomain,
@@ -577,19 +585,32 @@ const listeningItems: AssessmentItem[] = listeningQuestions.map((q) => {
 // Convert speaking questions to AssessmentItem format
 const speakingItems: AssessmentItem[] = speakingQuestions.map((q) => {
   const metadata = getQuestionMetadata(q);
-  const followUpQuestions = q.skillDetails.speaking.followUpQuestions ?? [];
-  const rubricCriteria = q.skillDetails.speaking.rubricCriteria ?? [];
+  const speakingDetails = q.skillDetails.speaking;
+  const followUpQuestions = speakingDetails.followUpQuestions ?? [];
+  const rubricCriteria = speakingDetails.rubricCriteria ?? [];
+  const cueCard = speakingDetails.cueCard?.trim();
+
+  const contentParts = [q.prompt];
+  if (cueCard) {
+    contentParts.push(`Cue card:\n${cueCard}`);
+  }
+  if (followUpQuestions.length > 0) {
+    contentParts.push(`Follow-up questions:\n${followUpQuestions.join('\n')}`);
+  }
 
   return {
     id: q.id,
     title: q.prompt,
-    content: q.prompt + (followUpQuestions.length > 0 ? '\n\nFollow-up questions:\n' + followUpQuestions.join('\n') : ''),
+    content: contentParts.join('\n\n'),
+    answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
     level: q.level as CEFRLevel,
     skill: 'Speaking',
     itemType: 'Speaking' as ItemType,
     status: metadata.status as AssessmentItem['status'],
     difficulty: q.difficulty as AssessmentItem['difficulty'],
-    rubric: rubricCriteria.length > 0 ? `Assessment Criteria:\n${rubricCriteria.join('\n')}` : undefined,
+    instructions: speakingDetails.instructions,
+    rubric: speakingDetails.rubric
+      ?? (rubricCriteria.length > 0 ? `Assessment Criteria:\n${rubricCriteria.join('\n')}` : undefined),
     subSkill: metadata.subSkill,
     cognitiveLevel: metadata.cognitiveLevel,
     contentDomain: metadata.contentDomain,
@@ -617,18 +638,21 @@ const speakingItems: AssessmentItem[] = speakingQuestions.map((q) => {
 // Convert writing questions to AssessmentItem format
 const writingItems: AssessmentItem[] = writingQuestions.map((q) => {
   const metadata = getQuestionMetadata(q);
+  const writingDetails = q.skillDetails.writing;
 
   return {
     id: q.id,
     title: q.prompt,
-    content: q.prompt,
+    content: writingDetails.promptContext || q.prompt,
+    answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
     level: q.level as CEFRLevel,
     skill: 'Writing',
     itemType: 'Essay' as ItemType,
     status: metadata.status as AssessmentItem['status'],
     difficulty: q.difficulty as AssessmentItem['difficulty'],
-    rubric: q.skillDetails.writing.rubric,
-    passage: q.skillDetails.writing.visualData,
+    instructions: writingDetails.instructions,
+    rubric: writingDetails.rubric,
+    passage: writingDetails.visualData,
     subSkill: metadata.subSkill,
     cognitiveLevel: metadata.cognitiveLevel,
     contentDomain: metadata.contentDomain,
@@ -679,6 +703,7 @@ const readingItems: AssessmentItem[] = readingQuestions.map((q) => {
     id: q.id,
     title: q.prompt,
     content: q.prompt,
+    answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
     level: q.level as CEFRLevel,
     skill: 'Reading',
     itemType: q.questionType as ItemType,

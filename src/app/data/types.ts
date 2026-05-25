@@ -45,6 +45,7 @@ export interface AssessmentItem {
   id: string;
   title: string;
   content: string;
+  answerKey?: string;
   level: CEFRLevel;
   skill: Skill;
   itemType: ItemType;

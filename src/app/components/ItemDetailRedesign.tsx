@@ -8,6 +8,7 @@ import {
   Headphones,
   Play,
   Pause,
+  FileText,
   Volume2,
   Archive,
   RotateCcw,
@@ -73,6 +74,260 @@ export function ItemDetailRedesign() {
   const isPreviewMode = new URLSearchParams(location.search).get('mode') === 'preview';
   const isFromIngest = new URLSearchParams(location.search).get('from') === 'ingest';
   const isFromWorkflow = Boolean(fromWorkflowState || fromWorkflowQuery);
+  const hasOptionAnswers = Boolean(item?.options && item.options.length > 0);
+  const hasMatchingAnswerKey = Boolean(item?.itemType === 'Matching' && item?.answerKey,
+  );
+  const isNoteCompletion = item?.itemType === 'Note Completion';
+  const hasNoteCompletionAnswer = Boolean(isNoteCompletion && item?.answerKey);
+  const isSentenceCompletion = item?.itemType === 'Sentence Completion';
+  const hasSentenceCompletionAnswer = Boolean(isSentenceCompletion && item?.answerKey);
+  const isTrueFalseNotGiven = item?.itemType === 'True/False/Not Given';
+  const hasTrueFalseNotGivenAnswer = Boolean(isTrueFalseNotGiven && item?.answerKey);
+  const isShortAnswer = item?.itemType === 'Short Answer';
+  const hasShortAnswerAnswer = Boolean(isShortAnswer && item?.answerKey);
+  const isEssay = item?.itemType === 'Essay';
+  const hasEssaySample = Boolean(isEssay && (item?.answerKey || item?.rubric));
+  const isSpeakingQuestion = item?.itemType === 'Speaking';
+  const hasSpeakingSample = Boolean(isSpeakingQuestion && (item?.answerKey || item?.rubric));
+
+  const splitExpectedAnswers = (rawValue?: string) => {
+    if (!rawValue) {
+      return [];
+    }
+
+    return rawValue
+      .split(/;|\||,/)
+      .map((value) => value.trim())
+      .filter(Boolean);
+  };
+
+  const speakingPrompts = useMemo(() => {
+    if (!isSpeakingQuestion || !item) {
+      return [];
+    }
+
+    const rawText = item.content || item.title || '';
+    return rawText
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+  }, [isSpeakingQuestion, item]);
+
+  const noteCompletionData = useMemo(() => {
+    if (!isNoteCompletion || !item) {
+      return null;
+    }
+
+    const rawNoteText = item.content || item.title || '';
+    if (!rawNoteText.trim()) {
+      return null;
+    }
+
+    const lines = rawNoteText
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    const fallbackLines = lines.length > 0 ? lines : [rawNoteText.trim()];
+
+    const blankPattern = /_{2,}|\[\s*\]|\(\s*\)/g;
+    let blankCounter = 0;
+
+    const renderedLines = fallbackLines.map((line) => {
+      const parts: Array<
+        | { kind: 'text'; value: string }
+        | { kind: 'blank'; index: number }
+      > = [];
+
+      let cursor = 0;
+      let match: RegExpExecArray | null = blankPattern.exec(line);
+      while (match) {
+        if (match.index > cursor) {
+          parts.push({ kind: 'text', value: line.slice(cursor, match.index) });
+        }
+
+        blankCounter += 1;
+        parts.push({ kind: 'blank', index: blankCounter });
+        cursor = match.index + match[0].length;
+        match = blankPattern.exec(line);
+      }
+
+      if (cursor < line.length) {
+        parts.push({ kind: 'text', value: line.slice(cursor) });
+      }
+
+      if (!parts.some((part) => part.kind === 'blank')) {
+        blankCounter += 1;
+        parts.push({ kind: 'text', value: line });
+        parts.push({ kind: 'text', value: ' ' });
+        parts.push({ kind: 'blank', index: blankCounter });
+      }
+
+      return parts;
+    });
+
+    const parsedAnswers = (item.answerKey ?? '')
+      .split(/;|\||,/)
+      .map((answer) => answer.trim())
+      .filter(Boolean);
+
+    return {
+      renderedLines,
+      parsedAnswers,
+      blankCount: blankCounter,
+    };
+  }, [isNoteCompletion, item]);
+  const sentenceCompletionData = useMemo(() => {
+    if (!isSentenceCompletion || !item) {
+      return null;
+    }
+
+    const rawText = item.content || item.title || '';
+    if (!rawText.trim()) {
+      return null;
+    }
+
+    const lines = rawText.split(/\r?\n/);
+    const fallbackLines = lines.length > 0 ? lines : [rawText];
+    const blankPattern = /_{2,}|\[\s*\]|\(\s*\)/g;
+    let blankCounter = 0;
+
+    const renderedLines = fallbackLines.map((line) => {
+      if (!line.trim()) {
+        return [{ kind: 'spacer' as const, value: '' }];
+      }
+
+      const parts: Array<
+        | { kind: 'text'; value: string }
+        | { kind: 'blank'; index: number }
+        | { kind: 'spacer'; value: string }
+      > = [];
+
+      let cursor = 0;
+      let match: RegExpExecArray | null = blankPattern.exec(line);
+      while (match) {
+        if (match.index > cursor) {
+          parts.push({ kind: 'text', value: line.slice(cursor, match.index) });
+        }
+
+        blankCounter += 1;
+        parts.push({ kind: 'blank', index: blankCounter });
+        cursor = match.index + match[0].length;
+        match = blankPattern.exec(line);
+      }
+
+      if (cursor < line.length) {
+        parts.push({ kind: 'text', value: line.slice(cursor) });
+      }
+
+      if (!parts.some((part) => part.kind === 'blank')) {
+        blankCounter += 1;
+        parts.push({ kind: 'text', value: line });
+        parts.push({ kind: 'text', value: ' ' });
+        parts.push({ kind: 'blank', index: blankCounter });
+      }
+
+      return parts;
+    });
+
+    return {
+      renderedLines,
+      parsedAnswers: splitExpectedAnswers(item.answerKey),
+      blankCount: blankCounter,
+    };
+  }, [isSentenceCompletion, item]);
+  const matchingData = useMemo(() => {
+    if (!hasMatchingAnswerKey || !item?.answerKey || !item?.id) {
+      return null;
+    }
+
+    const pairs = item.answerKey
+      .split(';')
+      .map((rawPair) => {
+        const pair = rawPair.trim();
+        if (!pair) {
+          return null;
+        }
+
+        const separatorIndex = pair.indexOf('-');
+        if (separatorIndex <= 0 || separatorIndex >= pair.length - 1) {
+          return null;
+        }
+
+        const left = pair.slice(0, separatorIndex).trim();
+        const right = pair.slice(separatorIndex + 1).trim();
+
+        if (!left || !right) {
+          return null;
+        }
+
+        return { left, right };
+      })
+      .filter((pair): pair is { left: string; right: string } => Boolean(pair));
+
+    if (pairs.length === 0) {
+      return null;
+    }
+
+    const stableHash = (value: string) => {
+      let hash = 0;
+      for (let index = 0; index < value.length; index += 1) {
+        hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+      }
+      return hash;
+    };
+
+    const choices = pairs
+      .map((pair) => pair.right)
+      .sort((a, b) => stableHash(`${item.id}:choice:${a}`) - stableHash(`${item.id}:choice:${b}`));
+
+    const choiceLabelByValue = new Map<string, string>();
+    choices.forEach((choice, index) => {
+      choiceLabelByValue.set(choice, String.fromCodePoint(65 + index));
+    });
+
+    const mappings = pairs.map((pair, index) => ({
+      promptIndex: index + 1,
+      prompt: pair.left,
+      choice: pair.right,
+      choiceLabel: choiceLabelByValue.get(pair.right) ?? '?',
+    }));
+
+    return {
+      prompts: pairs.map((pair) => pair.left),
+      choices,
+      mappings,
+    };
+  }, [hasMatchingAnswerKey, item?.answerKey, item?.id]);
+  const noteAnswerRows = useMemo(() => {
+    if (!hasNoteCompletionAnswer || !noteCompletionData) {
+      return [];
+    }
+
+    const maxCount = Math.max(noteCompletionData.blankCount, noteCompletionData.parsedAnswers.length);
+    return Array.from({ length: maxCount }).map((_, index) => {
+      const blankIndex = index + 1;
+      const expected = noteCompletionData.parsedAnswers[index] ?? '';
+      return { blankIndex, expected };
+    });
+  }, [hasNoteCompletionAnswer, noteCompletionData]);
+
+  const sentenceAnswerRows = useMemo(() => {
+    if (!hasSentenceCompletionAnswer || !sentenceCompletionData) {
+      return [];
+    }
+
+    const maxCount = Math.max(sentenceCompletionData.blankCount, sentenceCompletionData.parsedAnswers.length);
+    return Array.from({ length: maxCount }).map((_, index) => {
+      const blankIndex = index + 1;
+      const expected = sentenceCompletionData.parsedAnswers[index] ?? '';
+      return { blankIndex, expected };
+    });
+  }, [hasSentenceCompletionAnswer, sentenceCompletionData]);
+
+  const trueFalseExpectedAnswer = splitExpectedAnswers(item?.answerKey)[0] ?? '';
+
+  const shortAnswerExpectedValues = splitExpectedAnswers(item?.answerKey);
   const screeningEntries = item?.screening
     ? [
         { label: 'CEFR Fit', value: item.screening.cefrFit },
@@ -363,17 +618,15 @@ export function ItemDetailRedesign() {
                   </p>
                 </div>
 
-                {item.instructions && (
-                  <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
-                    <p className="text-sm font-medium text-blue-900">Instructions</p>
-                    <p className="mt-1 text-sm text-blue-800">{item.instructions}</p>
-                  </div>
-                )}
+                <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+                  <p className="text-sm font-medium text-blue-900">Instructions</p>
+                  <p className="mt-1 text-sm text-blue-800">{item.instructions || 'Review the question and use the answer explanation panel for reference.'}</p>
+                </div>
 
                 {/* Answer Options */}
-                {item.options && item.options.length > 0 && (
+                {hasOptionAnswers && (
                   <div className="space-y-3">
-                    {item.options.map((option) => (
+                    {(item.options ?? []).map((option) => (
                       <div
                         key={option.label}
                         className={`p-3 rounded-xl border-2 transition-all ${
@@ -407,6 +660,216 @@ export function ItemDetailRedesign() {
                   </div>
                 )}
 
+                {/* Matching Question Layout */}
+                {hasMatchingAnswerKey && matchingData && (
+                  <div className="mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="rounded-xl border border-gray-200 bg-white p-4">
+                        <div className="text-sm font-medium text-gray-500 uppercase mb-3">Statements</div>
+                        <div className="space-y-2">
+                          {matchingData.prompts.map((prompt, index) => (
+                            <div key={`${prompt}-${index}`} className="flex items-start gap-3 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                              <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
+                                {index + 1}
+                              </span>
+                              <p className="text-sm text-gray-800 leading-relaxed">{prompt}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-gray-200 bg-white p-4">
+                        <div className="text-sm font-medium text-gray-500 uppercase mb-3">Choices</div>
+                        <div className="space-y-2">
+                          {matchingData.choices.map((choice, index) => (
+                            <div key={`${choice}-${index}`} className="flex items-start gap-3 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                              <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
+                                {String.fromCodePoint(65 + index)}
+                              </span>
+                              <p className="text-sm text-gray-800 leading-relaxed">{choice}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-3">Match each statement with the best choice.</p>
+                  </div>
+                )}
+
+                {/* Note Completion Layout */}
+                {isNoteCompletion && noteCompletionData && (
+                  <div className="mt-6">
+                    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
+                      <div className="flex items-center justify-between gap-3 mb-4">
+                        <div className="text-sm font-medium text-gray-500 uppercase">Fill in each blank</div>
+                        {/* <div className="text-xs text-gray-500">Fill in each blank</div> */}
+                      </div>
+
+                      <div className="space-y-3">
+                        {noteCompletionData.renderedLines.map((lineParts, lineIndex) => (
+                          <div
+                            key={`note-line-${lineIndex}`}
+                            className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-3"
+                          >
+                            <p className="text-sm text-gray-800 leading-relaxed flex flex-wrap items-center gap-2">
+                              {lineParts.map((part, partIndex) => {
+                                if (part.kind === 'text') {
+                                  return (
+                                    <span key={`text-${lineIndex}-${partIndex}`}>{part.value}</span>
+                                  );
+                                }
+
+                                return (
+                                  <span
+                                    key={`blank-${lineIndex}-${partIndex}`}
+                                    className="inline-flex items-center gap-2"
+                                  >
+                                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold flex items-center justify-center">
+                                      {part.index}
+                                    </span>
+                                    <span
+                                      className="h-9 w-40 max-w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-500 shadow-sm inline-flex items-center"
+                                      aria-label={`Blank ${part.index}`}
+                                    >
+                                      Blank
+                                    </span>
+                                  </span>
+                                );
+                              })}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sentence Completion Layout */}
+                {isSentenceCompletion && sentenceCompletionData && (
+                  <div className="mt-6">
+                    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
+                      <div className="text-sm font-medium text-gray-500 uppercase mb-4">Sentence Completion</div>
+                      <div className="space-y-3">
+                        {sentenceCompletionData.renderedLines.map((lineParts, lineIndex) => (
+                          <div
+                            key={`sentence-line-${lineIndex}`}
+                            className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-3"
+                          >
+                            <p className="text-sm text-gray-800 leading-relaxed flex flex-wrap items-center gap-2">
+                              {lineParts.map((part, partIndex) => {
+                                if (part.kind === 'spacer') {
+                                  return <span key={`spacer-${lineIndex}-${partIndex}`} className="block h-4 w-full" />;
+                                }
+
+                                if (part.kind === 'text') {
+                                  return <span key={`text-${lineIndex}-${partIndex}`}>{part.value}</span>;
+                                }
+
+                                return (
+                                  <span key={`blank-${lineIndex}-${partIndex}`} className="inline-flex items-center gap-2">
+                                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold flex items-center justify-center">
+                                      {part.index}
+                                    </span>
+                                    <span
+                                      className="h-9 w-40 max-w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-500 shadow-sm inline-flex items-center"
+                                      aria-label={`Sentence blank ${part.index}`}
+                                    >
+                                      Blank
+                                    </span>
+                                  </span>
+                                );
+                              })}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* True/False/Not Given Layout */}
+                {isTrueFalseNotGiven && (
+                  <div className="mt-6">
+                    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
+                      <div className="text-sm font-medium text-gray-500 uppercase mb-4">Answer Options</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2" role="group" aria-label="True False Not Given options">
+                        {['True', 'False', 'Not Given'].map((option) => (
+                          <div
+                            key={option}
+                            className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700"
+                          >
+                            {option}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Short Answer Layout */}
+                {isShortAnswer && (
+                  <div className="mt-6">
+                    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
+                      <div className="text-sm font-medium text-gray-500 uppercase mb-4">Short Answer Task</div>
+                      <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-3 text-sm text-gray-800">
+                        {item.content || item.title}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Essay Layout */}
+                {isEssay && (
+                  <div className="mt-6">
+                    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
+                      <div className="flex items-start justify-between gap-3 mb-4">
+                        <div>
+                          <div className="text-sm font-medium text-gray-500 uppercase">Essay Task</div>
+                          <p className="mt-2 text-sm text-gray-800 leading-relaxed">
+                            {item.content || item.title}
+                          </p>
+                        </div>
+                        <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                      </div>
+
+                      <div className="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                        Item bank view: response entry is disabled. Use the answer section below for the model/sample response.
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Speaking Layout */}
+                {isSpeakingQuestion && (
+                  <div className="mt-6">
+                    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
+                      <div className="flex items-center justify-between gap-3 mb-4">
+                        <div className="text-sm font-medium text-gray-500 uppercase">Speaking Task</div>
+                        <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-gray-100 text-gray-700">
+                          Reference View
+                        </span>
+                      </div>
+
+                      <div className="space-y-3 mb-4">
+                        {(speakingPrompts.length > 0 ? speakingPrompts : [item.content || item.title]).map((prompt, index) => (
+                          <div key={`${prompt}-${index}`} className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-3">
+                            <p className="text-sm text-gray-800 leading-relaxed">
+                              <span className="font-semibold text-gray-700 mr-2">Task {index + 1}.</span>
+                              {prompt}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4">
+                        <p className="text-sm text-gray-700">
+                          Item bank view: recording controls are disabled. Review the sample response and rubric in the answer section below.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Rubric for Speaking/Writing */}
                 {item.rubric && (item.skill === 'Speaking' || item.skill === 'Writing') && (
                   <div className="mt-6">
@@ -420,7 +883,7 @@ export function ItemDetailRedesign() {
                 )}
 
                 {/* Show Answer Button */}
-                {!showExplanation && item.options && item.options.length > 0 && (
+                {!showExplanation && (
                   <div className="mt-4 pt-4 border-t">
                     <Button
                       onClick={() => setShowExplanation(true)}
@@ -450,9 +913,104 @@ export function ItemDetailRedesign() {
                 <CardContent className="space-y-4">
                   <div className="bg-white rounded-lg p-4 border border-green-200">
                     <h4 className="font-semibold text-green-900 mb-2">Correct Answer</h4>
-                    <p className="text-gray-700">
-                      {item.options?.find(o => o.correct)?.text || 'Answer explanation not available'}
-                    </p>
+                    {hasMatchingAnswerKey ? (
+                      <div className="rounded-xl border border-green-100 bg-green-50/50 p-3">
+
+                        <div className="space-y-2">
+                          {matchingData?.mappings.map((mapping) => (
+                            <div
+                              key={`${mapping.promptIndex}-${mapping.choice}`}
+                              className="rounded-lg border border-green-100 bg-white px-3 py-3"
+                            >
+                              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 md:items-center">
+                                <div className="flex items-start gap-3 min-w-0">
+                                  <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
+                                    {mapping.promptIndex}
+                                  </span>
+                                  <p className="text-sm text-gray-800 leading-relaxed">{mapping.prompt}</p>
+                                </div>
+
+                                <div className="flex items-center justify-center text-gray-400 text-sm font-semibold">
+                                  <span className="hidden md:inline">→</span>
+                                  <span className="md:hidden">matches</span>
+                                </div>
+
+                                <div className="flex items-start gap-3 min-w-0">
+                                  <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
+                                    {mapping.choiceLabel}
+                                  </span>
+                                  <p className="text-sm text-gray-800 leading-relaxed">{mapping.choice}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : hasNoteCompletionAnswer ? (
+                      <div className="rounded-xl border border-green-100 bg-green-50/50 p-3">
+                        <div className="space-y-2">
+                          {noteAnswerRows.map((row) => (
+                            <div
+                              key={`note-answer-${row.blankIndex}`}
+                              className="flex items-center gap-3 rounded-lg border border-green-100 bg-white px-3 py-2"
+                            >
+                              <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold flex items-center justify-center">
+                                {row.blankIndex}
+                              </span>
+                              <p className="text-sm text-gray-800">{row.expected || '—'}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : hasSentenceCompletionAnswer ? (
+                      <div className="rounded-xl border border-green-100 bg-green-50/50 p-3">
+                        <div className="space-y-2">
+                          {sentenceAnswerRows.map((row) => (
+                            <div
+                              key={`sentence-answer-${row.blankIndex}`}
+                              className="flex items-center gap-3 rounded-lg border border-green-100 bg-white px-3 py-2"
+                            >
+                              <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold flex items-center justify-center">
+                                {row.blankIndex}
+                              </span>
+                              <p className="text-sm text-gray-800">{row.expected || '—'}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : hasTrueFalseNotGivenAnswer ? (
+                      <div className="rounded-xl border border-green-100 bg-green-50/50 p-3">
+                        <div className="rounded-lg border border-green-100 bg-white px-3 py-3">
+                          <div className="text-sm">
+                            <p className="text-xs text-gray-500">Correct answer</p>
+                            <p className="text-gray-800">{trueFalseExpectedAnswer || '—'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : hasShortAnswerAnswer ? (
+                      <div className="rounded-xl border border-green-100 bg-green-50/50 p-3">
+                        <div className="rounded-lg border border-green-100 bg-white px-3 py-3">
+                          <div className="space-y-3 text-sm">
+                            <div>
+                              <p className="text-xs text-gray-500">Accepted answer(s)</p>
+                              <p className="text-gray-800">{shortAnswerExpectedValues.join(' / ') || '—'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : hasEssaySample ? (
+                      <div className="space-y-3">
+                          <p className="text-sm text-gray-800 whitespace-pre-wrap">{item.answerKey || 'Answer is not available for this item.'}</p>
+                      </div>
+                    ) : hasSpeakingSample ? (
+                      <div className="space-y-3">
+                          <p className="text-sm text-gray-800 whitespace-pre-wrap">{item.answerKey || 'Answer is not available for this item.'}</p>
+                      </div>
+                    ) : (
+                      <p className="text-gray-700">
+                        {item.options?.find(o => o.correct)?.text || 'Answer explanation not available'}
+                      </p>
+                    )}
                   </div>
 
                   <div className="bg-white rounded-lg p-4 border border-green-200">
