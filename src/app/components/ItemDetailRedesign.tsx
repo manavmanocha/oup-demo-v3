@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -187,8 +188,14 @@ export function ItemDetailRedesign() {
       return null;
     }
 
-    const lines = rawText.split(/\r?\n/);
-    const fallbackLines = lines.length > 0 ? lines : [rawText];
+    const trimmedText = rawText.trim();
+    const promptPrefixRegex = /^((?:complete|fill in)\b[^:]*):\s*(.+)$/i;
+    const promptPrefixMatch = promptPrefixRegex.exec(trimmedText);
+    const taskLabel = promptPrefixMatch ? promptPrefixMatch[1].trim() : 'Sentence Completion';
+    const stemText = promptPrefixMatch ? promptPrefixMatch[2].trim() : trimmedText;
+
+    const lines = stemText.split(/\r?\n/);
+    const fallbackLines = lines.length > 0 ? lines : [stemText];
     const blankPattern = /_{2,}|\[\s*\]|\(\s*\)/g;
     let blankCounter = 0;
 
@@ -231,6 +238,7 @@ export function ItemDetailRedesign() {
     });
 
     return {
+      taskLabel,
       renderedLines,
       parsedAnswers: splitExpectedAnswers(item.answerKey),
       blankCount: blankCounter,
@@ -613,9 +621,11 @@ export function ItemDetailRedesign() {
                     </div>
                     <h2 className="text-xl font-bold text-gray-900">Question</h2>
                   </div>
-                  <p className="text-lg text-gray-900 leading-relaxed">
-                    {item.title}
-                  </p>
+                  {!isSentenceCompletion && (
+                    <p className="text-lg text-gray-900 leading-relaxed">
+                      {item.title}
+                    </p>
+                  )}
                 </div>
 
                 <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
@@ -711,7 +721,7 @@ export function ItemDetailRedesign() {
                             key={`note-line-${lineIndex}`}
                             className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-3"
                           >
-                            <p className="text-sm text-gray-800 leading-relaxed flex flex-wrap items-center gap-2">
+                            <p className="text-gray-800 leading-relaxed flex flex-wrap items-center gap-2">
                               {lineParts.map((part, partIndex) => {
                                 if (part.kind === 'text') {
                                   return (
@@ -748,7 +758,7 @@ export function ItemDetailRedesign() {
                 {isSentenceCompletion && sentenceCompletionData && (
                   <div className="mt-6">
                     <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
-                      <div className="text-sm font-medium text-gray-500 uppercase mb-4">Sentence Completion</div>
+                      <div className="font-medium text-gray-500 uppercase mb-4">{sentenceCompletionData.taskLabel}</div>
                       <div className="space-y-3">
                         {sentenceCompletionData.renderedLines.map((lineParts, lineIndex) => (
                           <div
@@ -771,10 +781,16 @@ export function ItemDetailRedesign() {
                                       {part.index}
                                     </span>
                                     <span
-                                      className="h-9 w-40 max-w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-500 shadow-sm inline-flex items-center"
+                                      className={`h-9 w-40 max-w-full rounded-md border px-3 text-sm shadow-sm inline-flex items-center ${
+                                        showExplanation
+                                          ? 'border-green-300 bg-green-50 text-green-800'
+                                          : 'border-gray-300 bg-white text-gray-500'
+                                      }`}
                                       aria-label={`Sentence blank ${part.index}`}
                                     >
-                                      Blank
+                                      {showExplanation
+                                        ? sentenceCompletionData.parsedAnswers[part.index - 1] ?? '—'
+                                        : 'Blank'}
                                     </span>
                                   </span>
                                 );
@@ -1068,20 +1084,7 @@ export function ItemDetailRedesign() {
                 {item.irtParameters ? (
                   <div className="space-y-4">
                     {/* IRT Source */}
-                    <div className="flex items-center gap-2 mb-4">
-                      {item.irtParameters.calibratedFromFieldTest ? (
-                        <Badge variant="default" className="bg-green-600">Calibrated from Field Test</Badge>
-                      ) : item.irtParameters.predictedByAI ? (
-                        <Badge variant="secondary">Predicted by AI</Badge>
-                      ) : (
-                        <Badge variant="outline">Unknown Source</Badge>
-                      )}
-                      {item.irtParameters.predictedByAI && item.aiModelVersion && (
-                        <span className="text-xs text-gray-500">
-                          Model: {item.aiModelVersion}
-                        </span>
-                      )}
-                    </div>
+                    
 
                     <div className="grid grid-cols-3 gap-6">
                       <div>
@@ -1346,11 +1349,6 @@ export function ItemDetailRedesign() {
                               year: 'numeric',
                             })}
                           </div>
-                          {entry.notes && (
-                            <div className="text-sm text-gray-700 mt-2 p-2 bg-gray-50 rounded">
-                              {entry.notes}
-                            </div>
-                          )}
                         </div>
                       </div>
                     ))}

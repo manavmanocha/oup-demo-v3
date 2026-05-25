@@ -99,7 +99,6 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "Travel notice item generated for low-intermediate bank coverage."
                 }
               ],
               "author": "Daniel Brooks",
@@ -146,7 +145,6 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "Travel notice item generated for low-intermediate bank coverage."
         }
       ],
       "author": "Daniel Brooks",
@@ -216,7 +214,6 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "Sentence completion item aligned to environmental process reading."
                 }
               ],
               "author": "Neha Kapoor",
@@ -263,7 +260,6 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "Sentence completion item aligned to environmental process reading."
         }
       ],
       "author": "Neha Kapoor",
@@ -333,14 +329,12 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "Business-themed matching item generated."
                 },
                 {
                   "date": "2026-05-22",
                   "reviewer": "Content Reviewer",
                   "action": "Reviewed",
                   "state": "In Review",
-                  "notes": "Check whether one role description needs a stronger distractor boundary."
                 }
               ],
               "author": "Elena Petrova",
@@ -387,14 +381,12 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "Business-themed matching item generated."
         },
         {
           "date": "2026-05-22",
           "reviewer": "Content Reviewer",
           "action": "Reviewed",
           "state": "In Review",
-          "notes": "Check whether one role description needs a stronger distractor boundary."
         }
       ],
       "author": "Elena Petrova",
@@ -464,14 +456,12 @@
                   "reviewer": "Senior Item Writer",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "Designed to test evidence versus causation."
                 },
                 {
                   "date": "2026-05-21",
                   "reviewer": "Assessment Reviewer",
                   "action": "Reviewed",
                   "state": "In Review",
-                  "notes": "CEFR fit appropriate; keep wording of statement precise."
                 }
               ],
               "author": "Senior Item Writer",
@@ -518,14 +508,12 @@
           "reviewer": "Senior Item Writer",
           "action": "Created",
           "state": "Draft",
-          "notes": "Designed to test evidence versus causation."
         },
         {
           "date": "2026-05-21",
           "reviewer": "Assessment Reviewer",
           "action": "Reviewed",
           "state": "In Review",
-          "notes": "CEFR fit appropriate; keep wording of statement precise."
         }
       ],
       "author": "Senior Item Writer",
@@ -595,7 +583,6 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "High-level short answer item generated for C1 bank."
                 }
               ],
               "author": "Daniel Brooks",
@@ -642,7 +629,6 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "High-level short answer item generated for C1 bank."
         }
       ],
       "author": "Daniel Brooks",
@@ -710,7 +696,6 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "Basic note-completion item for appointment booking context."
                 }
               ],
               "author": "Neha Kapoor",
@@ -758,7 +743,6 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "Basic note-completion item for appointment booking context."
         }
       ],
       "author": "Neha Kapoor",
@@ -862,14 +846,12 @@
                   "reviewer": "Listening Item Writer",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "Audio MCQ for workplace services."
                 },
                 {
                   "date": "2026-05-20",
                   "reviewer": "Listening Reviewer",
                   "action": "Reviewed",
                   "state": "In Review",
-                  "notes": "Distractors balanced and plausible."
                 }
               ],
               "author": "Listening Item Writer",
@@ -917,14 +899,12 @@
           "reviewer": "Listening Item Writer",
           "action": "Created",
           "state": "Draft",
-          "notes": "Audio MCQ for workplace services."
         },
         {
           "date": "2026-05-20",
           "reviewer": "Listening Reviewer",
           "action": "Reviewed",
           "state": "In Review",
-          "notes": "Distractors balanced and plausible."
         }
       ],
       "author": "Listening Item Writer",
@@ -992,7 +972,6 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "Academic listening gap-fill generated."
                 }
               ],
               "author": "Aisha Verma",
@@ -1040,7 +1019,6 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "Academic listening gap-fill generated."
         }
       ],
       "author": "Aisha Verma",
@@ -1108,14 +1086,12 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "Speaker-matching item with four short monologues."
                 },
                 {
                   "date": "2026-05-22",
                   "reviewer": "Content Reviewer",
                   "action": "Reviewed",
                   "state": "In Review",
-                  "notes": "Check if two problem categories are too close conceptually."
                 }
               ],
               "author": "Daniel Brooks",
@@ -1163,14 +1139,12 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "Speaker-matching item with four short monologues."
         },
         {
           "date": "2026-05-22",
           "reviewer": "Content Reviewer",
           "action": "Reviewed",
           "state": "In Review",
-          "notes": "Check if two problem categories are too close conceptually."
         }
       ],
       "author": "Daniel Brooks",
@@ -1238,7 +1212,6 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "C1 viewpoint listening item created."
                 }
               ],
               "author": "Rohan Mehta",
@@ -1286,7 +1259,6 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "C1 viewpoint listening item created."
         }
       ],
       "author": "Rohan Mehta",
@@ -1354,7 +1326,6 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "A2 functional email task generated."
                 }
               ],
               "author": "Elena Petrova",
@@ -1403,7 +1374,6 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "A2 functional email task generated."
         }
       ],
       "author": "Elena Petrova",
@@ -1471,7 +1441,6 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "B1 opinion paragraph task generated."
                 }
               ],
               "author": "Aisha Verma",
@@ -1520,7 +1489,6 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "B1 opinion paragraph task generated."
         }
       ],
       "author": "Aisha Verma",
@@ -1588,14 +1556,12 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "B2 report-writing task with embedded data."
                 },
                 {
                   "date": "2026-05-22",
                   "reviewer": "Writing Reviewer",
                   "action": "Reviewed",
                   "state": "In Review",
-                  "notes": "Prompt is sound; verify numeric density is appropriate for B2."
                 }
               ],
               "author": "Neha Kapoor",
@@ -1645,14 +1611,12 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "B2 report-writing task with embedded data."
         },
         {
           "date": "2026-05-22",
           "reviewer": "Writing Reviewer",
           "action": "Reviewed",
           "state": "In Review",
-          "notes": "Prompt is sound; verify numeric density is appropriate for B2."
         }
       ],
       "author": "Neha Kapoor",
@@ -1720,14 +1684,12 @@
                   "reviewer": "Writing Item Writer",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "Education policy essay for upper-intermediate candidates."
                 },
                 {
                   "date": "2026-05-20",
                   "reviewer": "Writing Reviewer",
                   "action": "Reviewed",
                   "state": "In Review",
-                  "notes": "Prompt balanced; suitable for argumentative response."
                 }
               ],
               "author": "Writing Item Writer",
@@ -1776,14 +1738,12 @@
           "reviewer": "Writing Item Writer",
           "action": "Created",
           "state": "Draft",
-          "notes": "Education policy essay for upper-intermediate candidates."
         },
         {
           "date": "2026-05-20",
           "reviewer": "Writing Reviewer",
           "action": "Reviewed",
           "state": "In Review",
-          "notes": "Prompt balanced; suitable for argumentative response."
         }
       ],
       "author": "Writing Item Writer",
@@ -1851,7 +1811,6 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "C1 workplace proposal task generated."
                 }
               ],
               "author": "Elena Petrova",
@@ -1901,7 +1860,6 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "C1 workplace proposal task generated."
         }
       ],
       "author": "Elena Petrova",
@@ -1971,7 +1929,6 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "Short read-aloud prompt for A2 pronunciation screening."
                 }
               ],
               "author": "Elena Petrova",
@@ -2020,7 +1977,6 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "Short read-aloud prompt for A2 pronunciation screening."
         }
       ],
       "author": "Elena Petrova",
@@ -2090,7 +2046,6 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "Repeat-sentence item generated for B1 oral control."
                 }
               ],
               "author": "Aisha Verma",
@@ -2139,7 +2094,6 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "Repeat-sentence item generated for B1 oral control."
         }
       ],
       "author": "Aisha Verma",
@@ -2209,7 +2163,6 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "Describe-image speaking task generated with simple trend data."
                 }
               ],
               "author": "Neha Kapoor",
@@ -2258,7 +2211,6 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "Describe-image speaking task generated with simple trend data."
         }
       ],
       "author": "Neha Kapoor",
@@ -2331,14 +2283,12 @@
                   "reviewer": "Speaking Item Writer",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "B2 opinion-response prompt created."
                 },
                 {
                   "date": "2026-05-20",
                   "reviewer": "Speaking Reviewer",
                   "action": "Reviewed",
                   "state": "In Review",
-                  "notes": "Prompt balanced and broad enough for varied responses."
                 }
               ],
               "author": "Speaking Item Writer",
@@ -2390,14 +2340,12 @@
           "reviewer": "Speaking Item Writer",
           "action": "Created",
           "state": "Draft",
-          "notes": "B2 opinion-response prompt created."
         },
         {
           "date": "2026-05-20",
           "reviewer": "Speaking Reviewer",
           "action": "Reviewed",
           "state": "In Review",
-          "notes": "Prompt balanced and broad enough for varied responses."
         }
       ],
       "author": "Speaking Item Writer",
@@ -2470,7 +2418,6 @@
                   "reviewer": "Maya Thompson",
                   "action": "Created",
                   "state": "Draft",
-                  "notes": "High-complexity role-play item generated for C1 spoken interaction."
                 }
               ],
               "author": "Aisha Verma",
@@ -2522,7 +2469,6 @@
           "reviewer": "Maya Thompson",
           "action": "Created",
           "state": "Draft",
-          "notes": "High-complexity role-play item generated for C1 spoken interaction."
         }
       ],
       "author": "Aisha Verma",

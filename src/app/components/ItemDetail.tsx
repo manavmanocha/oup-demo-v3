@@ -227,21 +227,7 @@ export function ItemDetail() {
           <CardContent>
             {item.irtParameters ? (
               <div className="space-y-4">
-                {/* IRT Source */}
-                <div className="flex items-center gap-2 mb-4">
-                  {item.irtParameters.calibratedFromFieldTest ? (
-                    <Badge variant="default" className="bg-green-600">Calibrated from Field Test</Badge>
-                  ) : item.irtParameters.predictedByAI ? (
-                    <Badge variant="secondary">Predicted by AI</Badge>
-                  ) : (
-                    <Badge variant="outline">Unknown Source</Badge>
-                  )}
-                  {item.irtParameters.predictedByAI && item.aiModelVersion && (
-                    <span className="text-xs text-gray-500">
-                      Model: {item.aiModelVersion}
-                    </span>
-                  )}
-                </div>
+                
 
                 <div className="grid grid-cols-3 gap-6">
                   <div>
@@ -503,11 +489,6 @@ export function ItemDetail() {
                           year: 'numeric',
                         })}
                       </div>
-                      {entry.notes && (
-                        <div className="text-sm text-gray-700 mt-2 p-2 bg-gray-50 rounded">
-                          {entry.notes}
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}
