@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { approveScreenedItems, getAllItems, rejectScreenedItems } from '../data/mockData';
+import { AssessmentItem } from '../data/types';
 import { isWorkflowState } from '../data/workflowState';
 
 const toTimestamp = (value?: string): number => {
@@ -25,6 +26,127 @@ const sortNewestFirst = <T extends { createdDate?: string; lastEditedDate?: stri
   });
 };
 
+const hasScreeningFailure = (item: AssessmentItem) => {
+  return Object.values(item.screening ?? {}).includes('Fail');
+};
+
+const getScreeningFeedback = (item: AssessmentItem) => {
+  if (item.flagReason) {
+    return item.flagReason;
+  }
+
+  const queuedEntry = [...(item.reviewHistory ?? [])]
+    .reverse()
+    .find((entry) => entry.state === 'PENDING_SCREENING_REVIEW' && entry.notes);
+
+  return queuedEntry?.notes ?? 'Reviewer feedback: Passed all screening checks and is ready for approval.';
+};
+
+const renderScreeningBadges = (item: AssessmentItem) => {
+  const dimensions: Array<{ key: keyof NonNullable<AssessmentItem['screening']>; label: string }> = [
+    { key: 'cefrFit', label: 'CEFR Fit' },
+    { key: 'distractorStrength', label: 'Distractor Strength' },
+    { key: 'clarity', label: 'Clarity' },
+    { key: 'fairness', label: 'Fairness' },
+    { key: 'similarity', label: 'Similarity' },
+  ];
+
+  const badges = dimensions
+    .map(({ key, label }) => {
+      const result = item.screening?.[key];
+
+      if (result === 'Fail') {
+        return <Badge key={key} variant="destructive">{label}: Fail</Badge>;
+      }
+
+      if (result === 'Review') {
+        return <Badge key={key} variant="secondary">{label}: Review</Badge>;
+      }
+
+      return null;
+    })
+    .filter(Boolean);
+
+  if (badges.length > 0) {
+    return <div className="flex flex-wrap gap-2 mb-4">{badges}</div>;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2 mb-4">
+      <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">All 5 Dimensions: Pass</Badge>
+    </div>
+  );
+};
+
+const ScreeningQueueSection = ({
+  title,
+  description,
+  items,
+  feedbackClassName,
+  emptyMessage,
+  onApprove,
+  onReject,
+}: {
+  title: string;
+  description: string;
+  items: AssessmentItem[];
+  feedbackClassName: string;
+  emptyMessage: string;
+  onApprove: (itemId: string) => void;
+  onReject: (itemId: string) => void;
+}) => {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm font-medium text-gray-500 uppercase">
+          {title} · {items.length} items
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-gray-600 mb-6">{description}</p>
+
+        <div className="space-y-6">
+          {items.map((item) => (
+            <div key={item.id} className="border rounded-lg p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <Link
+                    to={`/item-bank/${item.level}/${item.id}`}
+                    state={{ fromWorkflow: true }}
+                    className="text-sm font-medium text-blue-600 hover:underline"
+                  >
+                    {item.id}
+                  </Link>
+                  <Badge variant="outline">{item.level}</Badge>
+                  <Badge variant="outline">{item.skill}</Badge>
+                  <Badge variant="outline">{item.itemType}</Badge>
+                </div>
+              </div>
+
+              <div className="text-sm text-gray-900 mb-4">{item.content}</div>
+
+              {renderScreeningBadges(item)}
+
+              <div className={feedbackClassName}>{getScreeningFeedback(item)}</div>
+
+              <div className="flex items-center gap-2 mt-4">
+                <Button size="sm" onClick={() => onApprove(item.id)}>Approve</Button>
+                <Button size="sm" variant="outline" onClick={() => onReject(item.id)}>Reject</Button>
+              </div>
+            </div>
+          ))}
+
+          {items.length === 0 && (
+            <div className="text-sm text-gray-600 border rounded-lg p-6 bg-gray-50">
+              {emptyMessage}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export function Screening() {
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -35,14 +157,19 @@ export function Screening() {
     [allItems],
   );
 
-  const flaggedItems = useMemo(
-    () => screeningQueue.filter((item) => item.flaggedForReview || isWorkflowState(item.workflowState, 'PENDING_SCREENING_REVIEW')),
+  const failedItems = useMemo(
+    () => screeningQueue.filter((item) => item.flaggedForReview || hasScreeningFailure(item)),
+    [screeningQueue],
+  );
+
+  const passedPendingItems = useMemo(
+    () => screeningQueue.filter((item) => !item.flaggedForReview && !hasScreeningFailure(item)),
     [screeningQueue],
   );
 
   const awaitingScreening = allItems.filter((item) => isWorkflowState(item.workflowState, 'NOT_STARTED')).length;
-  const flaggedCount = flaggedItems.length;
-  const passedCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED')).length;
+  const flaggedCount = failedItems.length;
+  const passedCount = passedPendingItems.length;
 
   const handleApprove = (itemId: string) => {
     approveScreenedItems([itemId]);
@@ -112,99 +239,27 @@ export function Screening() {
           </Card>
         </div>
 
-        {/* Flagged Items */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-500 uppercase">
-              Flagged Items · {flaggedItems.length} items
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600 mb-6">
-              These items have potential issues identified by the AI. Please review and decide whether to approve, reject.
-            </p>
+        <div className="space-y-6">
+          <ScreeningQueueSection
+            title="Failed / Needs Review"
+            description="These items have one or more failed screening dimensions and need a reviewer decision before they can move forward."
+            items={failedItems}
+            feedbackClassName="p-3 bg-orange-50 border border-orange-200 rounded text-sm text-gray-700"
+            emptyMessage="No failed screening items are currently awaiting review."
+            onApprove={handleApprove}
+            onReject={handleReject}
+          />
 
-            <div className="space-y-6">
-              {flaggedItems.map((item, index) => (
-                <div key={item.id} className="border rounded-lg p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <Link
-                        to={`/item-bank/${item.level}/${item.id}`}
-                        state={{ fromWorkflow: true }}
-                        className="text-sm font-medium text-blue-600 hover:underline"
-                      >
-                        {item.id}
-                      </Link>
-                      <Badge variant="outline">{item.level}</Badge>
-                      <Badge variant="outline">{item.skill}</Badge>
-                      <Badge variant="outline">{item.itemType}</Badge>
-                    </div>
-                  </div>
-
-                  <div className="text-sm text-gray-900 mb-4">{item.content}</div>
-
-                  {/* Screening Issues */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {item.screening?.cefrFit === 'Review' && (
-                      <Badge variant="secondary">CEFR Fit: Review</Badge>
-                    )}
-                    {item.screening?.cefrFit === 'Fail' && (
-                      <Badge variant="destructive">CEFR Fit: Fail</Badge>
-                    )}
-                    {item.screening?.distractorStrength === 'Review' && (
-                      <Badge variant="secondary">Distractor: Review</Badge>
-                    )}
-                    {item.screening?.distractorStrength === 'Fail' && (
-                      <Badge variant="destructive">Distractor: Fail</Badge>
-                    )}
-                    {item.screening?.fairness === 'Review' && (
-                      <Badge variant="secondary">Fairness: Review</Badge>
-                    )}
-                    {item.screening?.fairness === 'Fail' && (
-                      <Badge variant="destructive">Fairness: Fail</Badge>
-                    )}
-                    {item.screening?.clarity === 'Review' && (
-                      <Badge variant="secondary">Clarity: Review</Badge>
-                    )}
-                    {item.screening?.clarity === 'Fail' && (
-                      <Badge variant="destructive">Clarity: Fail</Badge>
-                    )}
-                    {item.screening?.similarity === 'Review' && (
-                      <Badge variant="secondary">Similarity: Review</Badge>
-                    )}
-                    {item.screening?.similarity === 'Fail' && (
-                      <Badge variant="destructive">Similarity: Fail</Badge>
-                    )}
-                  </div>
-
-                  {/* AI Feedback */}
-                  <div className="p-3 bg-orange-50 border border-orange-200 rounded text-sm text-gray-700">
-                    {index === 0 && "The grammar in the stem 'If Mary are not free' is incorrect and should be 'If Mary is not free'."}
-                    {index === 1 && "The correct answer is not explicitly stated but requires some inference, and the distractors could be more plausible."}
-                    {index === 2 && "The phrase 'housewife' may be considered culturally insensitive or outdated. Consider using gender-neutral language like 'homemaker'."}
-                    {index === 3 && "This item is very similar to ITM-SPEAK-0002 already in the bank - consider revising the prompt."}
-                    {index === 4 && "This item is too difficult for C1 level based on vocabulary complexity and semantic requirements."}
-                    {index === 5 && "The grammar and punctuation in the answer options need correction for clarity."}
-                    {"Screening failed on this item due to issues with the content."}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 mt-4">
-                    <Button size="sm" onClick={() => handleApprove(item.id)}>Approve</Button>
-                    <Button size="sm" variant="outline" onClick={() => handleReject(item.id)}>Reject</Button>
-                  </div>
-                </div>
-              ))}
-
-              {flaggedItems.length === 0 && (
-                <div className="text-sm text-gray-600 border rounded-lg p-6 bg-gray-50">
-                  No items are currently awaiting manual screening review.
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+          <ScreeningQueueSection
+            title="Passed / Ready to Approve"
+            description="These items passed all screening checks but are still awaiting reviewer approval before difficulty prediction."
+            items={passedPendingItems}
+            feedbackClassName="p-3 bg-green-50 border border-green-200 rounded text-sm text-gray-700"
+            emptyMessage="No all-clear screening items are waiting for approval."
+            onApprove={handleApprove}
+            onReject={handleReject}
+          />
+        </div>
       </div>
     </div>
   );

@@ -59,9 +59,166 @@ const speakingQuestions: SpeakingQuestion[] = allQuestions.filter((question): qu
 const INGESTED_ITEMS_STORAGE_KEY = 'ingested-library-items-v1';
 const WORKFLOW_OVERRIDES_STORAGE_KEY = 'workflow-item-overrides-v1';
 
+type ScreeningDimensionKey = keyof NonNullable<AssessmentItem['screening']>;
+type ScreeningDimensionResult = NonNullable<AssessmentItem['screening']>[ScreeningDimensionKey];
+type ScreeningResults = Record<ScreeningDimensionKey, ScreeningDimensionResult>;
+
+export type DifficultyPredictionResult = {
+  id: string;
+  b: number;
+  confidence: number;
+  difficulty: AssessmentItem['difficulty'];
+  discrimination: string;
+};
+
+type DemoScreeningFixture = {
+  screening: ScreeningResults;
+  feedback: string;
+};
+
+const SCREENING_DIMENSIONS: ScreeningDimensionKey[] = [
+  'cefrFit',
+  'distractorStrength',
+  'clarity',
+  'fairness',
+  'similarity',
+];
+
+const DEMO_SCREENING_FIXTURES: Record<string, DemoScreeningFixture> = {
+  'EAS-DEM-RDG-B2-101': {
+    screening: {
+      cefrFit: 'Pass',
+      distractorStrength: 'Fail',
+      clarity: 'Pass',
+      fairness: 'Pass',
+      similarity: 'Pass',
+    },
+    feedback:
+      'Reviewer feedback: The keyed response is valid, but the distractor set is not functioning at an enterprise standard. Options B and D can be ruled out without reading the full message, and option C does not mirror the operational nuance closely enough to compete with the answer. Revise the alternatives so each option reflects a plausible next-step interpretation from the email.',
+  },
+  'EAS-DEM-WRT-B1-102': {
+    screening: {
+      cefrFit: 'Pass',
+      distractorStrength: 'Pass',
+      clarity: 'Fail',
+      fairness: 'Pass',
+      similarity: 'Pass',
+    },
+    feedback:
+      'Reviewer feedback: The task intent is commercially realistic, but the brief is ambiguous about audience and register. Candidates could reasonably write either to the customer or to the line manager, and the expected tone ranges from informal update to formal complaint response. Specify recipient, purpose, and response length more tightly before approval.',
+  },
+  'EAS-DEM-SPK-B2-103': {
+    screening: {
+      cefrFit: 'Pass',
+      distractorStrength: 'Pass',
+      clarity: 'Pass',
+      fairness: 'Pass',
+      similarity: 'Pass',
+    },
+    feedback:
+      'Reviewer feedback: Passed all screening checks. The scenario is clear, level-appropriate, and aligned with workplace decision-making tasks used in operational speaking assessments.',
+  },
+  'EAS-DEM-WRT-C1-104': {
+    screening: {
+      cefrFit: 'Pass',
+      distractorStrength: 'Pass',
+      clarity: 'Pass',
+      fairness: 'Pass',
+      similarity: 'Pass',
+    },
+    feedback:
+      'Reviewer feedback: Passed all screening checks. The proposal task is well-scoped, cognitively demanding, and suitable for advanced business-writing calibration.',
+  },
+  'EAS-DEM-SPK-C1-105': {
+    screening: {
+      cefrFit: 'Pass',
+      distractorStrength: 'Pass',
+      clarity: 'Pass',
+      fairness: 'Pass',
+      similarity: 'Pass',
+    },
+    feedback:
+      'Reviewer feedback: Passed all screening checks. The client-resolution scenario is authentic, appropriately constrained, and strong enough to move into difficulty prediction.',
+  },
+};
+
+const DEMO_DP_FIXTURES: Record<string, DifficultyPredictionResult> = {
+  'EAS-DEM-SPK-B2-103': {
+    id: 'EAS-DEM-SPK-B2-103',
+    b: 0.88,
+    confidence: 91,
+    difficulty: 'Medium',
+    discrimination: 'High',
+  },
+  'EAS-DEM-WRT-C1-104': {
+    id: 'EAS-DEM-WRT-C1-104',
+    b: 1.36,
+    confidence: 58,
+    difficulty: 'Hard',
+    discrimination: 'Moderate',
+  },
+  'EAS-DEM-SPK-C1-105': {
+    id: 'EAS-DEM-SPK-C1-105',
+    b: 1.18,
+    confidence: 89,
+    difficulty: 'Medium',
+    discrimination: 'High',
+  },
+};
+
 type ItemWorkflowOverride = {
   id: string;
   patch: Partial<AssessmentItem>;
+};
+
+const randomScreeningResults = (): ScreeningResults => {
+  return SCREENING_DIMENSIONS.reduce<ScreeningResults>((acc, dimension) => {
+    acc[dimension] = Math.random() >= 0.2 ? 'Pass' : 'Fail';
+    return acc;
+  }, {
+    cefrFit: 'Pass',
+    distractorStrength: 'Pass',
+    clarity: 'Pass',
+    fairness: 'Pass',
+    similarity: 'Pass',
+  });
+};
+
+const getScreeningFixture = (id: string): DemoScreeningFixture => {
+  const predefined = DEMO_SCREENING_FIXTURES[id];
+
+  if (predefined) {
+    return predefined;
+  }
+
+  const screening = randomScreeningResults();
+  const hasFailure = SCREENING_DIMENSIONS.some((dimension) => screening[dimension] === 'Fail');
+
+  return {
+    screening,
+    feedback: hasFailure
+      ? 'Reviewer feedback: This item needs manual review because one or more screening dimensions did not meet the current quality bar.'
+      : 'Reviewer feedback: Passed all screening checks and is ready for approval.',
+  };
+};
+
+export const getMockDifficultyPredictionResult = (id: string): DifficultyPredictionResult => {
+  const predefined = DEMO_DP_FIXTURES[id];
+
+  if (predefined) {
+    return predefined;
+  }
+
+  const b = Number((Math.random() * 2).toFixed(2));
+  const confidence = Math.floor(Math.random() * 30) + 70;
+
+  return {
+    id,
+    b,
+    confidence,
+    difficulty: b < 0.4 ? 'Easy' : b < 1.2 ? 'Medium' : 'Hard',
+    discrimination: confidence >= 90 ? 'High' : confidence >= 80 ? 'Moderate' : 'Low',
+  };
 };
 
 const normalizeWorkflowState = (state: string | undefined): AssessmentItem['workflowState'] => {
@@ -250,20 +407,8 @@ export const queueItemsForScreening = (itemIds: string[]) => {
   const nowIso = now.toISOString();
 
   upsertItemOverrides(itemIds, (item, existingPatch) => {
-    const dimensions: Array<'cefrFit' | 'distractorStrength' | 'clarity' | 'fairness' | 'similarity'> = [
-      'cefrFit',
-      'distractorStrength',
-      'clarity',
-      'fairness',
-      'similarity',
-    ];
-
-    const randomResults = dimensions.reduce<Record<string, 'Pass' | 'Fail'>>((acc, dimension) => {
-      acc[dimension] = Math.random() >= 0.2 ? 'Pass' : 'Fail';
-      return acc;
-    }, {});
-
-    const allPassed = Object.values(randomResults).every((result) => result === 'Pass');
+    const fixture = getScreeningFixture(item.id);
+    const allPassed = SCREENING_DIMENSIONS.every((dimension) => fixture.screening[dimension] === 'Pass');
 
     const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
     const nextHistory = [
@@ -273,19 +418,15 @@ export const queueItemsForScreening = (itemIds: string[]) => {
         reviewer: 'Screening Queue',
         action: allPassed ? 'Screening Auto-Completed (Pass)' : 'Screening Auto-Completed (Needs Review)',
         state: 'PENDING_SCREENING_REVIEW',
+        notes: fixture.feedback,
       },
     ];
 
     return {
       workflowState: 'PENDING_SCREENING_REVIEW',
-      flaggedForReview: true,
-      screening: {
-        cefrFit: randomResults.cefrFit,
-        distractorStrength: randomResults.distractorStrength,
-        clarity: randomResults.clarity,
-        fairness: randomResults.fairness,
-        similarity: randomResults.similarity,
-      },
+      flaggedForReview: !allPassed,
+      flagReason: allPassed ? undefined : fixture.feedback,
+      screening: fixture.screening,
       reviewHistory: nextHistory,
       lastEditedDate: nowIso,
       lastEditedBy: 'Screening Queue',
@@ -313,6 +454,7 @@ export const approveScreenedItems = (itemIds: string[]) => {
     return {
       workflowState: 'SCREENING_APPROVED',
       flaggedForReview: false,
+      flagReason: undefined,
       screening: {
         cefrFit: 'Pass',
         distractorStrength: 'Pass',
@@ -353,14 +495,6 @@ export const rejectScreenedItems = (itemIds: string[]) => {
       lastEditedBy: 'Screening Team',
     };
   });
-};
-
-type DifficultyPredictionResult = {
-  id: string;
-  b: number;
-  confidence: number;
-  difficulty: AssessmentItem['difficulty'];
-  discrimination: string;
 };
 
 export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]) => {

@@ -7,7 +7,7 @@ import { Checkbox } from './ui/checkbox';
 import { Input } from './ui/input';
 import { CheckCircle2, Sparkles, Search, ChevronRight } from 'lucide-react';
 import { Progress } from './ui/progress';
-import { applyDifficultyPredictions, getAllItems } from '../data/mockData';
+import { applyDifficultyPredictions, getAllItems, getMockDifficultyPredictionResult } from '../data/mockData';
 import { Difficulty } from '../data/types';
 import { isWorkflowState } from '../data/workflowState';
 
@@ -84,38 +84,35 @@ export function PredictDifficulty() {
     }
   };
 
+  const completePredictionRun = (generatedResults: { id: string; b: number; confidence: number; difficulty: Difficulty; discrimination: string }[]) => {
+    applyDifficultyPredictions(generatedResults);
+    setPredictionResults(
+      generatedResults.reduce<Record<string, { b: number; confidence: number; difficulty: 'Easy' | 'Medium' | 'Hard' | 'Very Easy' | 'Very Hard'; discrimination: string }>>((acc, result) => {
+        acc[result.id] = {
+          b: result.b,
+          confidence: result.confidence,
+          difficulty: result.difficulty,
+          discrimination: result.discrimination,
+        };
+        return acc;
+      }, {}),
+    );
+    setStep('success');
+  };
+
   const handleStartPrediction = () => {
     setStep('processing');
     setProgress(0);
 
-    const generatedResults: { id: string; b: number; confidence: number; difficulty: Difficulty; discrimination: string }[] = selectedItemIds.map((id) => {
-      const b = Number((Math.random() * 2).toFixed(2));
-      const confidence = Math.floor(Math.random() * 30) + 70;
-      const difficulty: Difficulty = b < 0.4 ? 'Easy' : b < 1.2 ? 'Medium' : 'Hard';
-      const discrimination = confidence >= 90 ? 'High' : confidence >= 80 ? 'Moderate' : 'Low';
-      return { id, b, confidence, difficulty, discrimination };
-    });
+    const generatedResults: { id: string; b: number; confidence: number; difficulty: Difficulty; discrimination: string }[] =
+      selectedItemIds.map((id) => getMockDifficultyPredictionResult(id));
 
     // Simulate prediction processing
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          setTimeout(() => {
-            applyDifficultyPredictions(generatedResults);
-            setPredictionResults(
-              generatedResults.reduce<Record<string, { b: number; confidence: number; difficulty: 'Easy' | 'Medium' | 'Hard' | 'Very Easy' | 'Very Hard'; discrimination: string }>>((acc, result) => {
-                acc[result.id] = {
-                  b: result.b,
-                  confidence: result.confidence,
-                  difficulty: result.difficulty,
-                  discrimination: result.discrimination,
-                };
-                return acc;
-              }, {}),
-            );
-            setStep('success');
-          }, 500);
+          completePredictionRun(generatedResults);
           return 100;
         }
         return prev + 20;

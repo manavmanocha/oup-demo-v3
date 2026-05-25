@@ -18,6 +18,10 @@ type ParsedUploadItem = {
   answerKey: string;
   distractors: string;
   audioAsset?: string;
+  passage?: string;
+  passageTitle?: string;
+  instructions?: string;
+  rubric?: string;
   issues: string[];
 };
 
@@ -207,6 +211,7 @@ const buildPreviewItem = (
     id: item.id,
     title: toTitleFromText(item.content || item.id),
     content: item.content,
+    answerKey: item.answerKey,
     level: resolveLevel(item.level) ?? 'B1',
     skill: resolveSkill(item.skill) ?? 'Reading',
     itemType: resolvedType,
@@ -214,6 +219,10 @@ const buildPreviewItem = (
     difficulty: mapLevelToDifficulty(resolveLevel(item.level) ?? 'B1'),
     options,
     audioAsset: item.skill === 'Listening' ? item.audioAsset : undefined,
+    passage: item.passage || undefined,
+    passageTitle: item.passageTitle || undefined,
+    instructions: item.instructions || undefined,
+    rubric: item.rubric || undefined,
     subSkill: item.skill,
     cognitiveLevel: defaultCognitiveLevelLabel || 'L2 Understand',
     contentDomain: defaultContentDomainLabel || 'General',
@@ -237,7 +246,7 @@ const buildPreviewItem = (
         notes: `Imported from ${fileName}`,
       },
     ],
-  } as AssessmentItem;
+  };
 };
 
 export function IngestItems() {
@@ -355,6 +364,10 @@ export function IngestItems() {
     const answerIndex = headers.findIndex((h) => h === 'answerkey' || h === 'answer' || h === 'correctanswer');
     const distractorIndex = headers.findIndex((h) => h === 'distractors' || h === 'options');
     const audioIndex = headers.findIndex((h) => h === 'audio' || h === 'audiofile' || h === 'audioasset');
+    const passageIndex = headers.findIndex((h) => h === 'passage' || h === 'passagetext' || h === 'readingpassage');
+    const passageTitleIndex = headers.findIndex((h) => h === 'passagetitle' || h === 'readingpassagetitle');
+    const instructionsIndex = headers.findIndex((h) => h === 'instructions' || h === 'taskinstructions');
+    const rubricIndex = headers.findIndex((h) => h === 'rubric' || h === 'scoringguide' || h === 'markscheme');
 
     if (contentIndex < 0 || levelIndex < 0 || skillIndex < 0 || typeIndex < 0) {
       setUploadError('CSV is missing one or more required columns: content, cefrLevel, skill, itemType/type.');
@@ -370,6 +383,10 @@ export function IngestItems() {
       const answerKey = (answerIndex >= 0 ? row[answerIndex] : '').trim();
       const distractors = (distractorIndex >= 0 ? row[distractorIndex] : '').trim();
       const audioAsset = audioIndex >= 0 ? (row[audioIndex] ?? '').trim() : '';
+      const passage = passageIndex >= 0 ? (row[passageIndex] ?? '').trim() : '';
+      const passageTitle = passageTitleIndex >= 0 ? (row[passageTitleIndex] ?? '').trim() : '';
+      const instructions = instructionsIndex >= 0 ? (row[instructionsIndex] ?? '').trim() : '';
+      const rubric = rubricIndex >= 0 ? (row[rubricIndex] ?? '').trim() : '';
 
       const issues: string[] = [];
       if (!content) issues.push('Missing content');
@@ -403,6 +420,10 @@ export function IngestItems() {
         answerKey,
         distractors,
         audioAsset: audioAsset || undefined,
+        passage: passage || undefined,
+        passageTitle: passageTitle || undefined,
+        instructions: instructions || undefined,
+        rubric: rubric || undefined,
         issues,
       };
     });
@@ -486,13 +507,18 @@ export function IngestItems() {
           id: uniqueId,
           title: toTitleFromText(item.content),
           content: item.content,
-          level: item.level as AssessmentItem['level'],
-          skill: item.skill as Skill,
+          answerKey: item.answerKey,
+          level: item.level,
+          skill: item.skill,
           itemType: resolvedType,
           status: 'Draft',
           difficulty: mapLevelToDifficulty(item.level),
           options,
           audioAsset: item.skill === 'Listening' ? item.audioAsset : undefined,
+          passage: item.passage || undefined,
+          passageTitle: item.passageTitle || undefined,
+          instructions: item.instructions || undefined,
+          rubric: item.rubric || undefined,
           subSkill: item.skill,
           cognitiveLevel: defaultCognitiveLevelLabel || 'L2 Understand',
           contentDomain: defaultContentDomainLabel || 'General',
@@ -516,7 +542,7 @@ export function IngestItems() {
               notes: `Imported from ${fileName}`,
             },
           ],
-        } as AssessmentItem;
+        };
       });
 
     addIngestedItems(itemsToIngest);
@@ -628,7 +654,7 @@ export function IngestItems() {
                           <p className="font-medium mb-1">File Requirements</p>
                           <ul className="text-blue-700 space-y-1 list-disc list-inside">
                             <li>Required columns: itemId, content, cefrLevel, skill, itemType, answerKey</li>
-                            <li>Optional columns: distractors, audioAsset</li>
+                            <li>Optional columns: distractors, audioAsset, passage, passageTitle, instructions, rubric</li>
                             <li>Maximum 500 items per upload</li>
                           </ul>
                         </div>
