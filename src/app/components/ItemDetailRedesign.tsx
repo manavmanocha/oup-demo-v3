@@ -450,7 +450,7 @@ export function ItemDetailRedesign() {
   if (!item) {
     return (
       <div className="p-4 sm:p-6 md:p-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="mx-auto">
           <p className="text-gray-600">Item not found</p>
         </div>
       </div>

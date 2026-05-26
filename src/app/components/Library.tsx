@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import {
   Card,
   CardContent,
@@ -100,6 +100,7 @@ const getInitialLibraryState = (): LibraryFilterState => {
 };
 
 export function Library() {
+  const navigate = useNavigate();
   const initialState = getInitialLibraryState();
 
   const [searchQuery, setSearchQuery] = useState(initialState.searchQuery);
@@ -304,7 +305,7 @@ export function Library() {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -343,7 +344,7 @@ export function Library() {
         {/* Main Layout: Sidebar + Content */}
         <div className="flex flex-col xl:flex-row gap-6">
           {/* Left Sidebar - Filters */}
-          <div className="w-full xl:w-64 xl:flex-shrink-0 space-y-6">
+          <div className="w-full xl:w-56 xl:flex-shrink-0 space-y-6">
             {/* Total Count */}
             <div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">
@@ -524,6 +525,7 @@ export function Library() {
                   </div>
                 )}
               </div>
+
             </div>
           </div>
 
@@ -691,23 +693,26 @@ export function Library() {
               /* Table View */
               <Card>
                 <CardContent className="p-0">
-                  <div className="border rounded-lg overflow-hidden overflow-x-auto">
-                    <table className="w-full min-w-[640px] table-fixed">
+                  <div className="border rounded-lg overflow-hidden">
+                    <table className="w-full table-fixed">
                       <thead className="bg-gray-50 border-b">
                         <tr>
-                          <th className="w-36 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="w-44 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Item ID
                           </th>
-                          <th className="w-20 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="w-16 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Level
                           </th>
-                          <th className="w-28 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="w-20 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Skill
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            Item Type
+                          </th>
+                          <th className="w-44 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Title
                           </th>
-                          <th className="w-36 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Status
                           </th>
                         </tr>
@@ -717,7 +722,7 @@ export function Library() {
                           <tr>
                             <td
                               colSpan={6}
-                              className="px-4 py-8 text-center text-gray-500"
+                              className="px-3 py-8 text-center text-gray-500"
                             >
                               No items found matching your filters.
                             </td>
@@ -726,17 +731,23 @@ export function Library() {
                           paginatedItems.map((item) => (
                             <tr
                               key={item.id}
-                              className="hover:bg-gray-50"
+                              className="hover:bg-gray-50 cursor-pointer focus-within:bg-gray-50"
+                              role="link"
+                              tabIndex={0}
+                              onClick={() => navigate(`/item-bank/${item.level}/${item.id}`)}
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter" || event.key === " ") {
+                                  event.preventDefault();
+                                  navigate(`/item-bank/${item.level}/${item.id}`);
+                                }
+                              }}
                             >
-                              <td className="px-4 py-3">
-                                <Link
-                                  to={`/item-bank/${item.level}/${item.id}`}
-                                  className="block text-sm font-medium text-blue-600 hover:underline max-w-sm truncate"
-                                >
+                              <td className="px-3 py-3">
+                                <div className="text-sm font-medium text-blue-600">
                                   {item.id}
-                                </Link>
+                                </div>
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-3 py-3">
                                 <Badge
                                   variant="outline"
                                   className="font-medium"
@@ -744,17 +755,22 @@ export function Library() {
                                   {item.level}
                                 </Badge>
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-3 py-3">
                                 <Badge variant="outline">
                                   {item.skill}
                                 </Badge>
                               </td>
-                              <td className="px-4 py-3">
-                                <div className="text-sm text-gray-700 max-w-md truncate">
+                              <td className="px-3 py-3">
+                                <div className="text-sm text-gray-700 truncate">
+                                  {item.itemType}
+                                </div>
+                              </td>
+                              <td className="px-3 py-3">
+                                <div className="text-sm text-gray-700 truncate">
                                   {item.title}
                                 </div>
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-3 py-3">
                                 <Badge
                                   variant={
                                     item.status === "Published"

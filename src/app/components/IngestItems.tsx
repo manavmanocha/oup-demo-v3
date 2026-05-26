@@ -600,7 +600,7 @@ export function IngestItems() {
 
   return (
     <div className="p-4 sm:p-6 md:p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
           <Link to="/library" className="hover:underline">Library</Link>

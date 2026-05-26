@@ -28,7 +28,7 @@ export function TaxonomyDetail() {
   if (!taxonomy) {
     return (
       <div className="p-4 sm:p-6 md:p-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="mx-auto">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Taxonomy Not Found</h1>
             <p className="text-gray-600 mb-4">The requested taxonomy does not exist.</p>
@@ -106,7 +106,7 @@ export function TaxonomyDetail() {
 
   return (
     <div className="p-4 sm:p-6 md:p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
           <Link to="/taxonomies" className="hover:underline">Taxonomies</Link>
