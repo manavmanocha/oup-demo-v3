@@ -1,6 +1,20 @@
-# Agent Status Conventions
+## Project Structure
 
-This document defines canonical backend workflow states for this repository.
+- `src/app/components`: page-level UI, feature components, and shared view logic.
+- `src/app/data`: runtime data, types, and workflow/state mapping helpers.
+- `src/app/context`: shared application context.
+- `src/app/api` and `src/app/stores`: data access and state orchestration.
+- `tests/unit`: fast unit coverage for data and helper behavior.
+- `tests/e2e`: Playwright flows for user journeys.
+- `public/`: static assets and sample files.
+
+## State Model
+
+- `status` and `workflowState` are different concepts.
+- `status` is the item lifecycle state: `Draft`, `Retired`, `Compromised`, `Published`.
+- `workflowState` is the backend processing pipeline state defined in `src/app/data/types.ts`.
+- Use the shared helpers in `src/app/data/workflowState.ts` for workflow-state labels and comparisons.
+- Avoid ad-hoc string comparisons in components when a shared type or helper exists.
 
 ## Source Of Truth
 
@@ -34,6 +48,7 @@ This document defines canonical backend workflow states for this repository.
 - Treat src/app/data/questions.json as the runtime source for mapped item data.
 - Do not consume skillDetails.*.extendedData in runtime mapping or UI rendering.
 - Keep runtime fields flattened (for example: passageTitle and instructions on skillDetails.reading) instead of reading nested originalItem/sourceData structures.
+- Example: prefer flattened item fields in runtime code instead of nested reads such as `item.skillDetails.reading.extendedData.originalItem`.
 
 ## Author Policy
 
