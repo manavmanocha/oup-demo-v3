@@ -22,8 +22,10 @@ Prefer `pnpm` in this repo.
 - Build: `pnpm build`
 
 Notes:
-- There are no configured `test`, `lint`, or `typecheck` scripts in `package.json`.
-- Validate changes by running `pnpm build` after non-trivial edits.
+- Test scripts are configured in `package.json`: `test`, `test:unit`, `test:e2e`, `test:ci`.
+- There are no configured `lint` or `typecheck` scripts in `package.json`.
+- Validate non-trivial edits with `pnpm build`.
+- For faster local checks, run `pnpm test:unit`; run `pnpm test:e2e` when workflow behavior changes.
 
 ## Architecture Map
 
