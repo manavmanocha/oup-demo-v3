@@ -1,13 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { loginAsDemo } from './helpers/auth';
 
 async function login(page: Page) {
-  await page.goto('/login');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/login');
-  await page.getByLabel('Username Or Email').fill('manav.manocha@comprotechnologies.com');
-  await page.getByLabel('Password*').fill('Compro11');
-  await page.getByRole('button', { name: 'LOGIN' }).click();
-  await expect(page.getByRole('link', { name: 'Library' })).toBeVisible();
+  await loginAsDemo(page);
 }
 
 test('navigates from item bank overview to a level and item detail', async ({ page }) => {

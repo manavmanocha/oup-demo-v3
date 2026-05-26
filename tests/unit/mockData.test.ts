@@ -4,6 +4,11 @@ import {
   addIngestedItems,
   applyDifficultyPredictions,
   getAllItems,
+  getCompromisedItems,
+  getFlaggedItems,
+  getItemById,
+  getItemsByLevel,
+  getItemsForReview,
   getMockDifficultyPredictionResult,
   moveItemsToSeeded,
   queueItemsForScreening,
@@ -261,5 +266,139 @@ describe('mockData workflow mutations', () => {
     const normalized = getAllItems().find((item) => item.id === ingested.id);
     expect(normalized?.status).toBe('Published');
     expect(normalized?.workflowState).toBe('PENDING_SCREENING_REVIEW');
+  });
+
+  it('recovers safely from malformed ingested and override storage payloads', () => {
+    localStorage.setItem('ingested-library-items-v1', '{not-json');
+    localStorage.setItem('workflow-item-overrides-v1', '{bad-json');
+
+    const items = getAllItems();
+    expect(Array.isArray(items)).toBe(true);
+    expect(items.length).toBeGreaterThan(0);
+  });
+
+  it('applies override precedence after ingested replacement for same id', () => {
+    const id = 'TEST-MERGE-001';
+
+    addIngestedItems([
+      createIngestedItem({
+        id,
+        status: 'Draft',
+        workflowState: 'NOT_STARTED',
+      }),
+    ]);
+
+    addIngestedItems([
+      createIngestedItem({
+        id,
+        status: 'Retired',
+        workflowState: 'SCREENING_REJECTED',
+      }),
+    ]);
+
+    localStorage.setItem(
+      'workflow-item-overrides-v1',
+      JSON.stringify([
+        {
+          id,
+          patch: {
+            status: 'Active',
+            workflowState: 'Approved',
+          },
+        },
+      ]),
+    );
+
+    const merged = getItemById(id);
+    expect(merged?.status).toBe('Published');
+    expect(merged?.workflowState).toBe('SCREENING_APPROVED');
+  });
+
+  it('returns expected selector results for level, id, compromised and flagged items', () => {
+    addIngestedItems([
+      createIngestedItem({
+        id: 'TEST-SELECT-001',
+        level: 'B1',
+        status: 'Compromised',
+        workflowState: 'NOT_STARTED',
+      }),
+      createIngestedItem({
+        id: 'TEST-SELECT-002',
+        level: 'B1',
+        status: 'Draft',
+        workflowState: 'PENDING_SCREENING_REVIEW',
+        flaggedForReview: true,
+      }),
+    ]);
+
+    const b1Items = getItemsByLevel('B1');
+    expect(b1Items.length).toBeGreaterThan(0);
+    expect(b1Items.every((item) => item.level === 'B1')).toBe(true);
+
+    expect(getItemById('TEST-SELECT-001')?.id).toBe('TEST-SELECT-001');
+    expect(getItemById('DOES-NOT-EXIST')).toBeUndefined();
+
+    const compromised = getCompromisedItems();
+    expect(compromised.some((item) => item.id === 'TEST-SELECT-001')).toBe(true);
+    expect(compromised.every((item) => item.status === 'Compromised')).toBe(true);
+
+    const flagged = getFlaggedItems();
+    expect(flagged.some((item) => item.id === 'TEST-SELECT-002')).toBe(true);
+    expect(flagged.every((item) => item.flaggedForReview)).toBe(true);
+  });
+
+  it('includes workflow and screening-driven review candidates in getItemsForReview', () => {
+    addIngestedItems([
+      createIngestedItem({
+        id: 'TEST-REVIEW-001',
+        workflowState: 'PENDING_SCREENING_REVIEW',
+        flaggedForReview: false,
+      }),
+      createIngestedItem({
+        id: 'TEST-REVIEW-002',
+        workflowState: 'NOT_STARTED',
+        flaggedForReview: false,
+        screening: {
+          similarity: 'Review',
+          cefrFit: 'Pass',
+          distractorStrength: 'Pass',
+          clarity: 'Pass',
+          fairness: 'Pass',
+        },
+      }),
+      createIngestedItem({
+        id: 'TEST-REVIEW-003',
+        workflowState: 'NOT_STARTED',
+        flaggedForReview: true,
+      }),
+    ]);
+
+    const reviewIds = new Set(getItemsForReview().map((item) => item.id));
+    expect(reviewIds.has('TEST-REVIEW-001')).toBe(true);
+    expect(reviewIds.has('TEST-REVIEW-002')).toBe(true);
+    expect(reviewIds.has('TEST-REVIEW-003')).toBe(true);
+  });
+
+  it('maps random difficulty predictions by b and confidence thresholds', () => {
+    vi.spyOn(Math, 'random')
+      .mockReturnValueOnce(0.1)
+      .mockReturnValueOnce(0.95)
+      .mockReturnValueOnce(0.4)
+      .mockReturnValueOnce(0.4)
+      .mockReturnValueOnce(0.8)
+      .mockReturnValueOnce(0.01);
+
+    const easyHigh = getMockDifficultyPredictionResult('RAND-1');
+    const mediumModerate = getMockDifficultyPredictionResult('RAND-2');
+    const hardLow = getMockDifficultyPredictionResult('RAND-3');
+
+    expect(easyHigh.difficulty).toBe('Easy');
+    expect(easyHigh.discrimination).toBe('High');
+
+    expect(mediumModerate.difficulty).toBe('Medium');
+    expect(mediumModerate.discrimination).toBe('Moderate');
+
+    expect(hardLow.difficulty).toBe('Hard');
+    expect(hardLow.discrimination).toBe('Low');
   });
 });
