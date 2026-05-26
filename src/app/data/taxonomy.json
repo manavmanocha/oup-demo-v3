@@ -189,7 +189,7 @@
       },
       {
         "id": "PROFESSIONAL",
-        "label": "Professional / Workplace"
+        "label": "Professional"
       },
       {
         "id": "BUSINESS",
@@ -201,11 +201,11 @@
       },
       {
         "id": "MEDIA",
-        "label": "Media & Communication"
+        "label": "Media"
       },
       {
         "id": "CULTURAL",
-        "label": "Culture & Society"
+        "label": "Culture"
       },
       {
         "id": "TECHNOLOGY",
@@ -213,7 +213,7 @@
       },
       {
         "id": "HEALTH",
-        "label": "Health & Lifestyle"
+        "label": "Health"
       }
     ],
 
@@ -304,12 +304,28 @@
         "label": "Environment"
       },
       {
-        "id": "FOOD",
-        "label": "Food"
+        "id": "SOCIETY",
+        "label": "Society"
       },
       {
-        "id": "FAMILY",
-        "label": "Family & Relationships"
+        "id": "CULTURE",
+        "label": "Culture"
+      },
+      {
+        "id": "WORK",
+        "label": "Work"
+      },
+      {
+        "id": "LIFESTYLE",
+        "label": "Lifestyle"
+      },
+      {
+        "id": "SCIENCE",
+        "label": "Science"
+      },
+      {
+        "id": "MEDIA",
+        "label": "Media"
       }
     ],
 

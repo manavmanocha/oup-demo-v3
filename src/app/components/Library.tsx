@@ -20,6 +20,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { getAllItems, getIngestedItems } from "../data/mockData";
+import { getTaxonomyById, type TaxonomyNode } from "../data/taxonomy";
 import { QuestionCard } from "./QuestionCard";
 
 const ITEMS_PER_PAGE = 50;
@@ -47,6 +48,11 @@ type LibraryFilterState = {
   selectedItemTypes: string[];
   selectedLevels: string[];
   selectedSkills: string[];
+  selectedCognitiveLevels: string[];
+  selectedContentDomains: string[];
+  selectedLanguageVarieties: string[];
+  selectedTopics: string[];
+  selectedGrammarFocuses: string[];
   currentPage: number;
   viewMode: "cards" | "table";
   expandedSections: string[];
@@ -68,6 +74,11 @@ const getInitialLibraryState = (): LibraryFilterState => {
     selectedItemTypes: [],
     selectedLevels: [],
     selectedSkills: [],
+    selectedCognitiveLevels: [],
+    selectedContentDomains: [],
+    selectedLanguageVarieties: [],
+    selectedTopics: [],
+    selectedGrammarFocuses: [],
     currentPage: 1,
     viewMode: "table",
     expandedSections: ["status"],
@@ -84,6 +95,11 @@ const getInitialLibraryState = (): LibraryFilterState => {
       selectedItemTypes: pickOne(parsed.selectedItemTypes),
       selectedLevels: pickOne(parsed.selectedLevels),
       selectedSkills: pickOne(parsed.selectedSkills),
+      selectedCognitiveLevels: pickOne(parsed.selectedCognitiveLevels),
+      selectedContentDomains: pickOne(parsed.selectedContentDomains),
+      selectedLanguageVarieties: pickOne(parsed.selectedLanguageVarieties),
+      selectedTopics: pickOne(parsed.selectedTopics),
+      selectedGrammarFocuses: pickOne(parsed.selectedGrammarFocuses),
       expandedSections:
         Array.isArray(parsed.expandedSections) && parsed.expandedSections.length > 0
           ? parsed.expandedSections
@@ -116,6 +132,21 @@ export function Library() {
   const [selectedSkills, setSelectedSkills] = useState<
     string[]
   >(initialState.selectedSkills);
+  const [selectedCognitiveLevels, setSelectedCognitiveLevels] = useState<
+    string[]
+  >(initialState.selectedCognitiveLevels);
+  const [selectedContentDomains, setSelectedContentDomains] = useState<
+    string[]
+  >(initialState.selectedContentDomains);
+  const [selectedLanguageVarieties, setSelectedLanguageVarieties] = useState<
+    string[]
+  >(initialState.selectedLanguageVarieties);
+  const [selectedTopics, setSelectedTopics] = useState<
+    string[]
+  >(initialState.selectedTopics);
+  const [selectedGrammarFocuses, setSelectedGrammarFocuses] = useState<
+    string[]
+  >(initialState.selectedGrammarFocuses);
   const [currentPage, setCurrentPage] = useState(initialState.currentPage);
   const [viewMode, setViewMode] = useState<'cards' | 'table'>(initialState.viewMode);
 
@@ -137,9 +168,7 @@ export function Library() {
         item.title
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
-        item.content
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
+        (item.content?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
         (item.subSkill?.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (item.contentDomain?.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesLevel =
@@ -158,13 +187,43 @@ export function Library() {
         selectedStatuses.length === 0
           ? true
           : selectedStatuses.includes(item.status);
+      const cognitiveLevel = item.cognitiveLevel ?? "";
+      const contentDomain = item.contentDomain ?? "";
+      const languageVariety = item.languageVariety ?? "";
+      const topic = item.topic ?? "";
+      const grammarFocus = item.grammarFocus ?? "";
+      const matchesCognitiveLevel =
+        selectedCognitiveLevels.length === 0
+          ? true
+          : selectedCognitiveLevels.includes(cognitiveLevel);
+      const matchesContentDomain =
+        selectedContentDomains.length === 0
+          ? true
+          : selectedContentDomains.includes(contentDomain);
+      const matchesLanguageVariety =
+        selectedLanguageVarieties.length === 0
+          ? true
+          : selectedLanguageVarieties.includes(languageVariety);
+      const matchesTopic =
+        selectedTopics.length === 0
+          ? true
+          : selectedTopics.includes(topic);
+      const matchesGrammarFocus =
+        selectedGrammarFocuses.length === 0
+          ? true
+          : selectedGrammarFocuses.includes(grammarFocus);
 
       return (
         matchesSearch &&
         matchesLevel &&
         matchesSkill &&
         matchesItemType &&
-        matchesStatus
+        matchesStatus &&
+        matchesCognitiveLevel &&
+        matchesContentDomain &&
+        matchesLanguageVariety &&
+        matchesTopic &&
+        matchesGrammarFocus
       );
     });
 
@@ -176,6 +235,11 @@ export function Library() {
     selectedSkills,
     selectedItemTypes,
     selectedStatuses,
+    selectedCognitiveLevels,
+    selectedContentDomains,
+    selectedLanguageVarieties,
+    selectedTopics,
+    selectedGrammarFocuses,
   ]);
 
   const totalPages = Math.ceil(
@@ -218,6 +282,58 @@ export function Library() {
     Speaking: allItems.filter((item) => item.skill === "Speaking").length,
   };
 
+  const createOptionalFieldCounts = (values: Array<string | undefined>): Record<string, number> => {
+    const counts: Record<string, number> = {};
+
+    values.forEach((value) => {
+      if (!value) {
+        return;
+      }
+
+      counts[value] = (counts[value] ?? 0) + 1;
+    });
+
+    return Object.fromEntries(Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)));
+  };
+
+  const flattenTaxonomyLabels = (nodes: TaxonomyNode[]): string[] => {
+    const labels: string[] = [];
+
+    const visit = (currentNodes: TaxonomyNode[]) => {
+      currentNodes.forEach((node) => {
+        labels.push(node.label);
+        if (node.children && node.children.length > 0) {
+          visit(node.children);
+        }
+      });
+    };
+
+    visit(nodes);
+    return labels;
+  };
+
+  const createTaxonomyCounts = (
+    taxonomyId: string,
+    values: Array<string | undefined>,
+  ): Record<string, number> => {
+    const observedCounts = createOptionalFieldCounts(values);
+    const taxonomy = getTaxonomyById(taxonomyId);
+    const taxonomyLabels = taxonomy ? flattenTaxonomyLabels(taxonomy.tree) : [];
+    const counts: Record<string, number> = {};
+
+    taxonomyLabels.forEach((label) => {
+      counts[label] = observedCounts[label] ?? 0;
+    });
+
+    return Object.fromEntries(Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)));
+  };
+
+  const cognitiveLevelCounts = createTaxonomyCounts("cognitiveLevels", allItems.map((item) => item.cognitiveLevel));
+  const contentDomainCounts = createTaxonomyCounts("contentDomains", allItems.map((item) => item.contentDomain));
+  const languageVarietyCounts = createTaxonomyCounts("languageVarieties", allItems.map((item) => item.languageVariety));
+  const topicCounts = createTaxonomyCounts("topics", allItems.map((item) => item.topic));
+  const grammarFocusCounts = createTaxonomyCounts("grammar", allItems.map((item) => item.grammarFocus));
+
   // Reset to page 1 when filters change
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
@@ -256,11 +372,41 @@ export function Library() {
     setCurrentPage(1);
   };
 
+  const toggleCognitiveLevel = (cognitiveLevel: string) => {
+    setSelectedCognitiveLevels((prev) => (prev[0] === cognitiveLevel ? [] : [cognitiveLevel]));
+    setCurrentPage(1);
+  };
+
+  const toggleContentDomain = (contentDomain: string) => {
+    setSelectedContentDomains((prev) => (prev[0] === contentDomain ? [] : [contentDomain]));
+    setCurrentPage(1);
+  };
+
+  const toggleLanguageVariety = (languageVariety: string) => {
+    setSelectedLanguageVarieties((prev) => (prev[0] === languageVariety ? [] : [languageVariety]));
+    setCurrentPage(1);
+  };
+
+  const toggleTopic = (topic: string) => {
+    setSelectedTopics((prev) => (prev[0] === topic ? [] : [topic]));
+    setCurrentPage(1);
+  };
+
+  const toggleGrammarFocus = (grammarFocus: string) => {
+    setSelectedGrammarFocuses((prev) => (prev[0] === grammarFocus ? [] : [grammarFocus]));
+    setCurrentPage(1);
+  };
+
   const clearFilters = () => {
     setSelectedStatuses([]);
     setSelectedItemTypes([]);
     setSelectedLevels([]);
     setSelectedSkills([]);
+    setSelectedCognitiveLevels([]);
+    setSelectedContentDomains([]);
+    setSelectedLanguageVarieties([]);
+    setSelectedTopics([]);
+    setSelectedGrammarFocuses([]);
     setSearchQuery('');
     setCurrentPage(1);
   };
@@ -272,6 +418,11 @@ export function Library() {
       selectedItemTypes,
       selectedLevels,
       selectedSkills,
+      selectedCognitiveLevels,
+      selectedContentDomains,
+      selectedLanguageVarieties,
+      selectedTopics,
+      selectedGrammarFocuses,
       currentPage,
       viewMode,
       expandedSections: Array.from(expandedSections),
@@ -287,6 +438,11 @@ export function Library() {
     selectedItemTypes,
     selectedLevels,
     selectedSkills,
+    selectedCognitiveLevels,
+    selectedContentDomains,
+    selectedLanguageVarieties,
+    selectedTopics,
+    selectedGrammarFocuses,
     currentPage,
     viewMode,
     expandedSections,
@@ -526,6 +682,201 @@ export function Library() {
                 )}
               </div>
 
+              {/* Cognitive Level Filter */}
+              <div className="border-b pb-4">
+                <button
+                  onClick={() => toggleSection("cognitiveLevel")}
+                  className="flex items-center justify-between w-full text-left mb-3 cursor-pointer"
+                >
+                  <span className="font-semibold text-gray-900">
+                    Cognitive Level
+                  </span>
+                  {expandedSections.has("cognitiveLevel") ? (
+                    <ChevronUp className="w-5 h-5 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                  )}
+                </button>
+                {expandedSections.has("cognitiveLevel") && (
+                  <div className="space-y-1">
+                    {Object.entries(cognitiveLevelCounts).map(
+                      ([cognitiveLevel, count]) => (
+                        <button
+                          key={cognitiveLevel}
+                          onClick={() => toggleCognitiveLevel(cognitiveLevel)}
+                          className={`flex items-center justify-between w-full text-sm py-1 px-2 rounded hover:bg-gray-50 cursor-pointer ${
+                            selectedCognitiveLevels.includes(cognitiveLevel)
+                              ? "text-blue-600 font-medium"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <span>{cognitiveLevel}</span>
+                          <span className="text-gray-500">
+                            {count}
+                          </span>
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Content Domain Filter */}
+              <div className="border-b pb-4">
+                <button
+                  onClick={() => toggleSection("contentDomain")}
+                  className="flex items-center justify-between w-full text-left mb-3 cursor-pointer"
+                >
+                  <span className="font-semibold text-gray-900">
+                    Content Domain
+                  </span>
+                  {expandedSections.has("contentDomain") ? (
+                    <ChevronUp className="w-5 h-5 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                  )}
+                </button>
+                {expandedSections.has("contentDomain") && (
+                  <div className="space-y-1">
+                    {Object.entries(contentDomainCounts).map(
+                      ([contentDomain, count]) => (
+                        <button
+                          key={contentDomain}
+                          onClick={() => toggleContentDomain(contentDomain)}
+                          className={`flex items-center justify-between w-full text-sm py-1 px-2 rounded hover:bg-gray-50 cursor-pointer ${
+                            selectedContentDomains.includes(contentDomain)
+                              ? "text-blue-600 font-medium"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <span>{contentDomain}</span>
+                          <span className="text-gray-500">
+                            {count}
+                          </span>
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Language Variety Filter */}
+              <div className="border-b pb-4">
+                <button
+                  onClick={() => toggleSection("languageVariety")}
+                  className="flex items-center justify-between w-full text-left mb-3 cursor-pointer"
+                >
+                  <span className="font-semibold text-gray-900">
+                    Language Variety
+                  </span>
+                  {expandedSections.has("languageVariety") ? (
+                    <ChevronUp className="w-5 h-5 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                  )}
+                </button>
+                {expandedSections.has("languageVariety") && (
+                  <div className="space-y-1">
+                    {Object.entries(languageVarietyCounts).map(
+                      ([languageVariety, count]) => (
+                        <button
+                          key={languageVariety}
+                          onClick={() => toggleLanguageVariety(languageVariety)}
+                          className={`flex items-center justify-between w-full text-sm py-1 px-2 rounded hover:bg-gray-50 cursor-pointer ${
+                            selectedLanguageVarieties.includes(languageVariety)
+                              ? "text-blue-600 font-medium"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <span>{languageVariety}</span>
+                          <span className="text-gray-500">
+                            {count}
+                          </span>
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Topic Filter */}
+              <div className="border-b pb-4">
+                <button
+                  onClick={() => toggleSection("topic")}
+                  className="flex items-center justify-between w-full text-left mb-3 cursor-pointer"
+                >
+                  <span className="font-semibold text-gray-900">
+                    Topic
+                  </span>
+                  {expandedSections.has("topic") ? (
+                    <ChevronUp className="w-5 h-5 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                  )}
+                </button>
+                {expandedSections.has("topic") && (
+                  <div className="space-y-1">
+                    {Object.entries(topicCounts).map(
+                      ([topic, count]) => (
+                        <button
+                          key={topic}
+                          onClick={() => toggleTopic(topic)}
+                          className={`flex items-center justify-between w-full text-sm py-1 px-2 rounded hover:bg-gray-50 cursor-pointer ${
+                            selectedTopics.includes(topic)
+                              ? "text-blue-600 font-medium"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <span>{topic}</span>
+                          <span className="text-gray-500">
+                            {count}
+                          </span>
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Grammar Focus Filter */}
+              <div className="border-b pb-4">
+                <button
+                  onClick={() => toggleSection("grammarFocus")}
+                  className="flex items-center justify-between w-full text-left mb-3 cursor-pointer"
+                >
+                  <span className="font-semibold text-gray-900">
+                    Grammar Focus
+                  </span>
+                  {expandedSections.has("grammarFocus") ? (
+                    <ChevronUp className="w-5 h-5 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                  )}
+                </button>
+                {expandedSections.has("grammarFocus") && (
+                  <div className="space-y-1">
+                    {Object.entries(grammarFocusCounts).map(
+                      ([grammarFocus, count]) => (
+                        <button
+                          key={grammarFocus}
+                          onClick={() => toggleGrammarFocus(grammarFocus)}
+                          className={`flex items-center justify-between w-full text-sm py-1 px-2 rounded hover:bg-gray-50 cursor-pointer ${
+                            selectedGrammarFocuses.includes(grammarFocus)
+                              ? "text-blue-600 font-medium"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <span>{grammarFocus}</span>
+                          <span className="text-gray-500">
+                            {count}
+                          </span>
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
 
@@ -536,7 +887,12 @@ export function Library() {
               selectedStatuses.length > 0 ||
               selectedLevels.length > 0 ||
               selectedSkills.length > 0 ||
-              selectedItemTypes.length > 0) && (
+              selectedItemTypes.length > 0 ||
+              selectedCognitiveLevels.length > 0 ||
+              selectedContentDomains.length > 0 ||
+              selectedLanguageVarieties.length > 0 ||
+              selectedTopics.length > 0 ||
+              selectedGrammarFocuses.length > 0) && (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                   <div className="flex items-center gap-3 flex-wrap">
@@ -609,6 +965,81 @@ export function Library() {
                         {type}
                         <button
                           onClick={() => toggleItemType(type)}
+                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                    {selectedCognitiveLevels.map(cognitiveLevel => (
+                      <Badge
+                        key={cognitiveLevel}
+                        variant="secondary"
+                        className="text-sm pl-3 pr-2 py-1 bg-white border border-gray-300"
+                      >
+                        Cognitive: {cognitiveLevel}
+                        <button
+                          onClick={() => toggleCognitiveLevel(cognitiveLevel)}
+                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                    {selectedContentDomains.map(contentDomain => (
+                      <Badge
+                        key={contentDomain}
+                        variant="secondary"
+                        className="text-sm pl-3 pr-2 py-1 bg-white border border-gray-300"
+                      >
+                        Content: {contentDomain}
+                        <button
+                          onClick={() => toggleContentDomain(contentDomain)}
+                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                    {selectedLanguageVarieties.map(languageVariety => (
+                      <Badge
+                        key={languageVariety}
+                        variant="secondary"
+                        className="text-sm pl-3 pr-2 py-1 bg-white border border-gray-300"
+                      >
+                        Variety: {languageVariety}
+                        <button
+                          onClick={() => toggleLanguageVariety(languageVariety)}
+                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                    {selectedTopics.map(topic => (
+                      <Badge
+                        key={topic}
+                        variant="secondary"
+                        className="text-sm pl-3 pr-2 py-1 bg-white border border-gray-300"
+                      >
+                        Topic: {topic}
+                        <button
+                          onClick={() => toggleTopic(topic)}
+                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                    {selectedGrammarFocuses.map(grammarFocus => (
+                      <Badge
+                        key={grammarFocus}
+                        variant="secondary"
+                        className="text-sm pl-3 pr-2 py-1 bg-white border border-gray-300"
+                      >
+                        Grammar: {grammarFocus}
+                        <button
+                          onClick={() => toggleGrammarFocus(grammarFocus)}
                           className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
                         >
                           <X className="w-3 h-3" />

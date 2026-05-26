@@ -615,6 +615,8 @@ type QuestionWithMetadata = UnifiedQuestion & {
   cognitiveLevel?: string;
   contentDomain?: string;
   languageVariety?: string;
+  topic?: string;
+  grammarFocus?: string;
   discrimination?: string;
   confidence?: number;
   author?: string;
@@ -628,8 +630,52 @@ type QuestionWithMetadata = UnifiedQuestion & {
   aiPredictionDate?: string;
 };
 
+const normalizeTopicLabel = (value: string | undefined): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+
+  const lower = value.toLowerCase();
+
+  if (lower.includes('travel')) return 'Travel';
+  if (lower.includes('educat') || lower.includes('academic')) return 'Education';
+  if (lower.includes('business') || lower.includes('economic') || lower.includes('consumer')) return 'Business';
+  if (lower.includes('tech')) return 'Technology';
+  if (lower.includes('health') || lower.includes('medical')) return 'Health';
+  if (lower.includes('environment') || lower.includes('climate') || lower.includes('water') || lower.includes('energy')) return 'Environment';
+  if (lower.includes('culture') || lower.includes('history') || lower.includes('tourism')) return 'Culture';
+  if (lower.includes('media') || lower.includes('communication')) return 'Media';
+  if (lower.includes('work') || lower.includes('professional') || lower.includes('employment')) return 'Work';
+  if (lower.includes('life') || lower.includes('relationship') || lower.includes('hobby') || lower.includes('routine') || lower.includes('lifestyle')) return 'Lifestyle';
+  if (lower.includes('science') || lower.includes('biology') || lower.includes('neuro')) return 'Science';
+
+  return 'Society';
+};
+
+const normalizeContentDomainLabel = (value: string | undefined): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+
+  const lower = value.toLowerCase();
+
+  if (lower.includes('academic') || lower.includes('education')) return 'Academic';
+  if (lower.includes('professional') || lower.includes('workplace') || lower.includes('employment') || lower.includes('work')) return 'Professional';
+  if (lower.includes('business') || lower.includes('economic') || lower.includes('consumer')) return 'Business';
+  if (lower.includes('science') || lower.includes('biology') || lower.includes('neuro') || lower.includes('medical')) return 'Scientific';
+  if (lower.includes('media') || lower.includes('communication')) return 'Media';
+  if (lower.includes('culture') || lower.includes('history') || lower.includes('tourism') || lower.includes('linguistic')) return 'Culture';
+  if (lower.includes('tech') || lower.includes('digital')) return 'Technology';
+  if (lower.includes('health')) return 'Health';
+  if (lower.includes('personal') || lower.includes('hometown') || lower.includes('daily')) return 'Personal Life';
+
+  return 'General Social';
+};
+
 const getQuestionMetadata = (question: UnifiedQuestion): Partial<AssessmentItem> => {
   const q = question as QuestionWithMetadata;
+  const normalizedTopic = normalizeTopicLabel(q.topic);
+  const normalizedContentDomain = normalizeContentDomainLabel(q.contentDomain ?? q.topic);
 
   return {
     status: q.status,
@@ -641,8 +687,10 @@ const getQuestionMetadata = (question: UnifiedQuestion): Partial<AssessmentItem>
     irtParameters: q.irtParameters,
     subSkill: q.subSkill,
     cognitiveLevel: q.cognitiveLevel,
-    contentDomain: q.contentDomain,
+    contentDomain: normalizedContentDomain,
     languageVariety: q.languageVariety,
+    topic: normalizedTopic,
+    grammarFocus: q.grammarFocus,
     discrimination: q.discrimination,
     confidence: q.confidence,
     author: q.author,
@@ -697,6 +745,8 @@ const listeningItems: AssessmentItem[] = listeningQuestions.map((q) => {
     cognitiveLevel: metadata.cognitiveLevel,
     contentDomain: metadata.contentDomain,
     languageVariety: metadata.languageVariety,
+    topic: metadata.topic,
+    grammarFocus: metadata.grammarFocus,
     discrimination: metadata.discrimination,
     confidence: metadata.confidence,
     workflowState: metadata.workflowState,
@@ -749,6 +799,8 @@ const speakingItems: AssessmentItem[] = speakingQuestions.map((q) => {
     cognitiveLevel: metadata.cognitiveLevel,
     contentDomain: metadata.contentDomain,
     languageVariety: metadata.languageVariety,
+    topic: metadata.topic,
+    grammarFocus: metadata.grammarFocus,
     discrimination: metadata.discrimination,
     confidence: metadata.confidence,
     workflowState: metadata.workflowState,
@@ -794,6 +846,8 @@ const writingItems: AssessmentItem[] = writingQuestions.map((q) => {
     cognitiveLevel: metadata.cognitiveLevel,
     contentDomain: metadata.contentDomain,
     languageVariety: metadata.languageVariety,
+    topic: metadata.topic,
+    grammarFocus: metadata.grammarFocus,
     discrimination: metadata.discrimination,
     confidence: metadata.confidence,
     workflowState: metadata.workflowState,
@@ -855,6 +909,8 @@ const readingItems: AssessmentItem[] = readingQuestions.map((q) => {
     cognitiveLevel: metadata.cognitiveLevel,
     contentDomain: metadata.contentDomain,
     languageVariety: metadata.languageVariety,
+    topic: metadata.topic,
+    grammarFocus: metadata.grammarFocus,
     discrimination: metadata.discrimination,
     confidence: metadata.confidence,
     workflowState: metadata.workflowState,
