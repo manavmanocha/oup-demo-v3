@@ -6,6 +6,8 @@ import { Badge } from './ui/badge';
 import { getAllItems, moveItemsToSeeded } from '../data/mockData';
 import { isWorkflowState } from '../data/workflowState';
 
+const DEFAULT_VISIBLE_ITEMS = 5;
+
 const toTimestamp = (value?: string): number => {
   if (!value) return 0;
   const parsed = Date.parse(value);
@@ -28,6 +30,8 @@ const sortNewestFirst = <T extends { id: string; createdDate?: string; lastEdite
 export function Seeding() {
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+  const [showAllRecommended, setShowAllRecommended] = useState(false);
+  const [showAllSeeded, setShowAllSeeded] = useState(false);
 
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
 
@@ -44,6 +48,10 @@ export function Seeding() {
     () => sortNewestFirst(allItems.filter((item) => isWorkflowState(item.workflowState, 'SEEDED'))),
     [allItems],
   );
+  const visibleRecommendedItems = showAllRecommended ? recommendedItems : recommendedItems.slice(0, DEFAULT_VISIBLE_ITEMS);
+  const visibleSeededItems = showAllSeeded ? currentlySeeded : currentlySeeded.slice(0, DEFAULT_VISIBLE_ITEMS);
+  const hiddenRecommendedCount = Math.max(recommendedItems.length - DEFAULT_VISIBLE_ITEMS, 0);
+  const hiddenSeededCount = Math.max(currentlySeeded.length - DEFAULT_VISIBLE_ITEMS, 0);
 
   const toggleSelected = (itemId: string) => {
     setSelectedItemIds((prev) =>
@@ -161,7 +169,7 @@ export function Seeding() {
               </div>
             ) : (
               <div className="space-y-4">
-                {recommendedItems.map((item) => (
+                {visibleRecommendedItems.map((item) => (
                   <div key={item.id} className="border rounded-lg p-6">
                     <div className="flex items-start gap-4">
                       <input
@@ -202,6 +210,12 @@ export function Seeding() {
                     </div>
                   </div>
                 ))}
+
+                {!showAllRecommended && hiddenRecommendedCount > 0 && (
+                  <Button variant="outline" onClick={() => setShowAllRecommended(true)}>
+                    Show {hiddenRecommendedCount} more item{hiddenRecommendedCount === 1 ? '' : 's'}
+                  </Button>
+                )}
               </div>
             )}
 
@@ -240,7 +254,7 @@ export function Seeding() {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {currentlySeeded.map((item) => (
+                  {visibleSeededItems.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3">
                         <Link
@@ -260,6 +274,14 @@ export function Seeding() {
                 </tbody>
               </table>
             </div>
+
+            {!showAllSeeded && hiddenSeededCount > 0 && (
+              <div className="mt-4">
+                <Button variant="outline" onClick={() => setShowAllSeeded(true)}>
+                  Show {hiddenSeededCount} more item{hiddenSeededCount === 1 ? '' : 's'}
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

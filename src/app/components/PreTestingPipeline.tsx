@@ -1,6 +1,5 @@
 import { Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ArrowRight } from 'lucide-react';
 import { getAllItems } from '../data/mockData';
@@ -11,6 +10,36 @@ export function PreTestingPipeline() {
   const screeningQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'NOT_STARTED')).length;
   const predictionQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED')).length;
   const seedingQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')).length;
+
+  const stageCards = [
+    {
+      step: 'Step 1',
+      status: '• Complete',
+      title: 'Screening',
+      description: 'AI quality checks for new and modified items across 5 dimensions.',
+      queueCount: screeningQueueCount,
+      queueLabel: 'Draft items waiting for screening',
+      to: '/workflows/pre-testing-pipeline/screening',
+    },
+    {
+      step: 'Step 2',
+      status: '• Complete',
+      title: 'Difficulty Prediction',
+      description: 'ML model predicts IRT difficulty and CEFR alignment before live testing.',
+      queueCount: predictionQueueCount,
+      queueLabel: 'Screening approved items waiting for prediction',
+      to: '/workflows/pre-testing-pipeline/difficulty-prediction',
+    },
+    {
+      step: 'Step 3',
+      status: '• Idle',
+      title: 'Seeding',
+      description: 'Prioritise items for live test exposure based on bank gaps and confidence.',
+      queueCount: seedingQueueCount,
+      queueLabel: 'Calibrated items ready for seeding',
+      to: '/workflows/pre-testing-pipeline/seeding',
+    },
+  ];
 
   const recentRuns = [
     { id: 'RUN-0051', stage: 'Screening', items: 21, flagged: 5, status: 'Success', date: '11 Mar 2025' },
@@ -41,104 +70,37 @@ export function PreTestingPipeline() {
 
         {/* Pipeline Stages */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Step 1: Screening */}
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-sm font-medium text-gray-500 uppercase">
-                    Step 1
-                  </CardTitle>
-                </div>
-                <Badge variant="outline">• Complete</Badge>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Screening</h3>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600">
-                AI quality checks for new and modified items across 5 dimensions.
-              </p>
+          {stageCards.map((stage) => (
+            <Link key={stage.step} to={stage.to} className="group block h-full">
+              <Card className="h-full transition-all hover:shadow-md hover:border-blue-300 cursor-pointer">
+                <CardHeader>
+                  <div className="flex items-start justify-between mb-2 gap-3">
+                    <CardTitle className="text-3xl font-bold text-gray-900">
+                      {stage.step}
+                    </CardTitle>
+                    <Badge variant="outline">{stage.status}</Badge>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">{stage.title}</h3>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-gray-600">
+                    {stage.description}
+                  </p>
 
-              <div className="space-y-2">
-                <div className="text-3xl font-bold text-gray-900">{screeningQueueCount}</div>
-                <div className="text-sm text-gray-600">in queue</div>
-                <div className="text-xs text-gray-500">Draft items waiting for screening</div>
-              </div>
+                  <div className="space-y-2">
+                    <div className="text-3xl font-bold text-gray-900">{stage.queueCount}</div>
+                    <div className="text-sm text-gray-600">in queue</div>
+                    <div className="text-xs text-gray-500">{stage.queueLabel}</div>
+                  </div>
 
-              <Link to="/workflows/pre-testing-pipeline/screening">
-                <Button className="w-full" variant="outline">
-                  View Screening
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          {/* Step 2: Difficulty Prediction */}
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-sm font-medium text-gray-500 uppercase">
-                    Step 2
-                  </CardTitle>
-                </div>
-                <Badge variant="outline">• Complete</Badge>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Difficulty Prediction</h3>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600">
-                ML model predicts IRT difficulty and CEFR alignment before live testing.
-              </p>
-
-              <div className="space-y-2">
-                <div className="text-3xl font-bold text-gray-900">{predictionQueueCount}</div>
-                <div className="text-sm text-gray-600">in queue</div>
-                <div className="text-xs text-gray-500">Screening approved items waiting for prediction</div>
-              </div>
-
-              <Link to="/workflows/pre-testing-pipeline/difficulty-prediction">
-                <Button className="w-full" variant="outline">
-                  View Predictions
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          {/* Step 3: Seeding */}
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-sm font-medium text-gray-500 uppercase">
-                    Step 3
-                  </CardTitle>
-                </div>
-                <Badge variant="outline">• Idle</Badge>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Seeding</h3>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600">
-                Prioritise items for live test exposure based on bank gaps and confidence.
-              </p>
-
-              <div className="space-y-2">
-                <div className="text-3xl font-bold text-gray-900">{seedingQueueCount}</div>
-                <div className="text-sm text-gray-600">in queue</div>
-                <div className="text-xs text-gray-500">Calibrated items ready for seeding</div>
-              </div>
-
-              <Link to="/workflows/pre-testing-pipeline/seeding">
-                <Button className="w-full" variant="outline">
-                  View Seeding
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+                  <div className="flex items-center justify-end text-sm font-medium text-blue-600 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                    Open stage
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
         </div>
 
         {/* Recent Runs */}

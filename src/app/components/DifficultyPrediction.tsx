@@ -8,10 +8,52 @@ import { acceptPredictedItems, getAllItems } from '../data/mockData';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
 import { isWorkflowState } from '../data/workflowState';
+
+const DEFAULT_VISIBLE_ITEMS = 5;
+
+const metricHelpText = {
+  confidence: 'How sure the model is about its prediction (higher is better)',
+  difficulty: 'How hard the question is for students at the target level',
+  discrimination: 'How well the question separates stronger from weaker students (better discrimination = better)',
+};
+
+function MetricValueWithTooltip({
+  label,
+  value,
+  helpText,
+  valueClassName = 'font-semibold text-gray-900',
+}: {
+  label: string;
+  value: string;
+  helpText: string;
+  valueClassName?: string;
+}) {
+  return (
+    <div>
+      <div className="text-xs text-gray-500 mb-1">{label}</div>
+      <div className="flex items-center gap-2">
+        <div className={valueClassName}>{value}</div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex h-5 w-5 items-center justify-center rounded-full text-gray-400 transition-colors hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              aria-label={`${label} info`}
+            >
+              <Info className="w-4 h-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs">
+            <p className="text-sm">{helpText}</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </div>
+  );
+}
 
 const toTimestamp = (value?: string): number => {
   if (!value) return 0;
@@ -21,6 +63,8 @@ const toTimestamp = (value?: string): number => {
 
 export function DifficultyPrediction() {
   const [refreshVersion, setRefreshVersion] = useState(0);
+  const [showAllNeedsReview, setShowAllNeedsReview] = useState(false);
+  const [showAllReadyToAccept, setShowAllReadyToAccept] = useState(false);
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
   const waitingForPrediction = allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED'));
 
@@ -56,6 +100,10 @@ export function DifficultyPrediction() {
 
   const needsReview = calibratedItems.filter((item) => item.confidence < 85);
   const readyToAccept = calibratedItems.filter((item) => item.confidence >= 85);
+  const visibleNeedsReview = showAllNeedsReview ? needsReview : needsReview.slice(0, DEFAULT_VISIBLE_ITEMS);
+  const visibleReadyToAccept = showAllReadyToAccept ? readyToAccept : readyToAccept.slice(0, DEFAULT_VISIBLE_ITEMS);
+  const hiddenNeedsReviewCount = Math.max(needsReview.length - DEFAULT_VISIBLE_ITEMS, 0);
+  const hiddenReadyToAcceptCount = Math.max(readyToAccept.length - DEFAULT_VISIBLE_ITEMS, 0);
 
   const handleAcceptItem = (itemId: string) => {
     acceptPredictedItems([itemId]);
@@ -130,98 +178,6 @@ export function DifficultyPrediction() {
           </Card>
         </div>
 
-        {/* Model Accuracy */}
-        <Card className="mb-8 border-green-200 bg-green-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="text-4xl font-bold text-green-700">94%</div>
-              <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900">
-                  of predictions match the actual difficulty measured in live testing
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Explanation Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-sm font-medium">Confidence</CardTitle>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="w-4 h-4 text-gray-400" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-sm">
-                        How sure the model is about its prediction (higher is better)
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                How sure the model is about its prediction (higher is better)
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-sm font-medium">Difficulty</CardTitle>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="w-4 h-4 text-gray-400" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-sm">
-                        How hard the question is for students at the target level
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                How hard the question is for students at the target level
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-sm font-medium">Discrimination</CardTitle>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="w-4 h-4 text-gray-400" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-sm">
-                        How well the question separates stronger from weaker students (better discrimination = better)
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                How well the question separates stronger from weaker students
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Needs Your Review */}
         <Card className="mb-8">
           <CardHeader>
@@ -235,7 +191,7 @@ export function DifficultyPrediction() {
             </p>
 
             <div className="space-y-4">
-              {needsReview.map((item) => (
+              {visibleNeedsReview.map((item) => (
                 <div key={item.id} className="border rounded-lg p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3 flex-wrap">
@@ -255,18 +211,21 @@ export function DifficultyPrediction() {
                   <div className="text-sm text-gray-900 mb-4">{item.content}</div>
 
                   <div className="grid grid-cols-3 gap-6 mb-4">
-                    <div>
-                      <div className="text-xs text-gray-500 mb-1">Confidence</div>
-                      <div className="font-semibold text-gray-900">{item.confidence}%</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500 mb-1">Difficulty</div>
-                      <div className="font-semibold text-gray-900">{item.difficulty}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500 mb-1">Discrimination</div>
-                      <div className="font-semibold text-gray-900">{item.discrimination}</div>
-                    </div>
+                    <MetricValueWithTooltip
+                      label="Confidence"
+                      value={`${item.confidence}%`}
+                      helpText={metricHelpText.confidence}
+                    />
+                    <MetricValueWithTooltip
+                      label="Difficulty"
+                      value={item.difficulty}
+                      helpText={metricHelpText.difficulty}
+                    />
+                    <MetricValueWithTooltip
+                      label="Discrimination"
+                      value={item.discrimination}
+                      helpText={metricHelpText.discrimination}
+                    />
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -281,6 +240,12 @@ export function DifficultyPrediction() {
                 <div className="text-sm text-gray-600 border rounded-lg p-6 bg-gray-50">
                   No low-confidence predictions are pending manual review.
                 </div>
+              )}
+
+              {!showAllNeedsReview && hiddenNeedsReviewCount > 0 && (
+                <Button variant="outline" onClick={() => setShowAllNeedsReview(true)}>
+                  Show {hiddenNeedsReviewCount} more item{hiddenNeedsReviewCount === 1 ? '' : 's'}
+                </Button>
               )}
             </div>
           </CardContent>
@@ -312,7 +277,7 @@ export function DifficultyPrediction() {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {readyToAccept.map((item) => (
+                  {visibleReadyToAccept.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3">
                         <Link
@@ -325,9 +290,63 @@ export function DifficultyPrediction() {
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 max-w-md truncate">{item.item}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{item.level}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{item.confidence}%</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{item.difficulty}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{item.discrimination}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        <div className="inline-flex items-center gap-2">
+                          <span>{item.confidence}%</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex h-5 w-5 items-center justify-center rounded-full text-gray-400 transition-colors hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                                aria-label={`Confidence info for ${item.id}`}
+                              >
+                                <Info className="w-4 h-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-sm">{metricHelpText.confidence}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        <div className="inline-flex items-center gap-2">
+                          <span>{item.difficulty}</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex h-5 w-5 items-center justify-center rounded-full text-gray-400 transition-colors hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                                aria-label={`Difficulty info for ${item.id}`}
+                              >
+                                <Info className="w-4 h-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-sm">{metricHelpText.difficulty}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        <div className="inline-flex items-center gap-2">
+                          <span>{item.discrimination}</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex h-5 w-5 items-center justify-center rounded-full text-gray-400 transition-colors hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                                aria-label={`Discrimination info for ${item.id}`}
+                              >
+                                <Info className="w-4 h-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-sm">{metricHelpText.discrimination}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                   {readyToAccept.length === 0 && (
@@ -340,6 +359,14 @@ export function DifficultyPrediction() {
                 </tbody>
               </table>
             </div>
+
+            {!showAllReadyToAccept && hiddenReadyToAcceptCount > 0 && (
+              <div className="mt-4">
+                <Button variant="outline" onClick={() => setShowAllReadyToAccept(true)}>
+                  Show {hiddenReadyToAcceptCount} more item{hiddenReadyToAcceptCount === 1 ? '' : 's'}
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

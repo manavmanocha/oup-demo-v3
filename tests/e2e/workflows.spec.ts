@@ -24,6 +24,6 @@ test('opens pre-testing workflow and navigates to pipeline stages', async ({ pag
   await expect(page.getByText('Step 2')).toBeVisible();
   await expect(page.getByText('Step 3')).toBeVisible();
 
-  await page.getByRole('button', { name: 'View Screening' }).click();
+  await page.getByRole('link', { name: /Step 1.*Screening.*in queue/i }).click();
   await expect(page).toHaveURL(/\/workflows\/pre-testing-pipeline\/screening$/);
 });

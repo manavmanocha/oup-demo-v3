@@ -7,6 +7,8 @@ import { approveScreenedItems, getAllItems, rejectScreenedItems } from '../data/
 import { AssessmentItem } from '../data/types';
 import { isWorkflowState } from '../data/workflowState';
 
+const DEFAULT_VISIBLE_ITEMS = 5;
+
 const toTimestamp = (value?: string): number => {
   if (!value) return 0;
   const parsed = Date.parse(value);
@@ -95,6 +97,10 @@ const ScreeningQueueSection = ({
   onApprove: (itemId: string) => void;
   onReject: (itemId: string) => void;
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const visibleItems = isExpanded ? items : items.slice(0, DEFAULT_VISIBLE_ITEMS);
+  const hiddenCount = Math.max(items.length - DEFAULT_VISIBLE_ITEMS, 0);
+
   return (
     <Card>
       <CardHeader>
@@ -106,7 +112,7 @@ const ScreeningQueueSection = ({
         <p className="text-sm text-gray-600 mb-6">{description}</p>
 
         <div className="space-y-6">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <div key={item.id} className="border rounded-lg p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3 flex-wrap">
@@ -140,6 +146,12 @@ const ScreeningQueueSection = ({
             <div className="text-sm text-gray-600 border rounded-lg p-6 bg-gray-50">
               {emptyMessage}
             </div>
+          )}
+
+          {!isExpanded && hiddenCount > 0 && (
+            <Button variant="outline" onClick={() => setIsExpanded(true)}>
+              Show {hiddenCount} more item{hiddenCount === 1 ? '' : 's'}
+            </Button>
           )}
         </div>
       </CardContent>
@@ -225,7 +237,7 @@ export function Screening() {
               <CardTitle className="text-sm font-medium text-gray-500 uppercase">Flagged</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-orange-600">{flaggedCount}</div>
+              <div className="text-3xl font-bold text-gray-900">{flaggedCount}</div>
             </CardContent>
           </Card>
 
@@ -234,7 +246,7 @@ export function Screening() {
               <CardTitle className="text-sm font-medium text-gray-500 uppercase">Passed (All Clear)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">{passedCount}</div>
+              <div className="text-3xl font-bold text-gray-900">{passedCount}</div>
             </CardContent>
           </Card>
         </div>
