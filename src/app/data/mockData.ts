@@ -690,7 +690,7 @@ const listeningItems: AssessmentItem[] = listeningQuestions.map((q) => {
     difficulty: q.difficulty as AssessmentItem['difficulty'],
     options,
     audioAsset: q.skillDetails.listening.audioAsset || q.skillDetails.listening.audioFile,
-    passage: q.skillDetails.listening.context,
+    passage: q.skillDetails.listening.transcript,
     instructions: q.skillDetails.listening.instructions,
     subSkill: metadata.subSkill,
     cognitiveLevel: metadata.cognitiveLevel,

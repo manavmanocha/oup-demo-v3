@@ -347,7 +347,7 @@
         "listening": {
           "context": "A patient calls a clinic to arrange a check-up.",
           "audioFile": "lis_a2_006_clinic_booking.mp3",
-          "audioAsset": "lis_a2_006_clinic_booking.mp3",
+          "audioAsset": "/audio/lis_a2_006_clinic_booking.mp3",
           "instructions": "Listen and write one word for each answer.",
           "transcript": "Receptionist: Good morning, Greenway Clinic. Patient: Hello, I'd like to book a general check-up. Receptionist: We have space on Tuesday at 11 o'clock or Thursday at 9:30. Patient: Thursday is better for me."
         }
@@ -424,7 +424,7 @@
         "listening": {
           "context": "A manager describes membership plans for a new coworking space.",
           "audioFile": "lis_b1_007_coworking_plans.mp3",
-          "audioAsset": "lis_b1_007_coworking_plans.mp3",
+          "audioAsset": "/audio/lis_b1_007_coworking_plans.mp3",
           "instructions": "Listen and choose the best answer.",
           "transcript": "Manager: Our standard membership gives you access from Monday to Friday, a shared desk and unlimited tea and coffee. If you want meeting rooms, that is part of the premium plan. Private offices are only available on yearly contracts."
         }
@@ -489,7 +489,7 @@
         "listening": {
           "context": "A university lecture introduces urban farming methods.",
           "audioFile": "lis_b2_008_urban_farming_lecture.mp3",
-          "audioAsset": "lis_b2_008_urban_farming_lecture.mp3",
+          "audioAsset": "/audio/lis_b2_008_urban_farming_lecture.mp3",
           "instructions": "Listen and complete the sentence with one word.",
           "transcript": "Lecturer: Rooftop gardens do more than produce herbs or vegetables. They also help regulate building temperature. In summer, the plant layer reduces heat entering the roof, so indoor temperatures stay lower and cooling costs fall."
         }
@@ -548,7 +548,7 @@
         "listening": {
           "context": "Four users discuss their experience with a travel-planning app.",
           "audioFile": "lis_b2_009_travel_app_feedback.mp3",
-          "audioAsset": "lis_b2_009_travel_app_feedback.mp3",
+          "audioAsset": "/audio/lis_b2_009_travel_app_feedback.mp3",
           "instructions": "Listen to the speakers and match each person to the main problem mentioned.",
           "transcript": "Speaker 1: I liked the route ideas, but the hotel prices were a week out of date. Speaker 2: The maps worked well, though the offline version kept closing. Speaker 3: I found good restaurant suggestions, but the app sent too many notifications. Speaker 4: Booking trains was simple, but it never remembered my payment details."
         }
@@ -613,7 +613,7 @@
         "listening": {
           "context": "A radio interview discusses how schools evaluate educational technology.",
           "audioFile": "lis_c1_010_edtech_interview.mp3",
-          "audioAsset": "lis_c1_010_edtech_interview.mp3",
+          "audioAsset": "/audio/lis_c1_010_edtech_interview.mp3",
           "instructions": "Answer in no more than six words.",
           "transcript": "Interviewer: Many schools buy software quickly because it appears innovative. Guest: That is risky. Before adopting any platform, schools need a short pilot with real classes and teachers. Otherwise they may invest heavily in tools that look impressive in presentations but do little for learning."
         }
