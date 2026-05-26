@@ -680,8 +680,8 @@ const listeningItems: AssessmentItem[] = listeningQuestions.map((q) => {
 
   return {
     id: q.id,
-    title: q.prompt,
-    content: q.skillDetails.listening.context || q.prompt,
+    title: q.skillDetails.listening.context,
+    content: q.prompt || q.skillDetails.listening.context,
     answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
     level: q.level as CEFRLevel,
     skill: 'Listening',
@@ -689,6 +689,7 @@ const listeningItems: AssessmentItem[] = listeningQuestions.map((q) => {
     status: metadata.status as AssessmentItem['status'],
     difficulty: q.difficulty as AssessmentItem['difficulty'],
     options,
+    audioTitle: q.skillDetails.listening.audioTitle,
     audioAsset: q.skillDetails.listening.audioAsset || q.skillDetails.listening.audioFile,
     passage: q.skillDetails.listening.transcript,
     instructions: q.skillDetails.listening.instructions,
@@ -722,17 +723,13 @@ const speakingItems: AssessmentItem[] = speakingQuestions.map((q) => {
   const speakingDetails = q.skillDetails.speaking;
   const followUpQuestions = speakingDetails.followUpQuestions ?? [];
   const rubricCriteria = speakingDetails.rubricCriteria ?? [];
-  const cueCard = speakingDetails.cueCard?.trim();
-
-  const contentParts = [q.prompt];
-  if (cueCard) {
-    contentParts.push(`Cue card:\n${cueCard}`);
-  }
 
   return {
     id: q.id,
-    title: q.prompt,
-    content: contentParts.join('\n\n'),
+    title: speakingDetails.context || q.prompt,
+    content: speakingDetails.context ? q.prompt : undefined,
+    passageTitle: speakingDetails.passageTitle,
+    passage: speakingDetails.passage || speakingDetails.transcript,
     answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
     level: q.level as CEFRLevel,
     skill: 'Speaking',
@@ -743,6 +740,8 @@ const speakingItems: AssessmentItem[] = speakingQuestions.map((q) => {
     imageTitle: speakingDetails.imageTitle,
     imageAsset: speakingDetails.imageAsset,
     imageAltText: speakingDetails.imageAltText,
+    audioTitle: speakingDetails.audioTitle,
+    audioAsset: speakingDetails.audioAsset || speakingDetails.audioFile,
     followUpQuestions,
     rubric: speakingDetails.rubric
       ?? (rubricCriteria.length > 0 ? `Assessment Criteria:\n${rubricCriteria.join('\n')}` : undefined),
@@ -777,8 +776,8 @@ const writingItems: AssessmentItem[] = writingQuestions.map((q) => {
 
   return {
     id: q.id,
-    title: q.prompt,
-    content: writingDetails.promptContext || q.prompt,
+    title: writingDetails.promptContext || q.prompt,
+    content: q.prompt,
     answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
     level: q.level as CEFRLevel,
     skill: 'Writing',
@@ -786,6 +785,9 @@ const writingItems: AssessmentItem[] = writingQuestions.map((q) => {
     status: metadata.status as AssessmentItem['status'],
     difficulty: q.difficulty as AssessmentItem['difficulty'],
     instructions: writingDetails.instructions,
+    imageTitle: writingDetails.imageTitle,
+    imageAsset: writingDetails.imageAsset,
+    imageAltText: writingDetails.imageAltText,
     rubric: writingDetails.rubric,
     passage: writingDetails.visualData,
     subSkill: metadata.subSkill,

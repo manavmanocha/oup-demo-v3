@@ -44,7 +44,7 @@ export interface ReviewHistoryEntry {
 export interface AssessmentItem {
   id: string;
   title: string;
-  content: string;
+  content?: string;
   answerKey?: string;
   level: CEFRLevel;
   skill: Skill;
@@ -59,6 +59,7 @@ export interface AssessmentItem {
   // Item-specific fields
   options?: ItemOption[];
   rubric?: string;
+  audioTitle?: string;
   audioAsset?: string;
   imageTitle?: string;
   imageAsset?: string;

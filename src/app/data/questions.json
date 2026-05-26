@@ -216,7 +216,21 @@
       "topic": "Social Media",
       "skillTag": "Evaluating claims against evidence",
       "skillTagId": "reading-evaluating-claims-against-evidence",
-      "options": [],
+      "options": [
+        {
+          "label": "A",
+          "text": "True"
+        },
+        {
+          "label": "B",
+          "text": "False"
+        },
+        {
+          "label": "C",
+          "text": "Not Given",
+          "correct": true
+        }
+      ],
       "skillDetails": {
         "reading": {
           "passageNumber": 1,
@@ -335,7 +349,7 @@
       "skill": "Listening",
       "questionNumber": 6,
       "questionType": "Note Completion",
-      "prompt": "Complete the missing note: Appointment day",
+      "prompt": "Complete the missing note: The patient prefers an appointment on ______.",
       "correctAnswer": "Thursday",
       "difficulty": "Easy",
       "level": "A2",
@@ -345,6 +359,7 @@
       "options": [],
       "skillDetails": {
         "listening": {
+          "audioTitle": "Clinic Appointment Form",
           "context": "A patient calls a clinic to arrange a check-up.",
           "audioFile": "lis_a2_006_clinic_booking.mp3",
           "audioAsset": "/audio/lis_a2_006_clinic_booking.mp3",
@@ -423,6 +438,7 @@
       "skillDetails": {
         "listening": {
           "context": "A manager describes membership plans for a new coworking space.",
+          "audioTitle": "Coworking Space Membership",
           "audioFile": "lis_b1_007_coworking_plans.mp3",
           "audioAsset": "/audio/lis_b1_007_coworking_plans.mp3",
           "instructions": "Listen and choose the best answer.",
@@ -488,6 +504,7 @@
       "skillDetails": {
         "listening": {
           "context": "A university lecture introduces urban farming methods.",
+          "audioTitle": "Lecture Notes on Urban Farming",
           "audioFile": "lis_b2_008_urban_farming_lecture.mp3",
           "audioAsset": "/audio/lis_b2_008_urban_farming_lecture.mp3",
           "instructions": "Listen and complete the sentence with one word.",
@@ -537,7 +554,7 @@
       "questionNumber": 9,
       "questionType": "Matching",
       "prompt": "Match each traveller to the problem they mention with the app.",
-      "correctAnswer": "1-outdated prices; 2-offline crashes; 3-too many notifications; 4-payment details not saved",
+      "correctAnswer": "Speaker 1-outdated prices; Speaker 2-offline crashes; Speaker 3-too many notifications; Speaker 4-payment details not saved",
       "difficulty": "Medium",
       "level": "B2",
       "topic": "Technology",
@@ -547,6 +564,7 @@
       "skillDetails": {
         "listening": {
           "context": "Four users discuss their experience with a travel-planning app.",
+          "audioTitle": "Travel App User Feedback",
           "audioFile": "lis_b2_009_travel_app_feedback.mp3",
           "audioAsset": "/audio/lis_b2_009_travel_app_feedback.mp3",
           "instructions": "Listen to the speakers and match each person to the main problem mentioned.",
@@ -612,6 +630,7 @@
       "skillDetails": {
         "listening": {
           "context": "A radio interview discusses how schools evaluate educational technology.",
+          "audioTitle": "Education Policy Interview",
           "audioFile": "lis_c1_010_edtech_interview.mp3",
           "audioAsset": "/audio/lis_c1_010_edtech_interview.mp3",
           "instructions": "Answer in no more than six words.",
@@ -660,7 +679,7 @@
       "skill": "Writing",
       "questionNumber": 11,
       "questionType": "Essay",
-      "prompt": "Write a formal email to a language school asking to change your airport transfer date.",
+      "prompt": "Write a formal email to the school office asking them to change your airport transfer booking.",
       "correctAnswer": "Open response (rubric-based scoring)",
       "difficulty": "Easy",
       "level": "A2",
@@ -672,7 +691,7 @@
         "writing": {
           "task": 1,
           "instructions": "Write 80 to 120 words. Include the reason for the change, the new date, and one question.",
-          "promptContext": "You are arriving one day later than planned for a short English course. Write an email to the school office asking them to change your airport transfer booking.",
+          "promptContext": "You are arriving one day later than planned for a short English course.",
           "rubric": "Assess whether the candidate can state the purpose clearly, include essential booking details, use polite email conventions, and maintain mostly accurate simple grammar.",
           "visualData": "",
           "wordCount": 100,
@@ -793,11 +812,12 @@
       "skillDetails": {
         "writing": {
           "task": 1,
-          "instructions": "Write 170 to 220 words in a neutral professional style.",
           "promptContext": "You are preparing a short internal report for a company manager based on the survey results.",
+          "imageTitle": "Report on Employee Learning Survey",
+          "imageAsset": "/assets/wrt_b2_013_image.png",
+          "imageAltText": "Staff survey results: 62% prefer short weekly training sessions, 21% prefer full-day workshops, 17% prefer self-study modules. Main barriers to learning: lack of time 48%, unclear relevance 29%, technical problems 15%, other 8%.",
+          "instructions": "Write 170 to 220 words in a neutral professional style.",
           "rubric": "Assess how accurately the candidate summarises data, organises the report, uses clear register, and supports recommendations with evidence from the survey.",
-          "visualData": "Summary statistics from an employee learning preferences survey.",
-          "stimulus": "Staff survey results: 62% prefer short weekly training sessions, 21% prefer full-day workshops, 17% prefer self-study modules. Main barriers to learning: lack of time 48%, unclear relevance 29%, technical problems 15%, other 8%.",
           "wordCount": 200,
           "timeAllocation": 25
         }
@@ -928,10 +948,12 @@
       "skillDetails": {
         "writing": {
           "task": 1,
-          "instructions": "Write 250 to 320 words in a formal style and include at least two recommendations.",
+          "imageTitle": "Formal Proposal on Greener Commuting",
+          "imageAsset": "/assets/wrt_c1_015_image.png",
+          "imageAltText": "Staff survey shows 54% drive alone to work, 23% use public transport, 12% cycle, 11% walk. Main reasons for driving: convenience, unpredictable meetings, lack of secure bike storage.",
           "promptContext": "You work in the HR team of a medium-sized company. Write a proposal for senior management suggesting practical ways to reduce single-occupancy car journeys among employees.",
+          "instructions": "Write 250 to 320 words in a formal style and include at least two recommendations.",
           "rubric": "Assess how effectively the proposal addresses audience and purpose, uses evidence, develops practical recommendations, and maintains an appropriate formal register.",
-          "visualData": "Internal commuting survey summary.",
           "wordCount": 280,
           "timeAllocation": 40
         }
@@ -990,6 +1012,8 @@
         "speaking": {
           "task": 1,
           "instructions": "Speak for about one minute.",
+          "passageTitle": "Read Aloud: Weekend Market Notice",
+          "passage": "The Riverside Market opens every Saturday at nine o'clock. Visitors can buy fresh fruit, local bread and handmade gifts. The market closes at two in the afternoon.",
           "rubric": "Assess intelligibility, word stress, pausing, and ability to read short connected text accurately.",
           "prepTime": 30,
           "responseTime": 60
@@ -1048,6 +1072,10 @@
       "skillDetails": {
         "speaking": {
           "task": 1,
+          "audioTitle": "Public Announcement",
+          "audioFile": "spk_b1_017_repeat_sentence.mp3",
+          "audioAsset": "/audio/spk_b1_017_repeat_sentence.mp3",
+          "transcript":  "Passengers for Platform 6 should check the new departure time on the main screen.",
           "instructions": "Listen once. When you hear the tone, repeat the sentence exactly.",
           "rubric": "Assess accuracy of repetition, pronunciation, and retention of key content words.",
           "prepTime": 45,
@@ -1096,7 +1124,7 @@
       "skill": "Speaking",
       "questionNumber": 18,
       "questionType": "Speaking",
-      "prompt": "Describe the information shown and mention any important changes or comparisons.",
+      "prompt": "Describe the information shown in image and mention any important changes or comparisons.",
       "correctAnswer": "Open response (rubric-based scoring)",
       "difficulty": "Medium",
       "level": "B2",
@@ -1170,6 +1198,7 @@
         "speaking": {
           "task": 2,
           "instructions": "You have 20 seconds to prepare and 90 seconds to respond.",
+          "context": "Some people say remote learning offers the same educational value as face-to-face lessons, while others disagree. What is your view?",
           "rubric": "Assess clarity of viewpoint, relevance of supporting reasons, fluency, vocabulary range, and grammatical control in extended speaking.",
           "prepTime": 20,
           "responseTime": 90,
@@ -1227,7 +1256,7 @@
       "skill": "Speaking",
       "questionNumber": 20,
       "questionType": "Speaking",
-      "prompt": "Take part in a role play with the examiner. You are a customer success manager responding to a client complaint about delayed software support.",
+      "prompt": "Respond professionally, apologise where appropriate, explain what happened, and offer a realistic solution.",
       "correctAnswer": "Open response (rubric-based scoring)",
       "difficulty": "Hard",
       "level": "C1",
@@ -1238,7 +1267,10 @@
       "skillDetails": {
         "speaking": {
           "task": 3,
-          "instructions": "You will have 30 seconds to prepare. The examiner will play the role of an unhappy client. Respond to their concerns and try to resolve the issue.",
+          "passageTitle": "Role Play: Handling a Client Complaint",
+          "context": "Take part in a role play with the examiner. You are a customer success manager responding to a client complaint about delayed software support.",
+          "passage": "Scenario: A business client says your company promised a response within 24 hours, but their issue was unresolved for three days. They are considering cancelling the contract.",
+          "instructions": "You have 30 seconds to prepare. Then respond to the examiner and manage the conversation for up to 2 minutes.",
           "rubric": "Assess interaction management, appropriacy of register, ability to acknowledge concerns, propose solutions, negotiate next steps, and maintain fluent accurate speech under pressure.",
           "prepTime": 30,
           "responseTime": 120,

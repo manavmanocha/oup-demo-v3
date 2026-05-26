@@ -406,7 +406,7 @@ export function ItemDetailRedesign() {
   };
 
   useEffect(() => {
-    if (!audioRef.current || !isListening || !item?.audioAsset) {
+    if (!audioRef.current || (!isListening && !isSpeakingQuestion) || !item?.audioAsset) {
       return;
     }
 
@@ -445,7 +445,7 @@ export function ItemDetailRedesign() {
       audioEl.removeEventListener('pause', handlePause);
       audioEl.removeEventListener('error', handleError);
     };
-  }, [isListening, item?.audioAsset]);
+  }, [isListening, isSpeakingQuestion, item?.audioAsset]);
 
   if (!item) {
     return (
@@ -537,7 +537,7 @@ export function ItemDetailRedesign() {
             )}
 
             {/* Audio Player for Listening Items */}
-            {isListening && item.audioAsset && (
+            {(isListening || isSpeakingQuestion) && item.audioAsset && (
               <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
                 <CardContent className="p-6">
                   <audio ref={audioRef} src={item.audioAsset} preload="metadata" />
@@ -546,8 +546,7 @@ export function ItemDetailRedesign() {
                       <Headphones className="w-8 h-8 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-4">Audio Recording</h3>
-                      {/* <p className="text-sm text-gray-600 mb-3">{item.audioAsset}</p> */}
+                      <h3 className="font-semibold text-gray-900 mb-4">{item.audioTitle}</h3>
                       <div className="flex items-center gap-3">
                         <Button
                           size="sm"
@@ -632,7 +631,7 @@ export function ItemDetailRedesign() {
                         <div className="flex items-center gap-2">
                           <BookOpen className="w-5 h-5 text-blue-600" />
                           <CardTitle className="text-lg">
-                            {isListening ? 'Transcript' : 'Reading Passage'}
+                            {(isListening || item?.audioAsset) ? 'Transcript' : isSpeakingQuestion ? 'Speaking Prompt' : 'Reading Passage'}
                           </CardTitle>
                         </div>
                         {passageExpanded ? (
@@ -676,6 +675,18 @@ export function ItemDetailRedesign() {
                       {item.title}
                     </p>
                   )}
+                  {isSentenceCompletion && sentenceCompletionData && (
+                    <p className="text-lg text-gray-900 leading-relaxed">
+                      {sentenceCompletionData.taskLabel}
+                    </p>
+                  )}
+
+                  {/* Short Answer Layout */}
+                {(isShortAnswer && isListening || isEssay || (isSpeakingQuestion && item?.content)) && (
+                  <div className="text-lg text-gray-800 leading-relaxed">
+                        {item.content}
+                  </div>
+                )}
                 </div>
 
                 <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
@@ -684,7 +695,7 @@ export function ItemDetailRedesign() {
                 </div>
 
                 {/* Answer Options */}
-                {hasOptionAnswers && (
+                {(hasOptionAnswers || isTrueFalseNotGiven) && (
                   <div className="space-y-3">
                     {(item.options ?? []).map((option) => (
                       <div
@@ -758,12 +769,7 @@ export function ItemDetailRedesign() {
 
                 {/* Note Completion Layout */}
                 {isNoteCompletion && noteCompletionData && (
-                  <div className="mt-6">
-                    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
-                      <div className="flex items-center justify-between gap-3 mb-4">
-                        <div className="text-sm font-medium text-gray-500 uppercase">Fill in each blank</div>
-                        {/* <div className="text-xs text-gray-500">Fill in each blank</div> */}
-                      </div>
+                  <div className="mt-6">                   
 
                       <div className="space-y-3">
                         {noteCompletionData.renderedLines.map((lineParts, lineIndex) => (
@@ -800,15 +806,12 @@ export function ItemDetailRedesign() {
                           </div>
                         ))}
                       </div>
-                    </div>
                   </div>
                 )}
 
                 {/* Sentence Completion Layout */}
                 {isSentenceCompletion && sentenceCompletionData && (
                   <div className="mt-6">
-                    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
-                      <div className="font-medium text-gray-500 uppercase mb-4">{sentenceCompletionData.taskLabel}</div>
                       <div className="space-y-3">
                         {sentenceCompletionData.renderedLines.map((lineParts, lineIndex) => (
                           <div
@@ -848,84 +851,16 @@ export function ItemDetailRedesign() {
                             </p>
                           </div>
                         ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* True/False/Not Given Layout */}
-                {isTrueFalseNotGiven && (
-                  <div className="mt-6">
-                    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
-                      <div className="text-sm font-medium text-gray-500 uppercase mb-4">Answer Options</div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2" role="group" aria-label="True False Not Given options">
-                        {['True', 'False', 'Not Given'].map((option) => (
-                          <div
-                            key={option}
-                            className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700"
-                          >
-                            {option}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Short Answer Layout */}
-                {isShortAnswer && (
-                  <div className="mt-6">
-                    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
-                      <div className="text-sm font-medium text-gray-500 uppercase mb-4">Short Answer Task</div>
-                      <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-3 text-sm text-gray-800">
-                        {item.content || item.title}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Essay Layout */}
-                {isEssay && (
-                  <div className="mt-6">
-                    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
-                      <div className="flex items-start justify-between gap-3 mb-4">
-                        <div>
-                          <div className="text-sm font-medium text-gray-500 uppercase">Essay Task</div>
-                          <p className="mt-2 text-sm text-gray-800 leading-relaxed">
-                            {item.content || item.title}
-                          </p>
-                        </div>
-                        <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                      </div>
                     </div>
                   </div>
                 )}
 
                 {/* Speaking Layout */}
-                {isSpeakingQuestion && (
+                {isSpeakingQuestion && speakingFollowUpQuestions.length > 0 && (
                   <div className="mt-6">
-                    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
-                      <div className="flex items-center justify-between gap-3 mb-4">
-                        <div className="text-sm font-medium text-gray-500 uppercase">Speaking Task</div>
-                        <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-gray-100 text-gray-700">
-                          Reference View
-                        </span>
-                      </div>
-
-                      <div className="space-y-3 mb-4">
-                        {(speakingPrompts.length > 0 ? speakingPrompts : [item.content || item.title]).map((prompt, index) => (
-                          <div key={`${prompt}-${index}`} className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-3">
-                            <p className="text-sm text-gray-800 leading-relaxed">
-                              <span className="font-semibold text-gray-700 mr-2">Task {index + 1}.</span>
-                              {prompt}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-
+                    <h3 className="font-semibold text-gray-900 mb-3">Follow-up Questions</h3>
                       {speakingFollowUpQuestions.length > 0 && (
-                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4 mb-4">
-                          <div className="text-sm font-medium text-gray-500 uppercase mb-3">Follow-up Questions</div>
+                        
                           <div className="space-y-2">
                             {speakingFollowUpQuestions.map((question, index) => (
                               <div key={`${question}-${index}`} className="rounded-md border border-gray-100 bg-white px-3 py-3">
@@ -936,9 +871,8 @@ export function ItemDetailRedesign() {
                               </div>
                             ))}
                           </div>
-                        </div>
+                        
                       )}
-                    </div>
                   </div>
                 )}
 
@@ -1051,25 +985,9 @@ export function ItemDetailRedesign() {
                         </div>
                       </div>
                     ) : hasTrueFalseNotGivenAnswer ? (
-                      <div className="rounded-xl border border-green-100 bg-green-50/50 p-3">
-                        <div className="rounded-lg border border-green-100 bg-white px-3 py-3">
-                          <div className="text-sm">
-                            <p className="text-xs text-gray-500">Correct answer</p>
-                            <p className="text-gray-800">{trueFalseExpectedAnswer || '—'}</p>
-                          </div>
-                        </div>
-                      </div>
+                            <p className="text-gray-700">{trueFalseExpectedAnswer || '—'}</p>
                     ) : hasShortAnswerAnswer ? (
-                      <div className="rounded-xl border border-green-100 bg-green-50/50 p-3">
-                        <div className="rounded-lg border border-green-100 bg-white px-3 py-3">
-                          <div className="space-y-3 text-sm">
-                            <div>
-                              <p className="text-xs text-gray-500">Accepted answer(s)</p>
-                              <p className="text-gray-800">{shortAnswerExpectedValues.join(' / ') || '—'}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                              <p className="text-gray-700">{shortAnswerExpectedValues.join(' / ') || '—'}</p>
                     ) : hasEssaySample ? (
                       <div className="space-y-3">
                           <p className="text-sm text-gray-800 whitespace-pre-wrap">{item.answerKey || 'Answer is not available for this item.'}</p>
