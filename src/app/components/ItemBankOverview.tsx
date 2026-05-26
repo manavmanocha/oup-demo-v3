@@ -180,31 +180,30 @@ export function ItemBankOverview() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex items-end justify-between gap-4 mb-6">
+            <div className="mx-auto flex max-w-4xl items-end justify-center gap-2 sm:gap-3 mb-6">
               {bankCapacityData.map((level) => (
                 <Link
                   key={level.level}
                   to={`/item-bank/${level.level}`}
-                  className="flex-1 cursor-pointer hover:opacity-80 transition-opacity"
+                  className="w-20 sm:w-24 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
                 >
-                  <div className="text-center mb-2">
+                  <div className="mx-auto text-center mb-2 max-w-[5.5rem]">
                     <div className="text-xs font-medium text-gray-500 mb-1">{level.percentage}%</div>
                     <div
-                      className="bg-gray-400 rounded-t mx-auto relative"
+                      className="relative mx-auto w-10 overflow-hidden rounded-lg bg-gray-400 shadow-md shadow-gray-300/60"
                       style={{ 
-                        width: '100%',
                         height: `${Math.max(level.percentage * 1.5, 20)}px`,
                       }}
                     >
                       {level.compromised > 0 && (
                         <div
-                          className="bg-red-400 absolute bottom-0 left-0 right-0 rounded-t"
+                          className="absolute bottom-0 left-0 right-0 rounded-b-lg bg-red-400"
                           style={{ height: `${(level.compromised / (level.active + level.compromised)) * 100}%` }}
                         />
                       )}
                       {level.percentage < 100 && (
                         <div
-                          className="bg-gray-200 absolute top-0 left-0 right-0"
+                          className="absolute top-0 left-0 right-0 bg-gray-200"
                           style={{ height: `${100 - level.percentage}%` }}
                         />
                       )}
@@ -218,15 +217,15 @@ export function ItemBankOverview() {
 
             <div className="flex items-center justify-center gap-6 text-xs">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-gray-400 rounded" />
+                <div className="w-3 h-3 rounded bg-gray-400 shadow-sm shadow-gray-300/70" />
                 <span className="text-gray-600">Active</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-400 rounded" />
+                <div className="w-3 h-3 rounded bg-red-400 shadow-sm shadow-red-200/70" />
                 <span className="text-gray-600">Compromised</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-gray-200 rounded" />
+                <div className="w-3 h-3 rounded bg-gray-200 shadow-sm shadow-gray-100/70" />
                 <span className="text-gray-600">Gap to target</span>
               </div>
             </div>

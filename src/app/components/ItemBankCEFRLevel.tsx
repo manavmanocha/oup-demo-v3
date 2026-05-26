@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link, useParams } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -30,6 +31,14 @@ export function ItemBankCEFRLevel() {
     ...row,
     percentage: Math.round((row.count / levelTotal) * 100),
   }));
+  const compromisedExposureCounts = useMemo(() => {
+    return items
+      .filter((item) => item.status === 'Compromised')
+      .reduce<Record<string, number>>((counts, item) => {
+        counts[item.id] = Math.floor(Math.random() * 10) + 1;
+        return counts;
+      }, {});
+  }, [items]);
 
   if (!level || !levelData) {
     return <div className="p-4 sm:p-6 md:p-8">Level not found</div>;
@@ -48,7 +57,7 @@ export function ItemBankCEFRLevel() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{level}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">CEFR Level {level}</h1>
             <p className="text-gray-600">
               {levelData.active + levelData.compromised} of {levelData.target} items active · {levelData.gapToTarget} needed to reach target
             </p>
@@ -160,7 +169,7 @@ export function ItemBankCEFRLevel() {
                         </td>
                         <td className="px-4 py-3">
                           <span className="text-sm text-red-600 font-semibold">
-                            {item.exposureCount || 0}
+                            {compromisedExposureCounts[item.id] ?? item.exposureCount ?? 0}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-right">
