@@ -1,7 +1,6 @@
 import { Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { Badge } from './ui/badge';
 import { Workflow } from 'lucide-react';
 
 export function Workflows() {
@@ -10,26 +9,22 @@ export function Workflows() {
       id: 'pre-testing-pipeline',
       title: 'Pre-Testing Pipeline',
       description: 'Review queue health, run screening and difficulty prediction, and seed approved items into the item bank.',
-      status: 'Available',
       path: '/workflows/pre-testing-pipeline',
     },
     {
       id: 'pdf-to-text',
       title: 'PDF to Text',
       description: 'Convert uploaded PDF content into structured text with extraction quality checks and metadata mapping.',
-      status: 'Coming Soon',
     },
     {
       id: 'pdf-to-epub',
       title: 'PDF to Accessible ePub',
       description: 'Transform PDF source files into WCAG-friendly ePub outputs with semantic tagging and navigation.',
-      status: 'Coming Soon',
     },
     {
       id: 'video-captioning',
       title: 'Video Captioning and Transcription',
       description: 'Generate timed captions and transcripts for video assets with QA checks before publishing.',
-      status: 'Coming Soon',
     },
   ];
 
@@ -49,19 +44,11 @@ export function Workflows() {
           {workflows.map((workflow) => (
             <Card key={workflow.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Workflow className="w-5 h-5 text-gray-600" />
-                    <CardTitle className="text-sm font-medium text-gray-500 uppercase">
-                      Workflow
-                    </CardTitle>
-                  </div>
-                  <Badge
-                    variant={workflow.status === 'Available' ? 'default' : 'secondary'}
-                    className={workflow.status === 'Available' ? 'bg-green-600' : ''}
-                  >
-                    {workflow.status}
-                  </Badge>
+                <div className="flex items-center gap-2 mb-2">
+                  <Workflow className="w-5 h-5 text-gray-600" />
+                  <CardTitle className="text-sm font-medium text-gray-500 uppercase">
+                    Workflow
+                  </CardTitle>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">{workflow.title}</h3>
               </CardHeader>
@@ -72,8 +59,8 @@ export function Workflows() {
                     <Button className="w-full">Open Workflow</Button>
                   </Link>
                 ) : (
-                  <Button className="w-full" disabled>
-                    Unavailable
+                  <Button className="w-full" onClick={() => {}}>
+                    Open Workflow
                   </Button>
                 )}
               </CardContent>
