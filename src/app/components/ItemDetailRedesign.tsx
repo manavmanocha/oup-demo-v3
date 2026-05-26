@@ -23,6 +23,7 @@ import {
   ChevronUp,
   ArrowLeft,
   Info,
+  Image,
 } from 'lucide-react';
 import { getItemById } from '../data/mockData';
 import { AssessmentItem, CEFRLevel } from '../data/types';
@@ -107,10 +108,30 @@ export function ItemDetailRedesign() {
       return [];
     }
 
-    const rawText = item.content || item.title || '';
+    const rawText = (item.content || item.title || '').split(/Follow-up questions:/i)[0].trim();
     return rawText
       .split(/\r?\n/)
       .map((line) => line.trim())
+      .filter(Boolean);
+  }, [isSpeakingQuestion, item]);
+
+  const speakingFollowUpQuestions = useMemo(() => {
+    if (!isSpeakingQuestion || !item) {
+      return [];
+    }
+
+    if (Array.isArray(item.followUpQuestions) && item.followUpQuestions.length > 0) {
+      return item.followUpQuestions.map((question) => question.trim()).filter(Boolean);
+    }
+
+    const followUpMatch = (item.content || item.title || '').match(/Follow-up questions:\s*([\s\S]*)$/i);
+    if (!followUpMatch) {
+      return [];
+    }
+
+    return followUpMatch[1]
+      .split(/\r?\n/)
+      .map((question) => question.replace(/^\d+[.)-]\s*/, '').trim())
       .filter(Boolean);
   }, [isSpeakingQuestion, item]);
 
@@ -572,6 +593,35 @@ export function ItemDetailRedesign() {
               </Card>
             )}
 
+            {/* Prompt Image */}
+            {item.imageAsset && (
+              <Card className="overflow-hidden border-blue-200 shadow-sm">
+                <CardHeader className="pb-0">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Image className="w-5 h-5 text-blue-600" />
+                    Reference Image
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 pt-0">
+                  {item.imageTitle && (
+                    <h3 className="text-base font-semibold text-gray-900">
+                      {item.imageTitle}
+                    </h3>
+                  )}
+                  <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+                    <img
+                      src={item.imageAsset}
+                      alt={item.imageAltText || item.title || 'Reference image for this item'}
+                      className="block w-full h-auto max-h-[420px] object-contain mx-auto"
+                    />
+                  </div>
+                  {item.imageAltText && (
+                    <p className="text-sm text-gray-600">{item.imageAltText}</p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Passage/Context */}
             {item.passage && (
               <Collapsible open={passageExpanded} onOpenChange={setPassageExpanded}>
@@ -601,7 +651,7 @@ export function ItemDetailRedesign() {
                             {item.passageTitle}
                           </h3>
                         )}
-                        <p className="text-gray-700 leading-relaxed">
+                        <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                           {item.passage}
                         </p>
                       </div>
@@ -876,6 +926,22 @@ export function ItemDetailRedesign() {
                           </div>
                         ))}
                       </div>
+
+                      {speakingFollowUpQuestions.length > 0 && (
+                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4 mb-4">
+                          <div className="text-sm font-medium text-gray-500 uppercase mb-3">Follow-up Questions</div>
+                          <div className="space-y-2">
+                            {speakingFollowUpQuestions.map((question, index) => (
+                              <div key={`${question}-${index}`} className="rounded-md border border-gray-100 bg-white px-3 py-3">
+                                <p className="text-sm text-gray-800 leading-relaxed">
+                                  <span className="font-semibold text-gray-700 mr-2">Follow-up {index + 1}.</span>
+                                  {question}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4">
                         <p className="text-sm text-gray-700">

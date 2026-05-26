@@ -349,7 +349,7 @@
           "audioFile": "lis_a2_006_clinic_booking.mp3",
           "audioAsset": "/audio/lis_a2_006_clinic_booking.mp3",
           "instructions": "Listen and write one word for each answer.",
-          "transcript": "Receptionist: Good morning, Greenway Clinic. Patient: Hello, I'd like to book a general check-up. Receptionist: We have space on Tuesday at 11 o'clock or Thursday at 9:30. Patient: Thursday is better for me."
+          "transcript": "Receptionist: Good morning, Greenway Clinic.\nPatient: Hello, I'd like to book a general check-up.\nReceptionist: We have space on Tuesday at 11 o'clock or Thursday at 9:30.\nPatient: Thursday is better for me."
         }
       },
       "status": "Draft",
@@ -550,7 +550,7 @@
           "audioFile": "lis_b2_009_travel_app_feedback.mp3",
           "audioAsset": "/audio/lis_b2_009_travel_app_feedback.mp3",
           "instructions": "Listen to the speakers and match each person to the main problem mentioned.",
-          "transcript": "Speaker 1: I liked the route ideas, but the hotel prices were a week out of date. Speaker 2: The maps worked well, though the offline version kept closing. Speaker 3: I found good restaurant suggestions, but the app sent too many notifications. Speaker 4: Booking trains was simple, but it never remembered my payment details."
+          "transcript": "Speaker 1: I liked the route ideas, but the hotel prices were a week out of date.\nSpeaker 2: The maps worked well, though the offline version kept closing.\nSpeaker 3: I found good restaurant suggestions, but the app sent too many notifications.\nSpeaker 4: Booking trains was simple, but it never remembered my payment details."
         }
       },
       "status": "Draft",
@@ -615,7 +615,7 @@
           "audioFile": "lis_c1_010_edtech_interview.mp3",
           "audioAsset": "/audio/lis_c1_010_edtech_interview.mp3",
           "instructions": "Answer in no more than six words.",
-          "transcript": "Interviewer: Many schools buy software quickly because it appears innovative. Guest: That is risky. Before adopting any platform, schools need a short pilot with real classes and teachers. Otherwise they may invest heavily in tools that look impressive in presentations but do little for learning."
+          "transcript": "Interviewer: Many schools buy software quickly because it appears innovative.\nGuest: That is risky. Before adopting any platform, schools need a short pilot with real classes and teachers. Otherwise they may invest heavily in tools that look impressive in presentations but do little for learning."
         }
       },
       "status": "Draft",
@@ -1096,7 +1096,7 @@
       "skill": "Speaking",
       "questionNumber": 18,
       "questionType": "Speaking",
-      "prompt": "Describe the image and explain the main trends you notice.",
+      "prompt": "Describe the information shown and mention any important changes or comparisons.",
       "correctAnswer": "Open response (rubric-based scoring)",
       "difficulty": "Medium",
       "level": "B2",
@@ -1107,6 +1107,9 @@
       "skillDetails": {
         "speaking": {
           "task": 2,
+          "imageTitle": "Fitness App Dashboard",
+          "imageAsset": "/assets/spk_b2_018_image.png",
+          "imageAltText": "Fitness dashboard displaying weekly steps and sleep-score trends.",
           "instructions": "You have 25 seconds to prepare and 60 seconds to speak.",
           "rubric": "Assess ability to identify key trends, organise spoken response, use comparative language, and maintain fluency with sufficient accuracy.",
           "prepTime": 25,
@@ -1169,7 +1172,11 @@
           "instructions": "You have 20 seconds to prepare and 90 seconds to respond.",
           "rubric": "Assess clarity of viewpoint, relevance of supporting reasons, fluency, vocabulary range, and grammatical control in extended speaking.",
           "prepTime": 20,
-          "responseTime": 90
+          "responseTime": 90,
+          "followUpQuestions": [
+            "What type of learner benefits most from remote lessons?",
+            "What problems can teachers face online?"
+          ]
         }
       },
       "status": "Draft",
@@ -1234,7 +1241,11 @@
           "instructions": "You will have 30 seconds to prepare. The examiner will play the role of an unhappy client. Respond to their concerns and try to resolve the issue.",
           "rubric": "Assess interaction management, appropriacy of register, ability to acknowledge concerns, propose solutions, negotiate next steps, and maintain fluent accurate speech under pressure.",
           "prepTime": 30,
-          "responseTime": 120
+          "responseTime": 120,
+          "followUpQuestions": [
+            "What immediate action will you take today?",
+            "How will you rebuild the client's trust?"
+          ]
         }
       },
       "status": "Draft",
