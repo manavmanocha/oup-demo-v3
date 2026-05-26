@@ -60,9 +60,13 @@ export interface AssessmentItem {
   options?: ItemOption[];
   rubric?: string;
   audioAsset?: string;
+  imageTitle?: string;
+  imageAsset?: string;
+  imageAltText?: string;
   passage?: string;
   passageTitle?: string;
   instructions?: string;
+  followUpQuestions?: string[];
   passageId?: string;
   
   // Item Properties

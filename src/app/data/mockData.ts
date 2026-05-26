@@ -728,9 +728,6 @@ const speakingItems: AssessmentItem[] = speakingQuestions.map((q) => {
   if (cueCard) {
     contentParts.push(`Cue card:\n${cueCard}`);
   }
-  if (followUpQuestions.length > 0) {
-    contentParts.push(`Follow-up questions:\n${followUpQuestions.join('\n')}`);
-  }
 
   return {
     id: q.id,
@@ -743,6 +740,10 @@ const speakingItems: AssessmentItem[] = speakingQuestions.map((q) => {
     status: metadata.status as AssessmentItem['status'],
     difficulty: q.difficulty as AssessmentItem['difficulty'],
     instructions: speakingDetails.instructions,
+    imageTitle: speakingDetails.imageTitle,
+    imageAsset: speakingDetails.imageAsset,
+    imageAltText: speakingDetails.imageAltText,
+    followUpQuestions,
     rubric: speakingDetails.rubric
       ?? (rubricCriteria.length > 0 ? `Assessment Criteria:\n${rubricCriteria.join('\n')}` : undefined),
     subSkill: metadata.subSkill,
