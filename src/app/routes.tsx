@@ -14,7 +14,6 @@ import { PreTestingPipeline } from "./components/PreTestingPipeline";
 import { Screening } from "./components/Screening";
 import { DifficultyPrediction } from "./components/DifficultyPrediction";
 import { Seeding } from "./components/Seeding";
-import { ReviewQueue } from "./components/ReviewQueue";
 import { ScreenItems } from "./components/ScreenItems";
 import { PredictDifficulty } from "./components/PredictDifficulty";
 
@@ -43,7 +42,6 @@ export const router = createBrowserRouter([
       { path: "workflows/pre-testing-pipeline/difficulty-prediction", Component: DifficultyPrediction },
       { path: "workflows/pre-testing-pipeline/difficulty-prediction/start", Component: PredictDifficulty },
       { path: "workflows/pre-testing-pipeline/seeding", Component: Seeding },
-      { path: "review-queue", Component: ReviewQueue },
     ],
   },
 ]);

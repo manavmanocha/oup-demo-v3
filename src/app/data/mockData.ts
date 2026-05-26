@@ -1,8 +1,598 @@
 import { AssessmentItem, BankCapacity, CEFRLevel, ItemType } from './types';
-import { listeningQuestions } from './listeningQuestions';
-import { speakingQuestions } from './speakingQuestions';
-import { writingQuestions } from './writingQuestions';
-import { readingQuestions } from './readingQuestions';
+import { isAnyWorkflowState, normalizeWorkflowStateInput, REVIEW_WORKFLOW_STATES } from './workflowState';
+
+import questionsData from './questions.json';
+
+type UnifiedQuestion = (typeof questionsData.questions)[number];
+type ListeningQuestion = UnifiedQuestion & {
+  skill: 'Listening';
+  skillDetails: {
+    listening: {
+      context?: string;
+      audioFile?: string;
+      audioAsset?: string | null;
+      instructions?: string;
+    };
+  };
+};
+type ReadingQuestion = UnifiedQuestion & {
+  skill: 'Reading';
+  skillDetails: {
+    reading: {
+      passageText?: string;
+      passageTitle?: string;
+      instructions?: string;
+    };
+  };
+};
+type WritingQuestion = UnifiedQuestion & {
+  skill: 'Writing';
+  skillDetails: {
+    writing: {
+      task?: number;
+      instructions?: string;
+      promptContext?: string;
+      rubric?: string;
+      visualData?: string;
+    };
+  };
+};
+type SpeakingQuestion = UnifiedQuestion & {
+  skill: 'Speaking';
+  skillDetails: {
+    speaking: {
+      part?: number;
+      instructions?: string;
+      cueCard?: string;
+      rubric?: string;
+      followUpQuestions?: string[];
+      rubricCriteria?: string[];
+    };
+  };
+};
+
+const allQuestions: UnifiedQuestion[] = questionsData.questions as UnifiedQuestion[];
+const listeningQuestions: ListeningQuestion[] = allQuestions.filter((question): question is ListeningQuestion => question.skill === 'Listening');
+const readingQuestions: ReadingQuestion[] = allQuestions.filter((question): question is ReadingQuestion => question.skill === 'Reading');
+const writingQuestions: WritingQuestion[] = allQuestions.filter((question): question is WritingQuestion => question.skill === 'Writing');
+const speakingQuestions: SpeakingQuestion[] = allQuestions.filter((question): question is SpeakingQuestion => question.skill === 'Speaking');
+const INGESTED_ITEMS_STORAGE_KEY = 'ingested-library-items-v1';
+const WORKFLOW_OVERRIDES_STORAGE_KEY = 'workflow-item-overrides-v1';
+
+type ScreeningDimensionKey = keyof NonNullable<AssessmentItem['screening']>;
+type ScreeningDimensionResult = NonNullable<AssessmentItem['screening']>[ScreeningDimensionKey];
+type ScreeningResults = Record<ScreeningDimensionKey, ScreeningDimensionResult>;
+
+export type DifficultyPredictionResult = {
+  id: string;
+  b: number;
+  confidence: number;
+  difficulty: AssessmentItem['difficulty'];
+  discrimination: string;
+};
+
+type DemoScreeningFixture = {
+  screening: ScreeningResults;
+  feedback: string;
+};
+
+const SCREENING_DIMENSIONS: ScreeningDimensionKey[] = [
+  'cefrFit',
+  'distractorStrength',
+  'clarity',
+  'fairness',
+  'similarity',
+];
+
+const DEMO_SCREENING_FIXTURES: Record<string, DemoScreeningFixture> = {
+  'EAS-DEM-RDG-B2-101': {
+    screening: {
+      cefrFit: 'Pass',
+      distractorStrength: 'Fail',
+      clarity: 'Pass',
+      fairness: 'Pass',
+      similarity: 'Pass',
+    },
+    feedback:
+      'Reviewer feedback: The keyed response is valid, but the distractor set is not functioning at an enterprise standard. Options B and D can be ruled out without reading the full message, and option C does not mirror the operational nuance closely enough to compete with the answer. Revise the alternatives so each option reflects a plausible next-step interpretation from the email.',
+  },
+  'EAS-DEM-WRT-B1-102': {
+    screening: {
+      cefrFit: 'Pass',
+      distractorStrength: 'Pass',
+      clarity: 'Fail',
+      fairness: 'Pass',
+      similarity: 'Pass',
+    },
+    feedback:
+      'Reviewer feedback: The task intent is commercially realistic, but the brief is ambiguous about audience and register. Candidates could reasonably write either to the customer or to the line manager, and the expected tone ranges from informal update to formal complaint response. Specify recipient, purpose, and response length more tightly before approval.',
+  },
+  'EAS-DEM-SPK-B2-103': {
+    screening: {
+      cefrFit: 'Pass',
+      distractorStrength: 'Pass',
+      clarity: 'Pass',
+      fairness: 'Pass',
+      similarity: 'Pass',
+    },
+    feedback:
+      'Reviewer feedback: Passed all screening checks. The scenario is clear, level-appropriate, and aligned with workplace decision-making tasks used in operational speaking assessments.',
+  },
+  'EAS-DEM-WRT-C1-104': {
+    screening: {
+      cefrFit: 'Pass',
+      distractorStrength: 'Pass',
+      clarity: 'Pass',
+      fairness: 'Pass',
+      similarity: 'Pass',
+    },
+    feedback:
+      'Reviewer feedback: Passed all screening checks. The proposal task is well-scoped, cognitively demanding, and suitable for advanced business-writing calibration.',
+  },
+  'EAS-DEM-SPK-C1-105': {
+    screening: {
+      cefrFit: 'Pass',
+      distractorStrength: 'Pass',
+      clarity: 'Pass',
+      fairness: 'Pass',
+      similarity: 'Pass',
+    },
+    feedback:
+      'Reviewer feedback: Passed all screening checks. The client-resolution scenario is authentic, appropriately constrained, and strong enough to move into difficulty prediction.',
+  },
+};
+
+const DEMO_DP_FIXTURES: Record<string, DifficultyPredictionResult> = {
+  'EAS-DEM-SPK-B2-103': {
+    id: 'EAS-DEM-SPK-B2-103',
+    b: 0.88,
+    confidence: 91,
+    difficulty: 'Medium',
+    discrimination: 'High',
+  },
+  'EAS-DEM-WRT-C1-104': {
+    id: 'EAS-DEM-WRT-C1-104',
+    b: 1.36,
+    confidence: 58,
+    difficulty: 'Hard',
+    discrimination: 'Moderate',
+  },
+  'EAS-DEM-SPK-C1-105': {
+    id: 'EAS-DEM-SPK-C1-105',
+    b: 1.18,
+    confidence: 89,
+    difficulty: 'Medium',
+    discrimination: 'High',
+  },
+};
+
+type ItemWorkflowOverride = {
+  id: string;
+  patch: Partial<AssessmentItem>;
+};
+
+const randomScreeningResults = (): ScreeningResults => {
+  return SCREENING_DIMENSIONS.reduce<ScreeningResults>((acc, dimension) => {
+    acc[dimension] = Math.random() >= 0.2 ? 'Pass' : 'Fail';
+    return acc;
+  }, {
+    cefrFit: 'Pass',
+    distractorStrength: 'Pass',
+    clarity: 'Pass',
+    fairness: 'Pass',
+    similarity: 'Pass',
+  });
+};
+
+const getScreeningFixture = (id: string): DemoScreeningFixture => {
+  const predefined = DEMO_SCREENING_FIXTURES[id];
+
+  if (predefined) {
+    return predefined;
+  }
+
+  const screening = randomScreeningResults();
+  const hasFailure = SCREENING_DIMENSIONS.some((dimension) => screening[dimension] === 'Fail');
+
+  return {
+    screening,
+    feedback: hasFailure
+      ? 'Reviewer feedback: This item needs manual review because one or more screening dimensions did not meet the current quality bar.'
+      : 'Reviewer feedback: Passed all screening checks and is ready for approval.',
+  };
+};
+
+export const getMockDifficultyPredictionResult = (id: string): DifficultyPredictionResult => {
+  const predefined = DEMO_DP_FIXTURES[id];
+
+  if (predefined) {
+    return predefined;
+  }
+
+  const b = Number((Math.random() * 2).toFixed(2));
+  const confidence = Math.floor(Math.random() * 30) + 70;
+
+  return {
+    id,
+    b,
+    confidence,
+    difficulty: b < 0.4 ? 'Easy' : b < 1.2 ? 'Medium' : 'Hard',
+    discrimination: confidence >= 90 ? 'High' : confidence >= 80 ? 'Moderate' : 'Low',
+  };
+};
+
+const normalizeWorkflowState = (state: string | undefined): AssessmentItem['workflowState'] => {
+  return normalizeWorkflowStateInput(state);
+};
+
+const normalizeItemStatus = (status: string | undefined): AssessmentItem['status'] => {
+  if (!status) {
+    return 'Draft';
+  }
+
+  switch (status) {
+    case 'Published':
+    case 'Draft':
+    case 'Retired':
+    case 'Compromised':
+      return status;
+    case 'In Review':
+      return 'Draft';
+    case 'Active':
+    case 'Approved':
+    case 'Calibrated':
+      return 'Published';
+    default:
+      return 'Draft';
+  }
+};
+
+const normalizeItemLifecycle = (item: AssessmentItem): AssessmentItem => {
+  return {
+    ...item,
+    status: normalizeItemStatus(item.status),
+    workflowState: normalizeWorkflowState(item.workflowState),
+  };
+};
+
+const getStoredIngestedItems = (): AssessmentItem[] => {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const raw = localStorage.getItem(INGESTED_ITEMS_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed as AssessmentItem[];
+  } catch {
+    return [];
+  }
+};
+
+const setStoredIngestedItems = (items: AssessmentItem[]) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  localStorage.setItem(INGESTED_ITEMS_STORAGE_KEY, JSON.stringify(items));
+};
+
+const getStoredWorkflowOverrides = (): ItemWorkflowOverride[] => {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const raw = localStorage.getItem(WORKFLOW_OVERRIDES_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed as ItemWorkflowOverride[];
+  } catch {
+    return [];
+  }
+};
+
+const setStoredWorkflowOverrides = (overrides: ItemWorkflowOverride[]) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  localStorage.setItem(WORKFLOW_OVERRIDES_STORAGE_KEY, JSON.stringify(overrides));
+};
+
+const mergeItemWithPatch = (baseItem: AssessmentItem, patch: Partial<AssessmentItem>): AssessmentItem => {
+  const hasIrt = Boolean(baseItem.irtParameters || patch.irtParameters);
+  const mergedWorkflowState = patch.workflowState ?? baseItem.workflowState;
+  const mergedStatus = patch.status ?? baseItem.status;
+
+  return {
+    ...baseItem,
+    ...patch,
+    status: normalizeItemStatus(mergedStatus),
+    workflowState: normalizeWorkflowState(mergedWorkflowState),
+    screening: {
+      ...baseItem.screening,
+      ...patch.screening,
+    },
+    irtParameters: hasIrt
+      ? {
+          b: patch.irtParameters?.b ?? baseItem.irtParameters?.b ?? 0,
+          a: patch.irtParameters?.a ?? baseItem.irtParameters?.a ?? 1,
+          c: patch.irtParameters?.c ?? baseItem.irtParameters?.c ?? 0,
+          sampleSize: patch.irtParameters?.sampleSize ?? baseItem.irtParameters?.sampleSize,
+          modelVersion: patch.irtParameters?.modelVersion ?? baseItem.irtParameters?.modelVersion,
+          predictionDate: patch.irtParameters?.predictionDate ?? baseItem.irtParameters?.predictionDate,
+          calibratedFromFieldTest:
+            patch.irtParameters?.calibratedFromFieldTest ?? baseItem.irtParameters?.calibratedFromFieldTest,
+          predictedByAI: patch.irtParameters?.predictedByAI ?? baseItem.irtParameters?.predictedByAI,
+        }
+      : undefined,
+  };
+};
+
+const upsertItemOverrides = (
+  ids: string[],
+  buildPatch: (existingItem: AssessmentItem, existingPatch?: Partial<AssessmentItem>) => Partial<AssessmentItem>,
+) => {
+  if (!ids.length) {
+    return;
+  }
+
+  const baseItemsById = new Map<string, AssessmentItem>();
+  const persistedItems = getStoredIngestedItems();
+  [...allMockItems, ...persistedItems].forEach((item) => {
+    baseItemsById.set(item.id, item);
+  });
+
+  const overrideMap = new Map<string, ItemWorkflowOverride>();
+  getStoredWorkflowOverrides().forEach((override) => {
+    overrideMap.set(override.id, override);
+  });
+
+  ids.forEach((id) => {
+    const existingItem = baseItemsById.get(id);
+    if (!existingItem) {
+      return;
+    }
+
+    const existingOverride = overrideMap.get(id);
+    const patch = buildPatch(existingItem, existingOverride?.patch);
+
+    overrideMap.set(id, {
+      id,
+      patch: {
+        ...(existingOverride?.patch ?? {}),
+        ...patch,
+      },
+    });
+  });
+
+  setStoredWorkflowOverrides(Array.from(overrideMap.values()));
+};
+
+export const getIngestedItems = () => getStoredIngestedItems();
+
+export const addIngestedItems = (items: AssessmentItem[]) => {
+  if (!items.length) {
+    return;
+  }
+
+  const existing = getStoredIngestedItems();
+  const mergedById = new Map<string, AssessmentItem>();
+
+  existing.forEach((item) => mergedById.set(item.id, item));
+  items.forEach((item) => mergedById.set(item.id, item));
+
+  setStoredIngestedItems(Array.from(mergedById.values()));
+};
+
+export const queueItemsForScreening = (itemIds: string[]) => {
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const nowIso = now.toISOString();
+
+  upsertItemOverrides(itemIds, (item, existingPatch) => {
+    const fixture = getScreeningFixture(item.id);
+    const allPassed = SCREENING_DIMENSIONS.every((dimension) => fixture.screening[dimension] === 'Pass');
+
+    const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
+    const nextHistory = [
+      ...previousHistory,
+      {
+        date: today,
+        reviewer: 'Screening Queue',
+        action: allPassed ? 'Screening Auto-Completed (Pass)' : 'Screening Auto-Completed (Needs Review)',
+        state: 'PENDING_SCREENING_REVIEW',
+        notes: fixture.feedback,
+      },
+    ];
+
+    return {
+      workflowState: 'PENDING_SCREENING_REVIEW',
+      flaggedForReview: !allPassed,
+      flagReason: allPassed ? undefined : fixture.feedback,
+      screening: fixture.screening,
+      reviewHistory: nextHistory,
+      lastEditedDate: nowIso,
+      lastEditedBy: 'Screening Queue',
+    };
+  });
+};
+
+export const approveScreenedItems = (itemIds: string[]) => {
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const nowIso = now.toISOString();
+
+  upsertItemOverrides(itemIds, (item, existingPatch) => {
+    const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
+    const nextHistory = [
+      ...previousHistory,
+      {
+        date: today,
+        reviewer: 'Screening Team',
+        action: 'Screening Approved',
+        state: 'SCREENING_APPROVED',
+      },
+    ];
+
+    return {
+      workflowState: 'SCREENING_APPROVED',
+      flaggedForReview: false,
+      flagReason: undefined,
+      screening: {
+        cefrFit: 'Pass',
+        distractorStrength: 'Pass',
+        clarity: 'Pass',
+        fairness: 'Pass',
+        similarity: 'Pass',
+      },
+      reviewHistory: nextHistory,
+      lastEditedDate: nowIso,
+      lastEditedBy: 'Screening Team',
+    };
+  });
+};
+
+export const rejectScreenedItems = (itemIds: string[]) => {
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const nowIso = now.toISOString();
+
+  upsertItemOverrides(itemIds, (item, existingPatch) => {
+    const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
+    const nextHistory = [
+      ...previousHistory,
+      {
+        date: today,
+        reviewer: 'Screening Team',
+        action: 'Screening Rejected',
+        state: 'SCREENING_REJECTED',
+      },
+    ];
+
+    return {
+      workflowState: 'SCREENING_REJECTED',
+      status: 'Retired',
+      flaggedForReview: false,
+      reviewHistory: nextHistory,
+      lastEditedDate: nowIso,
+      lastEditedBy: 'Screening Team',
+    };
+  });
+};
+
+export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]) => {
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const nowIso = now.toISOString();
+
+  results.forEach((result) => {
+    upsertItemOverrides([result.id], (item, existingPatch) => {
+      const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
+      const nextHistory = [
+        ...previousHistory,
+        {
+          date: today,
+          reviewer: 'Prediction Engine',
+          action: 'Difficulty Predicted',
+          state: 'PENDING_DP_REVIEW',
+        },
+      ];
+
+      return {
+        workflowState: 'PENDING_DP_REVIEW',
+        difficulty: result.difficulty,
+        confidence: result.confidence,
+        discrimination: result.discrimination,
+        irtParameters: {
+          ...item.irtParameters,
+          b: result.b,
+          a: item.irtParameters?.a ?? 1.2,
+          c: item.irtParameters?.c ?? 0.25,
+          predictedByAI: true,
+          calibratedFromFieldTest: false,
+          modelVersion: 'IRT-LSTM-3.1',
+          predictionDate: nowIso,
+        },
+        aiModelVersion: 'IRT-LSTM-3.1',
+        aiPredictionDate: nowIso,
+        reviewHistory: nextHistory,
+        lastEditedDate: nowIso,
+        lastEditedBy: 'Prediction Engine',
+      };
+    });
+  });
+};
+
+export const acceptPredictedItems = (itemIds: string[]) => {
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const nowIso = now.toISOString();
+
+  upsertItemOverrides(itemIds, (item, existingPatch) => {
+    const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
+    const nextHistory = [
+      ...previousHistory,
+      {
+        date: today,
+        reviewer: 'Difficulty Review Team',
+        action: 'DP Approved',
+        state: 'RECOMMENDED_FOR_SEEDING',
+      },
+    ];
+
+    return {
+      workflowState: 'RECOMMENDED_FOR_SEEDING',
+      status: 'Published',
+      flaggedForReview: false,
+      reviewHistory: nextHistory,
+      lastEditedDate: nowIso,
+      lastEditedBy: 'Difficulty Review Team',
+    };
+  });
+};
+
+export const moveItemsToSeeded = (itemIds: string[]) => {
+  const today = new Date().toISOString().slice(0, 10);
+
+  upsertItemOverrides(itemIds, (item, existingPatch) => {
+    const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
+    const nextHistory = [
+      ...previousHistory,
+      {
+        date: today,
+        reviewer: 'Seeding Team',
+        action: 'Added to Seeding Batch',
+        state: 'SEEDED',
+      },
+    ];
+
+    return {
+      workflowState: 'SEEDED',
+      status: 'Published',
+      flaggedForReview: false,
+      reviewHistory: nextHistory,
+      lastEditedDate: today,
+      lastEditedBy: 'Seeding Team',
+    };
+  });
+};
 
 export const bankCapacityData: BankCapacity[] = [
   { level: 'A1', active: 84, compromised: 6, gapToTarget: 28, target: 118, percentage: 71 },
@@ -13,654 +603,341 @@ export const bankCapacityData: BankCapacity[] = [
   { level: 'C2', active: 67, compromised: 3, gapToTarget: 13, target: 83, percentage: 84 },
 ];
 
-export const mockItems: AssessmentItem[] = [
-  {
-    id: 'ITM-RACE-0010',
-    title: 'What did the armed men steal on Thursday?',
-    content: 'What did the armed men steal on Thursday?',
-    level: 'A1',
-    skill: 'Reading',
-    itemType: 'Multiple Choice',
-    status: 'Compromised',
-    exposureCount: 188,
-    difficulty: 'Easy',
-    passageId: 'PSG-RACE-0010',
-    passage: 'A passage about a theft that occurred on Thursday...',
-    options: [
-      { label: 'A', text: 'They stole all the crops from the village.' },
-      { label: 'B', text: 'They stole jewelry from the family home.', correct: true },
-      { label: 'C', text: 'They stole the village records.' },
-      { label: 'D', text: 'They stole several racehorses.' },
-    ],
-    irtParameters: {
-      b: 0.45,
-      a: 1.2,
-      c: 0.25,
-      sampleSize: 1250,
-      modelVersion: 'IRT-2.4',
-      predictionDate: '2025-01-15',
-      calibratedFromFieldTest: true,
-      predictedByAI: false,
-    },
-    subSkill: 'Reading for detail',
-    cognitiveLevel: 'L2 Understand',
-    contentDomain: 'Humanities',
-    languageVariety: 'International',
-    enemyItems: ['ITM-RACE-0145'],
-    discrimination: 'Moderate',
-    confidence: 91,
-    screening: {
-      cefrFit: 'Pass',
-      distractorStrength: 'Pass',
-      clarity: 'Pass',
-      fairness: 'Pass',
-      similarity: 'Review',
-    },
-    workflowState: 'Live',
-    reviewHistory: [
-      { date: '2024-08-16', reviewer: 'Sarah Chen', action: 'Created', state: 'Draft' },
-      { date: '2024-09-02', reviewer: 'Michael Torres', action: 'Reviewed', state: 'In Review', notes: 'Approved for field testing' },
-      { date: '2024-12-10', reviewer: 'System', action: 'Calibrated', state: 'Calibrated', notes: 'IRT parameters calculated from field test data (n=1250)' },
-      { date: '2025-01-08', reviewer: 'Emma Rodriguez', action: 'Flagged', state: 'Live', notes: 'High exposure count detected - item may be compromised' },
-    ],
-    flaggedForReview: true,
-    flagReason: 'High exposure count (188) may compromise item security',
-    author: 'Sarah Chen',
-    createdDate: '2024-08-16',
-    lastEditedDate: '2025-01-08',
-    lastEditedBy: 'Emma Rodriguez',
-    reviewers: ['Michael Torres', 'Emma Rodriguez'],
-  },
-  {
-    id: 'ITM-RACE-0145',
-    title: 'Why did the man give up his job, home and friends?',
-    content: 'Why did the man give up his job, home and friends?',
-    level: 'A1',
-    skill: 'Reading',
-    itemType: 'Multiple Choice',
-    status: 'Compromised',
-    exposureCount: 142,
-    difficulty: 'Easy',
-    passageId: 'PSG-RACE-0145',
-    options: [
-      { label: 'A', text: 'To pursue a new career opportunity abroad.' },
-      { label: 'B', text: 'To find a suitable training place.', correct: true },
-      { label: 'C', text: 'To escape from financial difficulties.' },
-      { label: 'D', text: 'To take care of his elderly parents.' },
-    ],
-    irtParameters: {
-      b: 0.52,
-      a: 1.15,
-      c: 0.23,
-      sampleSize: 980,
-      modelVersion: 'IRT-2.4',
-      predictionDate: '2025-01-12',
-      calibratedFromFieldTest: true,
-      predictedByAI: false,
-    },
-    subSkill: 'Reading for detail',
-    cognitiveLevel: 'L2 Understand',
-    contentDomain: 'Humanities',
-    languageVariety: 'International',
-    enemyItems: ['ITM-RACE-0010'],
-    discrimination: 'Moderate',
-    confidence: 89,
-    screening: {
-      cefrFit: 'Pass',
-      distractorStrength: 'Pass',
-      clarity: 'Pass',
-      fairness: 'Review',
-      similarity: 'Pass',
-    },
-    workflowState: 'Live',
-    reviewHistory: [
-      { date: '2024-07-22', reviewer: 'James Liu', action: 'Created', state: 'Draft' },
-      { date: '2024-08-14', reviewer: 'Priya Sharma', action: 'Reviewed', state: 'Approved', notes: 'Content validated, approved for calibration' },
-      { date: '2024-11-30', reviewer: 'System', action: 'Calibrated', state: 'Calibrated' },
-      { date: '2025-01-05', reviewer: 'System', action: 'Auto-flagged', state: 'Live', notes: 'Similarity to ITM-RACE-0010 detected' },
-    ],
-    flaggedForReview: false,
-    author: 'James Liu',
-    createdDate: '2024-07-22',
-    lastEditedDate: '2024-08-14',
-    lastEditedBy: 'Priya Sharma',
-    reviewers: ['Priya Sharma'],
-  },
-  {
-    id: 'ITM-GEN-0009',
-    title: 'What does the woman want?',
-    content: 'What does the woman want?',
-    level: 'A1',
-    skill: 'Listening',
-    itemType: 'Multiple Choice',
-    status: 'Active',
-    difficulty: 'Easy',
-    audioAsset: 'audio_gen_0009.mp3',
-    options: [
-      { label: 'A', text: 'To schedule a doctor appointment.' },
-      { label: 'B', text: 'To reschedule a meeting.', correct: true },
-      { label: 'C', text: 'To cancel her reservation.' },
-      { label: 'D', text: 'To confirm her travel plans.' },
-    ],
-    irtParameters: {
-      b: 0.38,
-      a: 1.35,
-      c: 0.22,
-      sampleSize: 450,
-      modelVersion: 'IRT-LSTM-3.1',
-      predictionDate: '2025-03-10',
-      calibratedFromFieldTest: false,
-      predictedByAI: true,
-    },
-    subSkill: 'Listening for gist',
-    cognitiveLevel: 'L2 Understand',
-    contentDomain: 'General',
-    languageVariety: 'International',
-    discrimination: 'Good',
-    confidence: 78,
-    screening: {
-      cefrFit: 'Pass',
-      distractorStrength: 'Pass',
-      clarity: 'Pass',
-      fairness: 'Pass',
-      similarity: 'Pass',
-    },
-    workflowState: 'Approved',
-    reviewHistory: [
-      { date: '2025-02-28', reviewer: 'AI System', action: 'Generated', state: 'Draft', notes: 'Auto-generated by AI model' },
-      { date: '2025-03-05', reviewer: 'Lisa Anderson', action: 'Reviewed', state: 'In Review', notes: 'Audio quality verified, distractors are plausible' },
-      { date: '2025-03-10', reviewer: 'David Kim', action: 'Approved', state: 'Approved', notes: 'Ready for difficulty prediction' },
-    ],
-    flaggedForReview: false,
-    author: 'AI Content Generator v3.1',
-    createdDate: '2025-02-28',
-    lastEditedDate: '2025-03-10',
-    lastEditedBy: 'David Kim',
-    reviewers: ['Lisa Anderson', 'David Kim'],
-    aiModelVersion: 'GPT-Assessment-3.1',
-    aiPredictionDate: '2025-03-10',
-  },
-  {
-    id: 'ITM-WRITE-0012',
-    title: 'Write an essay on the impact of artificial intelligence',
-    content: 'Write an essay on the impact of artificial intelligence',
-    level: 'C1',
-    skill: 'Writing',
-    itemType: 'Essay',
-    status: 'Active',
-    difficulty: 'Hard',
-    rubric: `
-Scoring Rubric (0-5 scale):
-5 - Exceptional: Sophisticated vocabulary, complex structures, coherent argumentation
-4 - Strong: Good range of vocabulary, varied sentence structures, clear organization
-3 - Adequate: Sufficient vocabulary for task, some variety in structures, basic organization
-2 - Limited: Limited vocabulary, simple structures, weak organization
-1 - Very Limited: Very limited vocabulary, frequent errors, minimal coherence
-0 - No response or completely off-topic
-    `,
-    irtParameters: {
-      b: 1.85,
-      a: 0.95,
-      c: 0.0,
-      sampleSize: 320,
-      modelVersion: 'IRT-Rasch-1.2',
-      predictionDate: '2025-02-20',
-      calibratedFromFieldTest: true,
-      predictedByAI: false,
-    },
-    subSkill: 'Essay writing',
-    cognitiveLevel: 'L4 Analyze',
-    contentDomain: 'Technology',
-    languageVariety: 'International',
-    discrimination: 'Moderate',
-    confidence: 87,
-    screening: {
-      cefrFit: 'Pass',
-      clarity: 'Pass',
-      fairness: 'Review',
-    },
-    workflowState: 'Live',
-    reviewHistory: [
-      { date: '2024-10-05', reviewer: 'Robert Martinez', action: 'Created', state: 'Draft' },
-      { date: '2024-10-12', reviewer: 'Fatima Al-Hassan', action: 'Reviewed', state: 'In Review', notes: 'Rubric needs minor adjustments for C1 level' },
-      { date: '2024-10-15', reviewer: 'Robert Martinez', action: 'Revised', state: 'In Review', notes: 'Updated rubric with more specific C1 criteria' },
-      { date: '2024-10-18', reviewer: 'Fatima Al-Hassan', action: 'Approved', state: 'Approved', notes: 'Rubric now aligns with CEFR C1 descriptors' },
-      { date: '2025-01-20', reviewer: 'System', action: 'Calibrated', state: 'Calibrated' },
-    ],
-    flaggedForReview: false,
-    author: 'Robert Martinez',
-    createdDate: '2024-10-05',
-    lastEditedDate: '2024-10-15',
-    lastEditedBy: 'Robert Martinez',
-    reviewers: ['Fatima Al-Hassan'],
-  },
-  {
-    id: 'ITM-SPEAK-0045',
-    title: 'Describe your daily routine',
-    content: 'Describe your daily routine. Please speak for 1-2 minutes.',
-    level: 'A1',
-    skill: 'Speaking',
-    itemType: 'Speaking',
-    status: 'Active',
-    difficulty: 'Easy',
-    rubric: `
-Scoring Rubric (0-4 scale):
-4 - Can describe daily activities with basic time expressions
-3 - Can describe some daily activities with occasional errors
-2 - Can name individual activities but with limited connection
-1 - Can name only 1-2 activities with significant difficulty
-0 - No intelligible response
-    `,
-    irtParameters: {
-      b: 0.25,
-      a: 1.08,
-      c: 0.0,
-      sampleSize: 215,
-      modelVersion: 'IRT-Rasch-1.2',
-      predictionDate: '2025-03-01',
-      calibratedFromFieldTest: false,
-      predictedByAI: true,
-    },
-    subSkill: 'Describing daily activities',
-    cognitiveLevel: 'L1 Remember',
-    contentDomain: 'Personal Life',
-    languageVariety: 'International',
-    discrimination: 'Moderate',
-    confidence: 82,
-    screening: {
-      cefrFit: 'Pass',
-      clarity: 'Pass',
-      fairness: 'Pass',
-    },
-    workflowState: 'Approved',
-    reviewHistory: [
-      { date: '2025-02-15', reviewer: 'Anna Kowalski', action: 'Created', state: 'Draft' },
-      { date: '2025-02-22', reviewer: 'Chen Wei', action: 'Reviewed', state: 'In Review', notes: 'Prompt is clear and appropriate for A1 level' },
-      { date: '2025-03-01', reviewer: 'Chen Wei', action: 'Approved', state: 'Approved', notes: 'Ready for field testing' },
-    ],
-    flaggedForReview: false,
-    author: 'Anna Kowalski',
-    createdDate: '2025-02-15',
-    lastEditedDate: '2025-03-01',
-    lastEditedBy: 'Chen Wei',
-    reviewers: ['Chen Wei'],
-    aiModelVersion: 'Difficulty-Predictor-2.3',
-    aiPredictionDate: '2025-03-01',
-  },
-];
+type QuestionWithMetadata = UnifiedQuestion & {
+  workflowState?: AssessmentItem['workflowState'];
+  status?: AssessmentItem['status'];
+  screening?: AssessmentItem['screening'];
+  flaggedForReview?: boolean;
+  flagReason?: string;
+  reviewHistory?: AssessmentItem['reviewHistory'];
+  irtParameters?: AssessmentItem['irtParameters'];
+  subSkill?: string;
+  cognitiveLevel?: string;
+  contentDomain?: string;
+  languageVariety?: string;
+  discrimination?: string;
+  confidence?: number;
+  author?: string;
+  createdDate?: string;
+  lastEditedDate?: string;
+  lastEditedBy?: string;
+  reviewers?: string[];
+  exposureCount?: number;
+  enemyItems?: string[];
+  aiModelVersion?: string;
+  aiPredictionDate?: string;
+};
 
-// Generate additional mock items for different CEFR levels
-const additionalMockItems: Partial<AssessmentItem>[] = [
-  {
-    id: 'ITM-RACE-0238',
-    title: 'If Mary are not free in the daytime, she\'d better call...',
-    content: 'If Mary are not free in the daytime, she\'d better call...',
-    level: 'A2',
-    skill: 'Reading',
-    itemType: 'Multiple Choice',
-    status: 'Active',
-    difficulty: 'Easy',
-    irtParameters: { b: 0.68, a: 1.25, c: 0.25, sampleSize: 820, calibratedFromFieldTest: true },
-    workflowState: 'Live',
-    screening: { cefrFit: 'Review', distractorStrength: 'Review', clarity: 'Pass', fairness: 'Pass', similarity: 'Pass' },
-  },
-  {
-    id: 'ITM-RACE-0293',
-    title: 'Why did the girl long for the house on the hill?',
-    content: 'Why did the girl long for the house on the hill?',
-    level: 'A2',
-    skill: 'Reading',
-    itemType: 'Multiple Choice',
-    status: 'Active',
-    difficulty: 'Easy',
-    irtParameters: { b: 0.72, a: 1.18, c: 0.24, predictedByAI: true, modelVersion: 'IRT-LSTM-3.1' },
-    workflowState: 'Approved',
-  },
-  {
-    id: 'ITM-RACE-0244',
-    title: 'The little boy cried because...',
-    content: 'The little boy cried because...',
-    level: 'A2',
-    skill: 'Reading',
-    itemType: 'Multiple Choice',
-    status: 'Active',
-    difficulty: 'Easy',
-    irtParameters: { b: 0.55, a: 1.32, c: 0.22, sampleSize: 650, calibratedFromFieldTest: true },
-    workflowState: 'Live',
-  },
-  {
-    id: 'ITM-RACE-0048',
-    title: 'If you were a housewife/wife, which program would probably interest you most?',
-    content: 'If you were a housewife/wife, which program would probably interest you most?',
-    level: 'A2',
-    skill: 'Reading',
-    itemType: 'Multiple Choice',
-    status: 'Active',
-    difficulty: 'Medium',
-    irtParameters: { b: 0.88, a: 1.05, c: 0.26, predictedByAI: true, modelVersion: 'IRT-LSTM-3.1' },
-    workflowState: 'Approved',
-    screening: { cefrFit: 'Review', distractorStrength: 'Review', clarity: 'Pass', fairness: 'Fail', similarity: 'Pass' },
-    flaggedForReview: true,
-    flagReason: 'Potential gender bias in prompt wording',
-  },
-  {
-    id: 'ITM-GEN-0063',
-    title: 'If one wants to be a reporter, he must __.',
-    content: 'If one wants to be a reporter, he must __.',
-    level: 'B1',
-    skill: 'Reading',
-    itemType: 'Multiple Choice',
-    status: 'Active',
-    difficulty: 'Medium',
-    irtParameters: { b: 0.95, a: 1.22, c: 0.24, sampleSize: 540, calibratedFromFieldTest: true },
-    workflowState: 'Live',
-  },
-  {
-    id: 'ITM-GEN-0129',
-    title: 'The examiner will show you a picture. Please describe the picture in detail.',
-    content: 'The examiner will show you a picture. Please describe the picture in detail.',
-    level: 'A1',
-    skill: 'Speaking',
-    itemType: 'Speaking',
-    status: 'Active',
-    difficulty: 'Very Easy',
-    irtParameters: { b: 0.15, a: 1.12, c: 0.0, predictedByAI: true, modelVersion: 'Difficulty-Predictor-2.3' },
-    workflowState: 'Approved',
-  },
-  {
-    id: 'ITM-GEN-0189',
-    title: 'Write a card with a top and a bottom. The top has a picture of a clock...',
-    content: 'Write a card with a top and a bottom. The top has a picture of a clock and the bottom has a picture of a calendar. Please describe the card in detail.',
-    level: 'C1',
-    skill: 'Writing',
-    itemType: 'Multiple Choice',
-    status: 'Active',
-    difficulty: 'Very Hard',
-    irtParameters: { b: 1.65, a: 1.15, c: 0.23, sampleSize: 380, calibratedFromFieldTest: true },
-    workflowState: 'Live',
-    screening: { cefrFit: 'Pass', distractorStrength: 'Pass', clarity: 'Review', fairness: 'Pass', similarity: 'Pass' },
-  },
-  {
-    id: 'ITM-GEN-0110',
-    title: 'The fisherman\'s initial results were inconclusive, prompting further investigation.',
-    content: 'The fisherman\'s initial results were inconclusive, prompting further investigation.',
-    level: 'B2',
-    skill: 'Writing',
-    itemType: 'Multiple Choice',
-    status: 'Active',
-    difficulty: 'Hard',
-    irtParameters: { b: 1.28, a: 1.08, c: 0.25, predictedByAI: true, modelVersion: 'IRT-LSTM-3.1' },
-    workflowState: 'Approved',
-  },
-  {
-    id: 'ITM-GEN-0129-B',
-    title: 'The examiner will show you a picture. Please describe the picture in detail.',
-    content: 'The examiner will show you a picture. Please describe the picture in detail.',
-    level: 'A1',
-    skill: 'Speaking',
-    itemType: 'Speaking',
-    status: 'Active',
-    difficulty: 'Very Easy',
-    irtParameters: { b: 0.18, a: 1.15, c: 0.0, predictedByAI: true, modelVersion: 'Difficulty-Predictor-2.3' },
-    workflowState: 'Approved',
-  },
-  {
-    id: 'ITM-RACE-0027',
-    title: 'This passage primarily deals with...',
-    content: 'This passage primarily deals with...',
-    level: 'B1',
-    skill: 'Reading',
-    itemType: 'Multiple Choice',
-    status: 'Active',
-    difficulty: 'Medium',
-    irtParameters: { b: 0.92, a: 1.18, c: 0.23, sampleSize: 720, calibratedFromFieldTest: true },
-    workflowState: 'Live',
-  },
-  {
-    id: 'ITM-RACE-0077',
-    title: 'Why did the man decide to quit?',
-    content: 'Why did the man decide to quit?',
-    level: 'B1',
-    skill: 'Reading',
-    itemType: 'Multiple Choice',
-    status: 'Active',
-    difficulty: 'Medium',
-    irtParameters: { b: 1.02, a: 1.24, c: 0.22, sampleSize: 890, calibratedFromFieldTest: true },
-    workflowState: 'Live',
-  },
-  {
-    id: 'ITM-RACE-0150',
-    title: 'How about you? What does the passage mainly tell us?',
-    content: 'How about you? What does the passage mainly tell us?',
-    level: 'B1',
-    skill: 'Reading',
-    itemType: 'Multiple Choice',
-    status: 'Active',
-    difficulty: 'Medium',
-    irtParameters: { b: 0.98, a: 1.20, c: 0.24, predictedByAI: true, modelVersion: 'IRT-LSTM-3.1' },
-    workflowState: 'Approved',
-  },
-  {
-    id: 'ITM-RACE-0199',
-    title: 'What\'s the best title of the passage?',
-    content: 'What\'s the best title of the passage?',
-    level: 'B1',
-    skill: 'Reading',
-    itemType: 'Multiple Choice',
-    status: 'Active',
-    difficulty: 'Medium',
-    irtParameters: { b: 1.05, a: 1.16, c: 0.25, sampleSize: 610, calibratedFromFieldTest: true },
-    workflowState: 'Live',
-  },
-];
+const getQuestionMetadata = (question: UnifiedQuestion): Partial<AssessmentItem> => {
+  const q = question as QuestionWithMetadata;
+
+  return {
+    status: q.status,
+    workflowState: q.workflowState,
+    screening: q.screening,
+    flaggedForReview: q.flaggedForReview,
+    flagReason: q.flagReason,
+    reviewHistory: q.reviewHistory,
+    irtParameters: q.irtParameters,
+    subSkill: q.subSkill,
+    cognitiveLevel: q.cognitiveLevel,
+    contentDomain: q.contentDomain,
+    languageVariety: q.languageVariety,
+    discrimination: q.discrimination,
+    confidence: q.confidence,
+    author: q.author,
+    createdDate: q.createdDate,
+    lastEditedDate: q.lastEditedDate,
+    lastEditedBy: q.lastEditedBy,
+    reviewers: q.reviewers,
+    exposureCount: q.exposureCount,
+    enemyItems: q.enemyItems,
+    aiModelVersion: q.aiModelVersion,
+    aiPredictionDate: q.aiPredictionDate,
+  };
+};
 
 // Convert listening questions to AssessmentItem format
-const listeningItems: AssessmentItem[] = listeningQuestions.map(q => ({
-  id: q.id,
-  title: q.question,
-  content: q.context || q.question,
-  level: q.level as CEFRLevel,
-  skill: 'Listening',
-  itemType: q.questionType as ItemType,
-  status: 'Active',
-  difficulty: q.difficulty,
-  options: q.options ? q.options.map((opt, idx) => ({
-    label: String.fromCharCode(65 + idx),
-    text: opt,
-    correct: opt === q.correctAnswer
-  })) : undefined,
-  audioAsset: q.audioFile,
-  passage: q.context,
-  subSkill: q.skill,
-  cognitiveLevel: q.difficulty === 'Easy' ? 'L2 Understand' : q.difficulty === 'Medium' ? 'L3 Apply' : 'L4 Analyze',
-  contentDomain: q.topic,
-  languageVariety: 'International',
-  discrimination: q.difficulty === 'Easy' ? 'Low' : q.difficulty === 'Medium' ? 'Moderate' : 'High',
-  confidence: q.difficulty === 'Easy' ? 75 : q.difficulty === 'Medium' ? 85 : 92,
-  workflowState: 'Live',
-  author: 'Content Team',
-  createdDate: '2024-09-01',
-  lastEditedDate: '2024-10-15',
-  reviewHistory: [
-    { date: '2024-09-01', reviewer: 'System', action: 'Created', state: 'Draft' },
-    { date: '2024-10-15', reviewer: 'Audio Team', action: 'Approved', state: 'Live' },
-  ],
-  irtParameters: {
-    b: q.difficulty === 'Easy' ? 0.3 : q.difficulty === 'Medium' ? 0.8 : 1.3,
-    a: 1.2,
-    c: q.options ? 0.25 : 0.0,
-    sampleSize: 500,
-    modelVersion: 'IRT-2.4',
-    calibratedFromFieldTest: true,
-  }
-}));
+const listeningItems: AssessmentItem[] = listeningQuestions.map((q) => {
+  const metadata = getQuestionMetadata(q);
+  const options = Array.isArray(q.options)
+    ? q.options.map((opt, idx) => {
+        if (typeof opt === 'string') {
+          return {
+            label: String.fromCodePoint(65 + idx),
+            text: opt,
+            correct: opt === q.correctAnswer,
+          };
+        }
+
+        return {
+          label: opt.label ?? String.fromCodePoint(65 + idx),
+          text: opt.text,
+          correct: Boolean(opt.correct),
+        };
+      })
+    : undefined;
+
+  return {
+    id: q.id,
+    title: q.prompt,
+    content: q.skillDetails.listening.context || q.prompt,
+    answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
+    level: q.level as CEFRLevel,
+    skill: 'Listening',
+    itemType: q.questionType as ItemType,
+    status: metadata.status as AssessmentItem['status'],
+    difficulty: q.difficulty as AssessmentItem['difficulty'],
+    options,
+    audioAsset: q.skillDetails.listening.audioAsset || q.skillDetails.listening.audioFile,
+    passage: q.skillDetails.listening.transcript,
+    instructions: q.skillDetails.listening.instructions,
+    subSkill: metadata.subSkill,
+    cognitiveLevel: metadata.cognitiveLevel,
+    contentDomain: metadata.contentDomain,
+    languageVariety: metadata.languageVariety,
+    discrimination: metadata.discrimination,
+    confidence: metadata.confidence,
+    workflowState: metadata.workflowState,
+    screening: metadata.screening,
+    flaggedForReview: metadata.flaggedForReview,
+    flagReason: metadata.flagReason,
+    author: metadata.author,
+    createdDate: metadata.createdDate,
+    lastEditedDate: metadata.lastEditedDate,
+    lastEditedBy: metadata.lastEditedBy,
+    reviewers: metadata.reviewers,
+    reviewHistory: metadata.reviewHistory,
+    irtParameters: metadata.irtParameters,
+    exposureCount: metadata.exposureCount,
+    enemyItems: metadata.enemyItems,
+    aiModelVersion: metadata.aiModelVersion,
+    aiPredictionDate: metadata.aiPredictionDate,
+  };
+});
 
 // Convert speaking questions to AssessmentItem format
-const speakingItems: AssessmentItem[] = speakingQuestions.map(q => ({
-  id: q.id,
-  title: q.question,
-  content: q.question + (q.followUpQuestions ? '\n\nFollow-up questions:\n' + q.followUpQuestions.join('\n') : ''),
-  level: q.level as CEFRLevel,
-  skill: 'Speaking',
-  itemType: 'Speaking' as ItemType,
-  status: 'Active',
-  difficulty: q.difficulty,
-  rubric: q.rubricCriteria ? `Assessment Criteria:\n${q.rubricCriteria.join('\n')}` : undefined,
-  subSkill: q.skill,
-  cognitiveLevel: q.part === 1 ? 'L2 Understand' : q.part === 2 ? 'L3 Apply' : 'L4 Analyze',
-  contentDomain: q.topic,
-  languageVariety: 'International',
-  discrimination: q.difficulty === 'Easy' ? 'Low' : q.difficulty === 'Medium' ? 'Moderate' : 'High',
-  confidence: q.difficulty === 'Easy' ? 75 : q.difficulty === 'Medium' ? 85 : 92,
-  workflowState: 'Live',
-  author: 'Speaking Team',
-  createdDate: '2024-10-01',
-  lastEditedDate: '2024-11-15',
-  reviewHistory: [
-    { date: '2024-10-01', reviewer: 'System', action: 'Created', state: 'Draft' },
-    { date: '2024-11-15', reviewer: 'Speaking Team', action: 'Approved', state: 'Live' },
-  ],
-  irtParameters: {
-    b: q.difficulty === 'Easy' ? 0.4 : q.difficulty === 'Medium' ? 0.9 : 1.4,
-    a: 1.1,
-    c: 0.0,
-    sampleSize: 450,
-    modelVersion: 'IRT-2.4',
-    calibratedFromFieldTest: true,
+const speakingItems: AssessmentItem[] = speakingQuestions.map((q) => {
+  const metadata = getQuestionMetadata(q);
+  const speakingDetails = q.skillDetails.speaking;
+  const followUpQuestions = speakingDetails.followUpQuestions ?? [];
+  const rubricCriteria = speakingDetails.rubricCriteria ?? [];
+  const cueCard = speakingDetails.cueCard?.trim();
+
+  const contentParts = [q.prompt];
+  if (cueCard) {
+    contentParts.push(`Cue card:\n${cueCard}`);
   }
-}));
+
+  return {
+    id: q.id,
+    title: q.prompt,
+    content: contentParts.join('\n\n'),
+    answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
+    level: q.level as CEFRLevel,
+    skill: 'Speaking',
+    itemType: 'Speaking' as ItemType,
+    status: metadata.status as AssessmentItem['status'],
+    difficulty: q.difficulty as AssessmentItem['difficulty'],
+    instructions: speakingDetails.instructions,
+    imageTitle: speakingDetails.imageTitle,
+    imageAsset: speakingDetails.imageAsset,
+    imageAltText: speakingDetails.imageAltText,
+    followUpQuestions,
+    rubric: speakingDetails.rubric
+      ?? (rubricCriteria.length > 0 ? `Assessment Criteria:\n${rubricCriteria.join('\n')}` : undefined),
+    subSkill: metadata.subSkill,
+    cognitiveLevel: metadata.cognitiveLevel,
+    contentDomain: metadata.contentDomain,
+    languageVariety: metadata.languageVariety,
+    discrimination: metadata.discrimination,
+    confidence: metadata.confidence,
+    workflowState: metadata.workflowState,
+    screening: metadata.screening,
+    flaggedForReview: metadata.flaggedForReview,
+    flagReason: metadata.flagReason,
+    author: metadata.author,
+    createdDate: metadata.createdDate,
+    lastEditedDate: metadata.lastEditedDate,
+    lastEditedBy: metadata.lastEditedBy,
+    reviewers: metadata.reviewers,
+    reviewHistory: metadata.reviewHistory,
+    irtParameters: metadata.irtParameters,
+    exposureCount: metadata.exposureCount,
+    enemyItems: metadata.enemyItems,
+    aiModelVersion: metadata.aiModelVersion,
+    aiPredictionDate: metadata.aiPredictionDate,
+  };
+});
 
 // Convert writing questions to AssessmentItem format
-const writingItems: AssessmentItem[] = writingQuestions.map(q => ({
-  id: q.id,
-  title: q.question,
-  content: q.question,
-  level: q.level as CEFRLevel,
-  skill: 'Writing',
-  itemType: 'Essay' as ItemType,
-  status: 'Active',
-  difficulty: q.difficulty,
-  rubric: q.rubric,
-  passage: q.visualData,
-  subSkill: q.skill,
-  cognitiveLevel: q.task === 1 ? 'L3 Apply' : 'L4 Analyze',
-  contentDomain: q.topic,
-  languageVariety: 'International',
-  discrimination: q.difficulty === 'Easy' ? 'Low' : q.difficulty === 'Medium' ? 'Moderate' : 'High',
-  confidence: q.difficulty === 'Easy' ? 75 : q.difficulty === 'Medium' ? 85 : 92,
-  workflowState: 'Live',
-  author: 'Writing Team',
-  createdDate: '2024-10-15',
-  lastEditedDate: '2024-12-01',
-  reviewHistory: [
-    { date: '2024-10-15', reviewer: 'System', action: 'Created', state: 'Draft' },
-    { date: '2024-12-01', reviewer: 'Writing Team', action: 'Approved', state: 'Live' },
-  ],
-  irtParameters: {
-    b: q.difficulty === 'Easy' ? 0.5 : q.difficulty === 'Medium' ? 1.0 : 1.5,
-    a: 1.3,
-    c: 0.0,
-    sampleSize: 400,
-    modelVersion: 'IRT-2.4',
-    calibratedFromFieldTest: true,
-  }
-}));
+const writingItems: AssessmentItem[] = writingQuestions.map((q) => {
+  const metadata = getQuestionMetadata(q);
+  const writingDetails = q.skillDetails.writing;
+
+  return {
+    id: q.id,
+    title: q.prompt,
+    content: writingDetails.promptContext || q.prompt,
+    answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
+    level: q.level as CEFRLevel,
+    skill: 'Writing',
+    itemType: 'Essay' as ItemType,
+    status: metadata.status as AssessmentItem['status'],
+    difficulty: q.difficulty as AssessmentItem['difficulty'],
+    instructions: writingDetails.instructions,
+    rubric: writingDetails.rubric,
+    passage: writingDetails.visualData,
+    subSkill: metadata.subSkill,
+    cognitiveLevel: metadata.cognitiveLevel,
+    contentDomain: metadata.contentDomain,
+    languageVariety: metadata.languageVariety,
+    discrimination: metadata.discrimination,
+    confidence: metadata.confidence,
+    workflowState: metadata.workflowState,
+    screening: metadata.screening,
+    flaggedForReview: metadata.flaggedForReview,
+    flagReason: metadata.flagReason,
+    author: metadata.author,
+    createdDate: metadata.createdDate,
+    lastEditedDate: metadata.lastEditedDate,
+    lastEditedBy: metadata.lastEditedBy,
+    reviewers: metadata.reviewers,
+    reviewHistory: metadata.reviewHistory,
+    irtParameters: metadata.irtParameters,
+    exposureCount: metadata.exposureCount,
+    enemyItems: metadata.enemyItems,
+    aiModelVersion: metadata.aiModelVersion,
+    aiPredictionDate: metadata.aiPredictionDate,
+  };
+});
 
 // Convert reading questions to AssessmentItem format
-const readingItems: AssessmentItem[] = readingQuestions.map(q => ({
-  id: q.id,
-  title: q.question,
-  content: q.question,
-  level: q.level as CEFRLevel,
-  skill: 'Reading',
-  itemType: q.questionType as ItemType,
-  status: 'Active',
-  difficulty: q.difficulty,
-  passage: q.passageText,
-  passageId: `PSG-${q.id}`,
-  options: q.options,
-  subSkill: q.subSkill,
-  cognitiveLevel: q.difficulty === 'Easy' ? 'L2 Understand' : q.difficulty === 'Medium' ? 'L3 Apply' : 'L4 Analyze',
-  contentDomain: q.topic,
-  languageVariety: 'International',
-  discrimination: q.difficulty === 'Easy' ? 'Low' : q.difficulty === 'Medium' ? 'Moderate' : 'High',
-  confidence: q.difficulty === 'Easy' ? 75 : q.difficulty === 'Medium' ? 85 : 92,
-  workflowState: 'Live',
-  author: 'Reading Team',
-  createdDate: '2024-11-01',
-  lastEditedDate: '2024-12-15',
-  reviewHistory: [
-    { date: '2024-11-01', reviewer: 'System', action: 'Created', state: 'Draft' },
-    { date: '2024-12-15', reviewer: 'Reading Team', action: 'Approved', state: 'Live' },
-  ],
-  irtParameters: {
-    b: q.difficulty === 'Easy' ? 0.35 : q.difficulty === 'Medium' ? 0.85 : 1.35,
-    a: 1.25,
-    c: q.options ? 0.25 : 0.0,
-    sampleSize: 550,
-    modelVersion: 'IRT-2.4',
-    calibratedFromFieldTest: true,
-  }
-}));
+const readingItems: AssessmentItem[] = readingQuestions.map((q) => {
+  const metadata = getQuestionMetadata(q);
+  const readingDetails = q.skillDetails.reading;
+  const options = Array.isArray(q.options)
+    ? q.options.map((opt, idx) => {
+        if (typeof opt === 'string') {
+          return {
+            label: String.fromCodePoint(65 + idx),
+            text: opt,
+            correct: opt === q.correctAnswer,
+          };
+        }
 
-// Merge and export all items
-export const allMockItems: AssessmentItem[] = [
-  ...mockItems,
-  ...additionalMockItems.map((item, index) => ({
-    ...item,
-    options: item.options || [
-      { label: 'A', text: 'Option A' },
-      { label: 'B', text: 'Option B', correct: true },
-      { label: 'C', text: 'Option C' },
-      { label: 'D', text: 'Option D' },
-    ],
-    subSkill: item.subSkill || 'Reading comprehension',
-    cognitiveLevel: item.cognitiveLevel || 'L2 Understand',
-    contentDomain: item.contentDomain || 'General',
-    languageVariety: item.languageVariety || 'International',
-    discrimination: item.discrimination || 'Moderate',
-    confidence: item.confidence || 85,
-    author: item.author || 'Content Team',
-    createdDate: item.createdDate || '2024-06-15',
-    lastEditedDate: item.lastEditedDate || '2024-08-20',
-    reviewHistory: item.reviewHistory || [
-      { date: '2024-06-15', reviewer: 'System', action: 'Created', state: 'Draft' },
-      { date: '2024-08-20', reviewer: 'Reviewer', action: 'Approved', state: 'Approved' },
-    ],
-  })) as AssessmentItem[],
-  ...listeningItems,
-  ...speakingItems,
-  ...writingItems,
-  ...readingItems,
-];
+        return {
+          label: opt.label ?? String.fromCodePoint(65 + idx),
+          text: opt.text,
+          correct: typeof opt.correct === 'boolean' ? opt.correct : undefined,
+        };
+      })
+    : undefined;
+
+  return {
+    id: q.id,
+    title: q.prompt,
+    content: q.prompt,
+    answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
+    level: q.level as CEFRLevel,
+    skill: 'Reading',
+    itemType: q.questionType as ItemType,
+    status: metadata.status as AssessmentItem['status'],
+    difficulty: q.difficulty as AssessmentItem['difficulty'],
+    passage: readingDetails.passageText,
+    passageTitle: readingDetails.passageTitle,
+    instructions: readingDetails.instructions,
+    passageId: `PSG-${q.id}`,
+    options,
+    subSkill: metadata.subSkill,
+    cognitiveLevel: metadata.cognitiveLevel,
+    contentDomain: metadata.contentDomain,
+    languageVariety: metadata.languageVariety,
+    discrimination: metadata.discrimination,
+    confidence: metadata.confidence,
+    workflowState: metadata.workflowState,
+    screening: metadata.screening,
+    flaggedForReview: metadata.flaggedForReview,
+    flagReason: metadata.flagReason,
+    author: metadata.author,
+    createdDate: metadata.createdDate,
+    lastEditedDate: metadata.lastEditedDate,
+    lastEditedBy: metadata.lastEditedBy,
+    reviewers: metadata.reviewers,
+    reviewHistory: metadata.reviewHistory,
+    irtParameters: metadata.irtParameters,
+    exposureCount: metadata.exposureCount,
+    enemyItems: metadata.enemyItems,
+    aiModelVersion: metadata.aiModelVersion,
+    aiPredictionDate: metadata.aiPredictionDate,
+  };
+});
+
+const mappedItemsById = new Map<string, AssessmentItem>();
+[...listeningItems, ...speakingItems, ...writingItems, ...readingItems].forEach((item) => {
+  mappedItemsById.set(item.id, item);
+});
+
+export const allMockItems: AssessmentItem[] = allQuestions
+  .map((question) => mappedItemsById.get(question.id))
+  .filter((item): item is AssessmentItem => Boolean(item));
 
 export const getItemsByLevel = (level: CEFRLevel) => {
-  return allMockItems.filter(item => item.level === level);
+  return getAllItems().filter(item => item.level === level);
 };
 
 export const getItemById = (id: string) => {
-  return allMockItems.find(item => item.id === id);
+  return getAllItems().find(item => item.id === id);
 };
 
 export const getCompromisedItems = () => {
-  return allMockItems.filter(item => item.status === 'Compromised');
+  return getAllItems().filter(item => item.status === 'Compromised');
 };
 
 export const getFlaggedItems = () => {
-  return allMockItems.filter(item => item.flaggedForReview);
+  return getAllItems().filter(item => item.flaggedForReview);
 };
 
 export const getItemsForReview = () => {
-  return allMockItems.filter(item =>
-    item.workflowState === 'In Review' ||
+  return getAllItems().filter(item =>
+    isAnyWorkflowState(item.workflowState, REVIEW_WORKFLOW_STATES) ||
     item.flaggedForReview ||
     item.screening?.similarity === 'Review' ||
+    item.screening?.similarity === 'Fail' ||
     item.screening?.cefrFit === 'Review' ||
+    item.screening?.cefrFit === 'Fail' ||
     item.screening?.distractorStrength === 'Review' ||
-    item.screening?.fairness === 'Review'
+    item.screening?.distractorStrength === 'Fail' ||
+    item.screening?.fairness === 'Review' ||
+    item.screening?.fairness === 'Fail' ||
+    item.screening?.clarity === 'Review' ||
+    item.screening?.clarity === 'Fail'
   );
 };
 
 export const getAllItems = () => {
-  return allMockItems;
+  const persistedItems = getStoredIngestedItems();
+  const combinedById = new Map<string, AssessmentItem>();
+  allMockItems.forEach((item) => combinedById.set(item.id, normalizeItemLifecycle(item)));
+  persistedItems.forEach((item) => combinedById.set(item.id, normalizeItemLifecycle(item)));
+
+  const overrides = getStoredWorkflowOverrides();
+  if (!overrides.length) {
+    return Array.from(combinedById.values());
+  }
+
+  const overrideMap = new Map<string, Partial<AssessmentItem>>();
+  overrides.forEach((override) => {
+    overrideMap.set(override.id, override.patch);
+  });
+
+  return Array.from(combinedById.values()).map((item) => {
+    const patch = overrideMap.get(item.id);
+    if (!patch) {
+      return normalizeItemLifecycle(item);
+    }
+
+    return normalizeItemLifecycle(mergeItemWithPatch(item, patch));
+  });
 };
+

@@ -1,36 +1,76 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Check } from 'lucide-react';
+import { getAllItems, moveItemsToSeeded } from '../data/mockData';
+import { isWorkflowState } from '../data/workflowState';
+
+const toTimestamp = (value?: string): number => {
+  if (!value) return 0;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const sortNewestFirst = <T extends { id: string; createdDate?: string; lastEditedDate?: string }>(items: T[]): T[] => {
+  return [...items].sort((a, b) => {
+    const aTime = Math.max(toTimestamp(a.lastEditedDate), toTimestamp(a.createdDate));
+    const bTime = Math.max(toTimestamp(b.lastEditedDate), toTimestamp(b.createdDate));
+
+    if (bTime !== aTime) {
+      return bTime - aTime;
+    }
+
+    return b.id.localeCompare(a.id);
+  });
+};
 
 export function Seeding() {
-  const recommendedItems = [
-    { id: 'ITM-RACE-0238', level: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'If Mary are not free in the daytime, she\'d better call...', difficulty: 'Easy', a2Bank: '71%', confidence: '77%', familyRelationship: 'only 6 items at A2', defer: true },
-    { id: 'ITM-RACE-0293', level: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'Why did the girl long for the house on the hill?', difficulty: 'Easy', a2Bank: '71%', confidence: '77%', familyRelationship: 'only 6 items at A2' },
-    { id: 'ITM-RACE-0244', level: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'The little boy cried because...', difficulty: 'Easy', a2Bank: '71%', confidence: '86%', familyRelationship: 'Passed all screening checks' },
-    { id: 'ITM-RACE-0048', level: 'B1', skill: 'Reading', itemType: 'Multiple Choice', content: 'A tale about fairies should be read...', difficulty: 'Medium', b1Bank: '54%', confidence: '87%', familyRelationship: 'Passed all screening checks', defer: true },
-    { id: 'ITM-RACE-0053', level: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'The port of London...', difficulty: 'Easy', a2Bank: '71%', confidence: '91%', familyRelationship: 'Passed all screening checks' },
-    { id: 'ITM-RACE-0061', level: 'A2', skill: 'Reading', itemType: 'Multiple Choice', content: 'If Mary are not free in the daytime, she\'d better call...', difficulty: 'Easy', a2Bank: '71%', confidence: '87%', familyRelationship: 'only 6 items at A2' },
-  ];
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
 
-  const currentlySeeded = [
-    { id: 'ITM-RACE-0080', item: 'It seems that the argument went like clouds of MBAs...', level: 'B2', difficulty: 'Hard', responses: '0 / 200', seeded: '1 Mar 2025' },
-    { id: 'ITM-RACE-0081', item: 'Which of the places mentioned is most likely...', level: 'A2', difficulty: 'Medium', responses: '0 / 200', seeded: '1 Mar 2025' },
-    { id: 'ITM-RACE-0160', item: 'The Nazis inflected people who is...', level: 'B1', difficulty: 'Medium', responses: '0 / 200', seeded: '1 Mar 2025' },
-    { id: 'ITM-RACE-0161', item: 'We know from the text that the customers at "Sam\'s L...', level: 'B1', difficulty: 'Easy', responses: '0 / 200', seeded: '1 Mar 2025' },
-    { id: 'ITM-RACE-0182', item: 'When the father felt his baby, he was worried...', level: 'B1', difficulty: 'Medium', responses: '0 / 200', seeded: '1 Mar 2025' },
-    { id: 'ITM-RACE-0193', item: 'Why does the author congratulate the male readers...', level: 'B1', difficulty: 'Medium', responses: '0 / 200', seeded: '1 Mar 2025' },
-  ];
+  const allItems = useMemo(() => getAllItems(), [refreshVersion]);
+
+  const recommendedItems = useMemo(
+    () => sortNewestFirst(
+      allItems.filter(
+        (item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING') && (item.confidence ?? 0) < 60,
+      ),
+    ),
+    [allItems],
+  );
+
+  const currentlySeeded = useMemo(
+    () => sortNewestFirst(allItems.filter((item) => isWorkflowState(item.workflowState, 'SEEDED'))),
+    [allItems],
+  );
+
+  const toggleSelected = (itemId: string) => {
+    setSelectedItemIds((prev) =>
+      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId],
+    );
+  };
+
+  const handleConfirmBatch = () => {
+    if (selectedItemIds.length === 0) {
+      return;
+    }
+
+    moveItemsToSeeded(selectedItemIds);
+    setSelectedItemIds([]);
+    setRefreshVersion((prev) => prev + 1);
+  };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
           <Link to="/workflows" className="hover:underline">Workflows</Link>
           <span className="text-gray-400">/</span>
           <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
           <span className="text-gray-400">/</span>
           <span className="text-gray-900">Seeding</span>
         </div>
@@ -53,7 +93,7 @@ export function Seeding() {
               <CardTitle className="text-sm font-medium text-gray-500 uppercase">Ready to Seed</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">62</div>
+              <div className="text-3xl font-bold text-gray-900">{recommendedItems.length}</div>
             </CardContent>
           </Card>
 
@@ -62,7 +102,7 @@ export function Seeding() {
               <CardTitle className="text-sm font-medium text-gray-500 uppercase">Currently Seeded</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">32</div>
+              <div className="text-3xl font-bold text-gray-900">{currentlySeeded.length}</div>
             </CardContent>
           </Card>
         </div>
@@ -107,7 +147,7 @@ export function Seeding() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-500 uppercase">
-              Recommended for Seeding · 6 items
+              Recommended for Seeding · {recommendedItems.length} items
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -115,55 +155,62 @@ export function Seeding() {
               Select items to include in the next live test batch.
             </p>
 
-            <div className="space-y-4">
-              {recommendedItems.map((item, index) => (
-                <div key={item.id} className="border rounded-lg p-6">
-                  <div className="flex items-start gap-4">
-                    <input type="checkbox" className="mt-1" defaultChecked={!item.defer} />
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <Link
-                          to={`/item-bank/${item.level}/${item.id}`}
-                          className="text-sm font-medium text-blue-600 hover:underline"
-                        >
-                          {item.id}
-                        </Link>
-                        <Badge variant="outline">{item.level}</Badge>
-                        <Badge variant="outline">{item.skill}</Badge>
-                        <Badge variant="outline">{item.itemType}</Badge>
-                      </div>
+            {recommendedItems.length === 0 ? (
+              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-600">
+                No items are currently recommended for seeding.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recommendedItems.map((item) => (
+                  <div key={item.id} className="border rounded-lg p-6">
+                    <div className="flex items-start gap-4">
+                      <input
+                        type="checkbox"
+                        className="mt-1"
+                        checked={selectedItemIds.includes(item.id)}
+                        onChange={() => toggleSelected(item.id)}
+                      />
 
-                      <div className="text-sm text-gray-900 mb-3">{item.content}</div>
-
-                      <div className="flex flex-wrap gap-2 text-xs">
-                        <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                          Difficulty: {item.difficulty}
-                        </Badge>
-                        {item.defer && (
-                          <Badge variant="secondary">Defer</Badge>
-                        )}
-                      </div>
-
-                      <div className="mt-3 space-y-1 text-xs text-gray-600">
-                        <div>
-                          <span className="font-medium text-orange-600">{item.level} bank at {item.a2Bank || item.b1Bank}</span> · 
-                          Model confidence {item.confidence} · {item.familyRelationship}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Link
+                            to={`/item-bank/${item.level}/${item.id}`}
+                            className="text-sm font-medium text-blue-600 hover:underline"
+                          >
+                            {item.id}
+                          </Link>
+                          <Badge variant="outline">{item.level}</Badge>
+                          <Badge variant="outline">{item.skill}</Badge>
+                          <Badge variant="outline">{item.itemType}</Badge>
                         </div>
-                        <div className="text-green-600">Passed all screening checks</div>
+
+                        <div className="text-sm text-gray-900 mb-3">{item.title}</div>
+
+                        <div className="flex flex-wrap gap-2 text-xs">
+                          {item.difficulty && (
+                            <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                              Difficulty: {item.difficulty}
+                            </Badge>
+                          )}
+                          {item.confidence !== undefined && (
+                            <Badge variant="secondary">Confidence: {item.confidence}%</Badge>
+                          )}
+                        </div>
+
+                        <div className="mt-3 text-xs text-green-600">Passed all screening checks and ready for seeding</div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             <div className="mt-6 p-3 bg-gray-50 border rounded text-sm text-gray-600">
-              0 items selected for seeding
+              {selectedItemIds.length} item{selectedItemIds.length === 1 ? '' : 's'} selected for seeding
             </div>
 
             <div className="mt-4 flex items-center gap-2">
-              <Button>Confirm Batch</Button>
+              <Button onClick={handleConfirmBatch} disabled={selectedItemIds.length === 0}>Confirm Batch</Button>
             </div>
           </CardContent>
         </Card>
@@ -172,7 +219,7 @@ export function Seeding() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-500 uppercase">
-              Currently Seeded · 6 items
+              Currently Seeded · {currentlySeeded.length} items
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -203,11 +250,11 @@ export function Seeding() {
                           {item.id}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700 max-w-md truncate">{item.item}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 max-w-md truncate">{item.title}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{item.level}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{item.difficulty}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{item.responses}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{item.seeded}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{item.difficulty || 'N/A'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">0 / 200</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{item.lastEditedDate || 'N/A'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -219,3 +266,4 @@ export function Seeding() {
     </div>
   );
 }
+

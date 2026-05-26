@@ -1,0 +1,1175 @@
+{
+  "items": [
+    {
+      "id": "ITMBK-RDG-A2-001",
+      "title": "Airport Shuttle Timetable",
+      "content": "Which shuttle should Lina take if her flight leaves at 10:40 and she wants to arrive at the airport at least 90 minutes early?",
+      "level": "A2",
+      "skill": "Reading",
+      "itemType": "Multiple Choice",
+      "status": "Draft",
+      "difficulty": "Easy",
+      "subSkill": "Reading for specific information",
+      "contentDomain": "Travel",
+      "cognitiveLevel": "L2 Understand",
+      "confidence": 86,
+      "passage": "CityLink Shuttle Service runs daily from Central Station to Northgate Airport. Buses leave Central Station at 07:30, 08:00, 08:40, 09:15 and 10:00. The journey usually takes 35 minutes, but passengers are advised to arrive at the airport at least 90 minutes before departure for international flights. Tickets can be bought online or from the driver. The 08:40 service is often busy on weekdays because many business travellers use it.",
+      "passageId": "PSG-RDG-A2-001",
+      "audioAsset": "",
+      "options": [
+        {
+          "label": "A",
+          "text": "07:30"
+        },
+        {
+          "label": "B",
+          "text": "08:00",
+          "correct": true
+        },
+        {
+          "label": "C",
+          "text": "08:40"
+        },
+        {
+          "label": "D",
+          "text": "09:15"
+        }
+      ],
+      "rubric": "",
+      "irtParameters": {
+        "b": -0.35,
+        "a": 1.18,
+        "c": 0.24,
+        "sampleSize": 1180,
+        "modelVersion": "IRT-2.7",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "NOT_STARTED",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Daniel Brooks",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "MCQ Passage Comprehension",
+        "instructions": "Read the shuttle notice and choose the best answer.",
+        "correctAnswer": "B"
+      }
+    },
+    {
+      "id": "ITMBK-RDG-B1-002",
+      "title": "Campus Recycling Facts",
+      "content": "Complete the sentence: The university introduced the colour-coded bins to reduce ______.",
+      "level": "B1",
+      "skill": "Reading",
+      "itemType": "Sentence Completion",
+      "status": "Draft",
+      "difficulty": "Medium",
+      "subSkill": "Reading for detail",
+      "contentDomain": "Environment",
+      "cognitiveLevel": "L3 Apply",
+      "confidence": 83,
+      "passage": "Last year, Brookdale University reviewed its waste system after a report showed that too many recyclable items were being thrown away with general rubbish. In response, the university introduced colour-coded bins across the campus and placed short explanations above each one. Staff also visited classes to explain how food containers, paper and batteries should be sorted. Within four months, recycling rates had improved by 18 percent. The facilities manager said the biggest change came from reducing contamination, which happens when the wrong materials are placed in recycling bins.",
+      "passageId": "PSG-RDG-B1-002",
+      "audioAsset": "",
+      "options": [],
+      "rubric": "",
+      "irtParameters": {
+        "b": 0.42,
+        "a": 1.09,
+        "c": 0,
+        "sampleSize": 760,
+        "modelVersion": "IRT-2.7",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "NOT_STARTED",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Neha Kapoor",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Sentence Gap Fill",
+        "instructions": "Use words from the passage to complete the sentence.",
+        "correctAnswer": "contamination"
+      }
+    },
+    {
+      "id": "ITMBK-RDG-B2-003",
+      "title": "Startup Roles and Responsibilities",
+      "content": "Match each employee to the responsibility they are described as leading.",
+      "level": "B2",
+      "skill": "Reading",
+      "itemType": "Matching",
+      "status": "Draft",
+      "difficulty": "Medium",
+      "subSkill": "Matching information across profiles",
+      "contentDomain": "Business",
+      "cognitiveLevel": "L3 Apply",
+      "confidence": 81,
+      "passage": "A small education technology company recently expanded its team. Marta now coordinates communication with schools and gathers feedback from teachers after trial lessons. Dev manages system stability and supervises software releases, especially before large client launches. Priyan focuses on user research and studies how learners move through the platform, identifying points where they lose motivation. Sofia prepares investor updates and tracks monthly revenue against the company target. As the business grows, team members increasingly need to work across departments rather than in isolation.",
+      "passageId": "PSG-RDG-B2-003",
+      "audioAsset": "",
+      "options": [],
+      "rubric": "",
+      "irtParameters": {
+        "b": 0.77,
+        "a": 1.24,
+        "c": 0,
+        "sampleSize": 610,
+        "modelVersion": "IRT-2.7",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Review",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "PENDING_SCREENING_REVIEW",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        },
+        {
+          "date": "2026-05-22",
+          "reviewer": "Content Reviewer",
+          "action": "Reviewed",
+          "state": "In Review"
+        }
+      ],
+      "author": "Elena Petrova",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Multiple Matching",
+        "instructions": "Read the text and match each person to the correct responsibility.",
+        "correctAnswer": "Marta-school feedback; Dev-system stability; Priyan-user research; Sofia-revenue tracking"
+      }
+    },
+    {
+      "id": "ITMBK-RDG-B2-004",
+      "title": "Social Media and Sleep",
+      "content": "Decide whether the statement is True, False, or Not Given: The study proved that checking social media after 10 p.m. directly causes lower exam scores.",
+      "level": "B2",
+      "skill": "Reading",
+      "itemType": "True/False/Not Given",
+      "status": "Draft",
+      "difficulty": "Medium",
+      "subSkill": "Evaluating claims against evidence",
+      "contentDomain": "Social Media",
+      "cognitiveLevel": "L3 Apply",
+      "confidence": 84,
+      "passage": "Researchers at a regional college tracked the evening habits of 600 students over one semester. They found that students who used social media heavily late at night reported shorter sleep duration and more daytime tiredness than those who stopped earlier. The report also noted that many of the same students performed less consistently in weekly quizzes. However, the researchers warned that the relationship was complex. Factors such as part-time work, stress and poor study planning could also have influenced academic performance.",
+      "passageId": "PSG-RDG-B2-004",
+      "audioAsset": "",
+      "options": [],
+      "rubric": "",
+      "irtParameters": {
+        "b": 0.88,
+        "a": 1.21,
+        "c": 0,
+        "sampleSize": 890,
+        "modelVersion": "IRT-2.7",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": true,
+        "predictedByAI": false
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "PENDING_SCREENING_REVIEW",
+      "reviewHistory": [
+        {
+          "date": "2026-05-19",
+          "reviewer": "Senior Item Writer",
+          "action": "Created",
+          "state": "Draft"
+        },
+        {
+          "date": "2026-05-21",
+          "reviewer": "Assessment Reviewer",
+          "action": "Reviewed",
+          "state": "In Review"
+        }
+      ],
+      "author": "Senior Item Writer",
+      "createdDate": "2026-05-19",
+      "lastEditedDate": "2026-05-21",
+      "sourceData": {
+        "taskFormat": "True False Not Given",
+        "instructions": "Read the text and decide whether the statement agrees with the information.",
+        "correctAnswer": "Not Given"
+      }
+    },
+    {
+      "id": "ITMBK-RDG-C1-005",
+      "title": "Urban Health Pilot",
+      "content": "According to the passage, why did local clinics support the new walking-route project?",
+      "level": "C1",
+      "skill": "Reading",
+      "itemType": "Short Answer",
+      "status": "Draft",
+      "difficulty": "Hard",
+      "subSkill": "Inferring purpose from supporting detail",
+      "contentDomain": "Health",
+      "cognitiveLevel": "L4 Analyze",
+      "confidence": 79,
+      "passage": "A city health department launched a pilot scheme that marked short walking routes between transport hubs, clinics and shopping streets. The project was not designed simply as a tourism feature. Instead, planners wanted to encourage small amounts of daily movement among residents who said they had no time for formal exercise. Local clinics supported the scheme because many patients with early signs of lifestyle-related illness felt intimidated by gyms or could not commit to structured fitness programmes. Doctors argued that short, repeated walks integrated into normal routines were more realistic for these patients than ambitious exercise plans that were quickly abandoned.",
+      "passageId": "PSG-RDG-C1-005",
+      "audioAsset": "",
+      "options": [],
+      "rubric": "",
+      "irtParameters": {
+        "b": 1.41,
+        "a": 1.27,
+        "c": 0,
+        "sampleSize": 430,
+        "modelVersion": "IRT-2.7",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Review",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "NOT_STARTED",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Daniel Brooks",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Short Answer",
+        "instructions": "Answer in no more than eight words.",
+        "correctAnswer": "Because short routine walks were more realistic for patients."
+      }
+    },
+    {
+      "id": "ITMBK-LIS-A2-006",
+      "title": "Clinic Appointment Form",
+      "content": "Complete the missing note: Appointment day",
+      "level": "A2",
+      "skill": "Listening",
+      "itemType": "Note Completion",
+      "status": "Draft",
+      "difficulty": "Easy",
+      "subSkill": "Listening for specific details",
+      "contentDomain": "Health",
+      "cognitiveLevel": "L2 Understand",
+      "confidence": 87,
+      "passage": "A patient calls a clinic to arrange a check-up.",
+      "passageId": "",
+      "audioAsset": "lis_a2_006_clinic_booking.mp3",
+      "options": [],
+      "rubric": "",
+      "irtParameters": {
+        "b": -0.22,
+        "a": 1.15,
+        "c": 0,
+        "sampleSize": 1320,
+        "modelVersion": "IRT-2.7",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "NOT_STARTED",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Neha Kapoor",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Note Completion",
+        "instructions": "Listen and write one word for each answer.",
+        "transcript": "Receptionist: Good morning, Greenway Clinic. Patient: Hello, I'd like to book a general check-up. Receptionist: We have space on Tuesday at 11 o'clock or Thursday at 9:30. Patient: Thursday is better for me.",
+        "correctAnswer": "Thursday"
+      }
+    },
+    {
+      "id": "ITMBK-LIS-B1-007",
+      "title": "Coworking Space Membership",
+      "content": "What is included in the standard membership?",
+      "level": "B1",
+      "skill": "Listening",
+      "itemType": "Multiple Choice",
+      "status": "Draft",
+      "difficulty": "Medium",
+      "subSkill": "Listening for gist and detail",
+      "contentDomain": "Business",
+      "cognitiveLevel": "L3 Apply",
+      "confidence": 82,
+      "passage": "A manager describes membership plans for a new coworking space.",
+      "passageId": "",
+      "audioAsset": "lis_b1_007_coworking_plans.mp3",
+      "options": [
+        {
+          "label": "A",
+          "text": "Free meeting-room use every day"
+        },
+        {
+          "label": "B",
+          "text": "Unlimited printing"
+        },
+        {
+          "label": "C",
+          "text": "Access on weekdays plus tea and coffee",
+          "correct": true
+        },
+        {
+          "label": "D",
+          "text": "A personal office with storage"
+        }
+      ],
+      "rubric": "",
+      "irtParameters": {
+        "b": 0.51,
+        "a": 1.2,
+        "c": 0.23,
+        "sampleSize": 940,
+        "modelVersion": "IRT-2.7",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": true,
+        "predictedByAI": false
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "PENDING_SCREENING_REVIEW",
+      "reviewHistory": [
+        {
+          "date": "2026-05-18",
+          "reviewer": "Listening Item Writer",
+          "action": "Created",
+          "state": "Draft"
+        },
+        {
+          "date": "2026-05-20",
+          "reviewer": "Listening Reviewer",
+          "action": "Reviewed",
+          "state": "In Review"
+        }
+      ],
+      "author": "Listening Item Writer",
+      "createdDate": "2026-05-18",
+      "lastEditedDate": "2026-05-20",
+      "sourceData": {
+        "taskFormat": "Audio MCQ",
+        "instructions": "Listen and choose the best answer.",
+        "transcript": "Manager: Our standard membership gives you access from Monday to Friday, a shared desk and unlimited tea and coffee. If you want meeting rooms, that is part of the premium plan. Private offices are only available on yearly contracts.",
+        "correctAnswer": "C"
+      }
+    },
+    {
+      "id": "ITMBK-LIS-B2-008",
+      "title": "Lecture Notes on Urban Farming",
+      "content": "Complete the missing note: One benefit of rooftop gardens is lower ______ inside buildings during summer.",
+      "level": "B2",
+      "skill": "Listening",
+      "itemType": "Sentence Completion",
+      "status": "Draft",
+      "difficulty": "Medium",
+      "subSkill": "Listening for academic detail",
+      "contentDomain": "Environment",
+      "cognitiveLevel": "L3 Apply",
+      "confidence": 80,
+      "passage": "A university lecture introduces urban farming methods.",
+      "passageId": "",
+      "audioAsset": "lis_b2_008_urban_farming_lecture.mp3",
+      "options": [],
+      "rubric": "",
+      "irtParameters": {
+        "b": 0.84,
+        "a": 1.26,
+        "c": 0,
+        "sampleSize": 670,
+        "modelVersion": "IRT-2.7",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "NOT_STARTED",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Aisha Verma",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Listening Gap Fill",
+        "instructions": "Listen and complete the sentence with one word.",
+        "transcript": "Lecturer: Rooftop gardens do more than produce herbs or vegetables. They also help regulate building temperature. In summer, the plant layer reduces heat entering the roof, so indoor temperatures stay lower and cooling costs fall.",
+        "correctAnswer": "temperatures"
+      }
+    },
+    {
+      "id": "ITMBK-LIS-B2-009",
+      "title": "Travel App User Feedback",
+      "content": "Match each traveller to the problem they mention with the app.",
+      "level": "B2",
+      "skill": "Listening",
+      "itemType": "Matching",
+      "status": "Draft",
+      "difficulty": "Medium",
+      "subSkill": "Identifying speaker-specific information",
+      "contentDomain": "Technology",
+      "cognitiveLevel": "L3 Apply",
+      "confidence": 81,
+      "passage": "Four users discuss their experience with a travel-planning app.",
+      "passageId": "",
+      "audioAsset": "lis_b2_009_travel_app_feedback.mp3",
+      "options": [],
+      "rubric": "",
+      "irtParameters": {
+        "b": 0.91,
+        "a": 1.19,
+        "c": 0,
+        "sampleSize": 520,
+        "modelVersion": "IRT-2.7",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Review",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "PENDING_SCREENING_REVIEW",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        },
+        {
+          "date": "2026-05-22",
+          "reviewer": "Content Reviewer",
+          "action": "Reviewed",
+          "state": "In Review"
+        }
+      ],
+      "author": "Daniel Brooks",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Multiple Matching",
+        "instructions": "Listen to the speakers and match each person to the main problem mentioned.",
+        "transcript": "Speaker 1: I liked the route ideas, but the hotel prices were a week out of date. Speaker 2: The maps worked well, though the offline version kept closing. Speaker 3: I found good restaurant suggestions, but the app sent too many notifications. Speaker 4: Booking trains was simple, but it never remembered my payment details.",
+        "correctAnswer": "1-outdated prices; 2-offline crashes; 3-too many notifications; 4-payment details not saved"
+      }
+    },
+    {
+      "id": "ITMBK-LIS-C1-010",
+      "title": "Education Policy Interview",
+      "content": "What does the speaker say schools should do before adopting new classroom software?",
+      "level": "C1",
+      "skill": "Listening",
+      "itemType": "Short Answer",
+      "status": "Draft",
+      "difficulty": "Hard",
+      "subSkill": "Identifying viewpoint in extended speech",
+      "contentDomain": "Education",
+      "cognitiveLevel": "L4 Analyze",
+      "confidence": 78,
+      "passage": "A radio interview discusses how schools evaluate educational technology.",
+      "passageId": "",
+      "audioAsset": "lis_c1_010_edtech_interview.mp3",
+      "options": [],
+      "rubric": "",
+      "irtParameters": {
+        "b": 1.37,
+        "a": 1.31,
+        "c": 0,
+        "sampleSize": 360,
+        "modelVersion": "IRT-2.7",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Review",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "NOT_STARTED",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Rohan Mehta",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Short Answer",
+        "instructions": "Answer in no more than six words.",
+        "transcript": "Interviewer: Many schools buy software quickly because it appears innovative. Guest: That is risky. Before adopting any platform, schools need a short pilot with real classes and teachers. Otherwise they may invest heavily in tools that look impressive in presentations but do little for learning.",
+        "correctAnswer": "Run a short pilot first"
+      }
+    },
+    {
+      "id": "ITMBK-WRT-A2-011",
+      "title": "Request for Updated Travel Booking",
+      "content": "Write a formal email to a language school asking to change your airport transfer date.",
+      "level": "A2",
+      "skill": "Writing",
+      "itemType": "Essay",
+      "status": "Draft",
+      "difficulty": "Easy",
+      "subSkill": "Functional written communication",
+      "contentDomain": "Travel",
+      "cognitiveLevel": "L2 Understand",
+      "confidence": 88,
+      "passage": "",
+      "passageId": "",
+      "audioAsset": "",
+      "options": [],
+      "rubric": "Assess whether the candidate can state the purpose clearly, include essential booking details, use polite email conventions, and maintain mostly accurate simple grammar.",
+      "irtParameters": {
+        "b": -0.18,
+        "a": 0.96,
+        "c": 0,
+        "sampleSize": 540,
+        "modelVersion": "Rasch-WRT-1.9",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "NOT_STARTED",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Elena Petrova",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Formal Email",
+        "instructions": "Write 80 to 120 words. Include the reason for the change, the new date, and one question.",
+        "prompt": "You are arriving one day later than planned for a short English course. Write an email to the school office asking them to change your airport transfer booking.",
+        "wordCount": 100,
+        "timeAllocation": 15
+      }
+    },
+    {
+      "id": "ITMBK-WRT-B1-012",
+      "title": "Opinion Paragraph on Phone-Free Meals",
+      "content": "Write a paragraph giving your opinion on whether families should keep phones away during meals.",
+      "level": "B1",
+      "skill": "Writing",
+      "itemType": "Essay",
+      "status": "Draft",
+      "difficulty": "Medium",
+      "subSkill": "Expressing and supporting opinion",
+      "contentDomain": "Daily Life",
+      "cognitiveLevel": "L3 Apply",
+      "confidence": 84,
+      "passage": "",
+      "passageId": "",
+      "audioAsset": "",
+      "options": [],
+      "rubric": "Assess clarity of opinion, relevance of supporting reasons, paragraph organisation, vocabulary range for everyday topics, and control of sentence structure.",
+      "irtParameters": {
+        "b": 0.48,
+        "a": 1.04,
+        "c": 0,
+        "sampleSize": 470,
+        "modelVersion": "Rasch-WRT-1.9",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "NOT_STARTED",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Aisha Verma",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Opinion Paragraph",
+        "instructions": "Write 120 to 150 words. Give a clear opinion and support it with two reasons.",
+        "prompt": "Some families choose to keep phones away from the table during meals. Do you think this is a good idea?",
+        "wordCount": 135,
+        "timeAllocation": 20
+      }
+    },
+    {
+      "id": "ITMBK-WRT-B2-013",
+      "title": "Report on Employee Learning Survey",
+      "content": "Write a short report summarising the survey findings and recommending one action for the company.",
+      "level": "B2",
+      "skill": "Writing",
+      "itemType": "Essay",
+      "status": "Draft",
+      "difficulty": "Medium",
+      "subSkill": "Summarising data and making recommendations",
+      "contentDomain": "Business",
+      "cognitiveLevel": "L3 Apply",
+      "confidence": 82,
+      "passage": "Staff survey results: 62% prefer short weekly training sessions, 21% prefer full-day workshops, 17% prefer self-study modules. Main barriers to learning: lack of time 48%, unclear relevance 29%, technical problems 15%, other 8%.",
+      "passageId": "",
+      "audioAsset": "",
+      "options": [],
+      "rubric": "Assess how accurately the candidate summarises data, organises the report, uses clear register, and supports recommendations with evidence from the survey.",
+      "irtParameters": {
+        "b": 0.86,
+        "a": 1.12,
+        "c": 0,
+        "sampleSize": 390,
+        "modelVersion": "Rasch-WRT-1.9",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "PENDING_SCREENING_REVIEW",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        },
+        {
+          "date": "2026-05-22",
+          "reviewer": "Writing Reviewer",
+          "action": "Reviewed",
+          "state": "In Review"
+        }
+      ],
+      "author": "Neha Kapoor",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Report Writing",
+        "instructions": "Write 170 to 220 words in a neutral professional style.",
+        "prompt": "You are preparing a short internal report for a company manager based on the survey results.",
+        "wordCount": 200,
+        "timeAllocation": 25,
+        "visualData": "Summary statistics from an employee learning preferences survey."
+      }
+    },
+    {
+      "id": "ITMBK-WRT-B2-014",
+      "title": "Essay on Screen Time for Younger Learners",
+      "content": "Write an essay discussing whether primary schools should limit daily screen time in class.",
+      "level": "B2",
+      "skill": "Writing",
+      "itemType": "Essay",
+      "status": "Draft",
+      "difficulty": "Medium",
+      "subSkill": "Balanced argument writing",
+      "contentDomain": "Education",
+      "cognitiveLevel": "L4 Analyze",
+      "confidence": 80,
+      "passage": "",
+      "passageId": "",
+      "audioAsset": "",
+      "options": [],
+      "rubric": "Assess task response, balance of argument, paragraphing, range of vocabulary, and grammatical control over extended writing.",
+      "irtParameters": {
+        "b": 0.97,
+        "a": 1.08,
+        "c": 0,
+        "sampleSize": 510,
+        "modelVersion": "Rasch-WRT-1.9",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": true,
+        "predictedByAI": false
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "PENDING_SCREENING_REVIEW",
+      "reviewHistory": [
+        {
+          "date": "2026-05-16",
+          "reviewer": "Writing Item Writer",
+          "action": "Created",
+          "state": "Draft"
+        },
+        {
+          "date": "2026-05-20",
+          "reviewer": "Writing Reviewer",
+          "action": "Reviewed",
+          "state": "In Review"
+        }
+      ],
+      "author": "Writing Item Writer",
+      "createdDate": "2026-05-16",
+      "lastEditedDate": "2026-05-20",
+      "sourceData": {
+        "taskFormat": "Essay Writing",
+        "instructions": "Write 220 to 280 words. Discuss both benefits and drawbacks before giving your view.",
+        "prompt": "Some educators believe that primary-school pupils now spend too much time using screens in class, while others argue digital tools are essential for modern learning. Discuss both views and give your opinion.",
+        "wordCount": 250,
+        "timeAllocation": 35
+      }
+    },
+    {
+      "id": "ITMBK-WRT-C1-015",
+      "title": "Formal Proposal on Greener Commuting",
+      "content": "Write a proposal recommending how a company could encourage greener commuting among staff.",
+      "level": "C1",
+      "skill": "Writing",
+      "itemType": "Essay",
+      "status": "Draft",
+      "difficulty": "Hard",
+      "subSkill": "Extended persuasive workplace writing",
+      "contentDomain": "Environment",
+      "cognitiveLevel": "L4 Analyze",
+      "confidence": 78,
+      "passage": "Background notes: staff survey shows 54% drive alone to work, 23% use public transport, 12% cycle, 11% walk. Main reasons for driving: convenience, unpredictable meetings, lack of secure bike storage.",
+      "passageId": "",
+      "audioAsset": "",
+      "options": [],
+      "rubric": "Assess how effectively the proposal addresses audience and purpose, uses evidence, develops practical recommendations, and maintains an appropriate formal register.",
+      "irtParameters": {
+        "b": 1.46,
+        "a": 1.17,
+        "c": 0,
+        "sampleSize": 300,
+        "modelVersion": "Rasch-WRT-1.9",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "NOT_STARTED",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Elena Petrova",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Report Writing",
+        "instructions": "Write 250 to 320 words in a formal style and include at least two recommendations.",
+        "prompt": "You work in the HR team of a medium-sized company. Write a proposal for senior management suggesting practical ways to reduce single-occupancy car journeys among employees.",
+        "wordCount": 280,
+        "timeAllocation": 40,
+        "visualData": "Internal commuting survey summary."
+      }
+    },
+    {
+      "id": "ITMBK-SPK-A2-016",
+      "title": "Read Aloud: Weekend Market Notice",
+      "content": "Read the notice aloud clearly and naturally.",
+      "level": "A2",
+      "skill": "Speaking",
+      "itemType": "Speaking",
+      "status": "Draft",
+      "difficulty": "Easy",
+      "subSkill": "Reading aloud with intelligible pronunciation",
+      "contentDomain": "Daily Life",
+      "cognitiveLevel": "L2 Understand",
+      "confidence": 89,
+      "passage": "The Riverside Market opens every Saturday at nine o'clock. Visitors can buy fresh fruit, local bread and handmade gifts. The market closes at two in the afternoon.",
+      "passageId": "",
+      "audioAsset": "spk_a2_016_read_aloud_prompt.mp3",
+      "options": [],
+      "rubric": "Assess intelligibility, word stress, pausing, and ability to read short connected text accurately.",
+      "irtParameters": {
+        "b": -0.28,
+        "a": 0.93,
+        "c": 0,
+        "sampleSize": 620,
+        "modelVersion": "Rasch-SPK-2.1",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "NOT_STARTED",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Elena Petrova",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Read Aloud",
+        "instructions": "You have 20 seconds to prepare. Then read the text aloud.",
+        "prompt": "Read the displayed notice aloud.",
+        "timeAllocation": 1,
+        "sampleAnswer": "Spoken reading of the notice."
+      }
+    },
+    {
+      "id": "ITMBK-SPK-B1-017",
+      "title": "Repeat Sentence: Public Announcement",
+      "content": "Listen to the sentence and repeat it exactly.",
+      "level": "B1",
+      "skill": "Speaking",
+      "itemType": "Speaking",
+      "status": "Draft",
+      "difficulty": "Medium",
+      "subSkill": "Short-term oral recall",
+      "contentDomain": "Travel",
+      "cognitiveLevel": "L3 Apply",
+      "confidence": 84,
+      "passage": "Passengers for Platform 6 should check the new departure time on the main screen.",
+      "passageId": "",
+      "audioAsset": "spk_b1_017_repeat_sentence.mp3",
+      "options": [],
+      "rubric": "Assess accuracy of repetition, pronunciation, and retention of key content words.",
+      "irtParameters": {
+        "b": 0.43,
+        "a": 1.05,
+        "c": 0,
+        "sampleSize": 710,
+        "modelVersion": "Rasch-SPK-2.1",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "NOT_STARTED",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Aisha Verma",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Repeat Sentence",
+        "instructions": "Listen once. When you hear the tone, repeat the sentence exactly.",
+        "prompt": "Repeat the sentence after the recording.",
+        "timeAllocation": 1,
+        "sampleAnswer": "Passengers for Platform 6 should check the new departure time on the main screen."
+      }
+    },
+    {
+      "id": "ITMBK-SPK-B2-018",
+      "title": "Describe Image: Fitness App Dashboard",
+      "content": "Describe the image and explain the main trends you notice.",
+      "level": "B2",
+      "skill": "Speaking",
+      "itemType": "Speaking",
+      "status": "Draft",
+      "difficulty": "Medium",
+      "subSkill": "Describing visual information",
+      "contentDomain": "Health",
+      "cognitiveLevel": "L3 Apply",
+      "confidence": 82,
+      "passage": "Image shows a fitness app dashboard for one week. Steps: Monday 4200, Tuesday 6100, Wednesday 5900, Thursday 8100, Friday 7600, Saturday 10200, Sunday 9800. Sleep score rises slightly over the same period.",
+      "passageId": "",
+      "audioAsset": "spk_b2_018_describe_image.mp3",
+      "options": [],
+      "rubric": "Assess ability to identify key trends, organise spoken response, use comparative language, and maintain fluency with sufficient accuracy.",
+      "irtParameters": {
+        "b": 0.89,
+        "a": 1.11,
+        "c": 0,
+        "sampleSize": 440,
+        "modelVersion": "Rasch-SPK-2.1",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "NOT_STARTED",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Neha Kapoor",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Describe Image",
+        "instructions": "You have 25 seconds to prepare and 60 seconds to speak.",
+        "prompt": "Describe the information shown and mention any important changes or comparisons.",
+        "timeAllocation": 2,
+        "visualData": "Weekly step-count chart and sleep-score trend."
+      }
+    },
+    {
+      "id": "ITMBK-SPK-B2-019",
+      "title": "Opinion Response: Remote Learning",
+      "content": "Give your opinion on whether remote learning can be as effective as classroom learning.",
+      "level": "B2",
+      "skill": "Speaking",
+      "itemType": "Speaking",
+      "status": "Draft",
+      "difficulty": "Medium",
+      "subSkill": "Giving and supporting opinions orally",
+      "contentDomain": "Education",
+      "cognitiveLevel": "L4 Analyze",
+      "confidence": 80,
+      "passage": "",
+      "passageId": "",
+      "audioAsset": "spk_b2_019_opinion_response.mp3",
+      "options": [],
+      "rubric": "Assess clarity of viewpoint, relevance of supporting reasons, fluency, vocabulary range, and grammatical control in extended speaking.",
+      "irtParameters": {
+        "b": 0.94,
+        "a": 1.09,
+        "c": 0,
+        "sampleSize": 500,
+        "modelVersion": "Rasch-SPK-2.1",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": true,
+        "predictedByAI": false
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "PENDING_SCREENING_REVIEW",
+      "reviewHistory": [
+        {
+          "date": "2026-05-17",
+          "reviewer": "Speaking Item Writer",
+          "action": "Created",
+          "state": "Draft"
+        },
+        {
+          "date": "2026-05-20",
+          "reviewer": "Speaking Reviewer",
+          "action": "Reviewed",
+          "state": "In Review"
+        }
+      ],
+      "author": "Speaking Item Writer",
+      "createdDate": "2026-05-17",
+      "lastEditedDate": "2026-05-20",
+      "sourceData": {
+        "taskFormat": "Opinion Response",
+        "instructions": "You have 20 seconds to prepare and 90 seconds to respond.",
+        "prompt": "Some people say remote learning offers the same educational value as face-to-face lessons, while others disagree. What is your view?",
+        "timeAllocation": 2,
+        "followUpQuestions": [
+          "What type of learner benefits most from remote lessons?",
+          "What problems can teachers face online?"
+        ]
+      }
+    },
+    {
+      "id": "ITMBK-SPK-C1-020",
+      "title": "Role Play: Handling a Client Complaint",
+      "content": "Take part in a role play with the examiner. You are a customer success manager responding to a client complaint about delayed software support.",
+      "level": "C1",
+      "skill": "Speaking",
+      "itemType": "Speaking",
+      "status": "Draft",
+      "difficulty": "Hard",
+      "subSkill": "Interactive problem solving",
+      "contentDomain": "Business",
+      "cognitiveLevel": "L4 Analyze",
+      "confidence": 77,
+      "passage": "Scenario: A business client says your company promised a response within 24 hours, but their issue was unresolved for three days. They are considering cancelling the contract.",
+      "passageId": "",
+      "audioAsset": "spk_c1_020_role_play_client_support.mp3",
+      "options": [],
+      "rubric": "Assess interaction management, appropriacy of register, ability to acknowledge concerns, propose solutions, negotiate next steps, and maintain fluent accurate speech under pressure.",
+      "irtParameters": {
+        "b": 1.58,
+        "a": 1.22,
+        "c": 0,
+        "sampleSize": 280,
+        "modelVersion": "Rasch-SPK-2.1",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Review",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "workflowState": "NOT_STARTED",
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Aisha Verma",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22",
+      "sourceData": {
+        "taskFormat": "Role Play",
+        "instructions": "You have 30 seconds to prepare. Then respond to the examiner and manage the conversation for up to 2 minutes.",
+        "prompt": "Respond professionally, apologise where appropriate, explain what happened, and offer a realistic solution.",
+        "timeAllocation": 3,
+        "followUpQuestions": [
+          "What immediate action will you take today?",
+          "How will you rebuild the client's trust?"
+        ]
+      }
+    }
+  ]
+}

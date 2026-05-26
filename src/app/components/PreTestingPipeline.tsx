@@ -3,8 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ArrowRight } from 'lucide-react';
+import { getAllItems } from '../data/mockData';
+import { isWorkflowState } from '../data/workflowState';
 
 export function PreTestingPipeline() {
+  const allItems = getAllItems();
+  const screeningQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'NOT_STARTED')).length;
+  const predictionQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED')).length;
+  const seedingQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')).length;
+
   const recentRuns = [
     { id: 'RUN-0051', stage: 'Screening', items: 21, flagged: 5, status: 'Success', date: '11 Mar 2025' },
     { id: 'RUN-0050', stage: 'Difficulty Prediction', items: 16, flagged: 0, status: 'Success', date: '10 Mar 2025' },
@@ -13,13 +20,15 @@ export function PreTestingPipeline() {
   ];
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
           <Link to="/workflows" className="hover:underline">Workflows</Link>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-900">Pre-Testing Pipeline</span>
+          <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-900">Pipeline Stages</span>
         </div>
 
         {/* Header */}
@@ -51,9 +60,9 @@ export function PreTestingPipeline() {
               </p>
 
               <div className="space-y-2">
-                <div className="text-3xl font-bold text-gray-900">6</div>
+                <div className="text-3xl font-bold text-gray-900">{screeningQueueCount}</div>
                 <div className="text-sm text-gray-600">in queue</div>
-                <div className="text-xs text-gray-500">21 items screened · 5 flagged</div>
+                <div className="text-xs text-gray-500">Draft items waiting for screening</div>
               </div>
 
               <Link to="/workflows/pre-testing-pipeline/screening">
@@ -84,11 +93,9 @@ export function PreTestingPipeline() {
               </p>
 
               <div className="space-y-2">
-                <div className="text-3xl font-bold text-gray-900">3</div>
+                <div className="text-3xl font-bold text-gray-900">{predictionQueueCount}</div>
                 <div className="text-sm text-gray-600">in queue</div>
-                <div className="text-xs text-gray-500">
-                  Avg prediction error 18% · Model accuracy 82% · 16 predictions generated
-                </div>
+                <div className="text-xs text-gray-500">Screening approved items waiting for prediction</div>
               </div>
 
               <Link to="/workflows/pre-testing-pipeline/difficulty-prediction">
@@ -119,9 +126,9 @@ export function PreTestingPipeline() {
               </p>
 
               <div className="space-y-2">
-                <div className="text-3xl font-bold text-gray-900">8</div>
+                <div className="text-3xl font-bold text-gray-900">{seedingQueueCount}</div>
                 <div className="text-sm text-gray-600">in queue</div>
-                <div className="text-xs text-gray-500">5 items seeded · next window 15 Mar</div>
+                <div className="text-xs text-gray-500">Calibrated items ready for seeding</div>
               </div>
 
               <Link to="/workflows/pre-testing-pipeline/seeding">
@@ -176,3 +183,4 @@ export function PreTestingPipeline() {
     </div>
   );
 }
+

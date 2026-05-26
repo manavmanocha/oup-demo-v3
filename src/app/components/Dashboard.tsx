@@ -15,15 +15,31 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { getItemsForReview } from "../data/mockData";
+import { isWorkflowState } from '../data/workflowState';
 
 export function Dashboard() {
   const itemsNeedingReview = getItemsForReview();
 
-  const recentReviews = [
-    { id: 'ITM-RACE-0238', status: 'Pending', type: 'MCQ', level: 'A2', flaggedFor: 'CEFR Fit' },
-    { id: 'ITM-GEN-0189', status: 'In Review', type: 'Writing', level: 'C1', flaggedFor: 'Clarity' },
-    { id: 'ITM-RACE-0048', status: 'Approved', type: 'MCQ', level: 'A2', flaggedFor: 'Fairness' },
-  ];
+  const recentReviews = itemsNeedingReview
+    .filter(
+      (item) =>
+        isWorkflowState(item.workflowState, 'PENDING_SCREENING_REVIEW') ||
+        isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW'),
+    )
+    .slice(0, 8)
+    .map((item) => ({
+      id: item.id,
+      status: isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW') ? 'DP Review' : 'Screening Review',
+      type: item.itemType,
+      level: item.level,
+      flaggedFor:
+        item.screening?.similarity === 'Fail' ? 'Similarity' :
+        item.screening?.cefrFit === 'Fail' ? 'CEFR Fit' :
+        item.screening?.distractorStrength === 'Fail' ? 'Distractor Strength' :
+        item.screening?.clarity === 'Fail' ? 'Clarity' :
+        item.screening?.fairness === 'Fail' ? 'Fairness' :
+        isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW') ? 'Confidence' : 'Screening',
+    }));
 
   const aiInsights = [
     { message: '12 items may be over-difficult for their CEFR level', severity: 'warning' },
@@ -32,7 +48,7 @@ export function Dashboard() {
   ];
 
   return (
-    <div className="p-8 bg-gray-50">
+    <div className="p-4 sm:p-6 md:p-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -45,7 +61,7 @@ export function Dashboard() {
         </div>
 
         {/* Top Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
           <Card className="border-gray-200">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-2">
@@ -92,7 +108,7 @@ export function Dashboard() {
         </div>
 
         {/* Primary Workflow Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
           {/* Screening */}
           <Card className="border-blue-200 hover:shadow-lg transition-shadow">
             <CardHeader className="space-y-4 pb-4">
@@ -160,7 +176,7 @@ export function Dashboard() {
               </div>
               <Link to="/workflows/pre-testing-pipeline/difficulty-prediction">
                 <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                  Run Prediction
+                  Start Prediction
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -204,7 +220,7 @@ export function Dashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Review Queue */}
           <Card className="lg:col-span-2 border-gray-200">
             <CardHeader className="flex flex-row items-center justify-between pb-4">
@@ -226,7 +242,8 @@ export function Dashboard() {
                     <div className="flex items-center gap-3 flex-1">
                       <div>
                         <Link
-                          to={`/item-bank/${item.level}/${item.id}`}
+                          to={`/item-bank/${item.level}/${item.id}?from=workflow`}
+                          state={{ fromWorkflow: true }}
                           className="font-medium text-blue-600 hover:underline text-sm"
                         >
                           {item.id}
@@ -239,27 +256,26 @@ export function Dashboard() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {item.status === 'Pending' && (
+                      {item.status === 'Screening Review' && (
                         <Badge variant="secondary" className="bg-orange-100 text-orange-700">
                           <Clock className="w-3 h-3 mr-1" />
-                          Pending
+                          Screening Review
                         </Badge>
                       )}
-                      {item.status === 'In Review' && (
+                      {item.status === 'DP Review' && (
                         <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                           <AlertCircle className="w-3 h-3 mr-1" />
-                          In Review
-                        </Badge>
-                      )}
-                      {item.status === 'Approved' && (
-                        <Badge variant="secondary" className="bg-green-100 text-green-700">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Approved
+                          DP Review
                         </Badge>
                       )}
                     </div>
                   </div>
                 ))}
+                {recentReviews.length === 0 && (
+                  <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+                    No Screening Review or DP Review items in queue.
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

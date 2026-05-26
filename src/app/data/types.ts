@@ -1,7 +1,19 @@
 export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type Skill = 'Reading' | 'Writing' | 'Listening' | 'Speaking';
 export type ItemType = 'Multiple Choice' | 'Essay' | 'Speaking' | 'Form Completion' | 'Note Completion' | 'Table Completion' | 'Flow Chart' | 'Map Labeling' | 'Matching' | 'Short Answer' | 'Sentence Completion' | 'True/False/Not Given' | 'Yes/No/Not Given' | 'Matching Headings' | 'Summary Completion' | 'Matching Information';
-export type ItemStatus = 'Active' | 'Compromised' | 'Retired' | 'Draft' | 'In Review' | 'Approved' | 'Calibrated';
+export type ItemStatus = 'Draft' | 'Retired' | 'Compromised' | 'Published';
+export type WorkflowState =
+  | 'NOT_STARTED'
+  | 'IN_SCREENING'
+  | 'PENDING_SCREENING_REVIEW'
+  | 'SCREENING_APPROVED'
+  | 'SCREENING_REJECTED'
+  | 'IN_DIFFICULTY_ESTIMATION'
+  | 'PENDING_DP_REVIEW'
+  | 'DP_APPROVED'
+  | 'DP_REJECTED'
+  | 'RECOMMENDED_FOR_SEEDING'
+  | 'SEEDED';
 export type Difficulty = 'Easy' | 'Medium' | 'Hard' | 'Very Easy' | 'Very Hard';
 
 export interface IRTParameters {
@@ -33,6 +45,7 @@ export interface AssessmentItem {
   id: string;
   title: string;
   content: string;
+  answerKey?: string;
   level: CEFRLevel;
   skill: Skill;
   itemType: ItemType;
@@ -47,7 +60,13 @@ export interface AssessmentItem {
   options?: ItemOption[];
   rubric?: string;
   audioAsset?: string;
+  imageTitle?: string;
+  imageAsset?: string;
+  imageAltText?: string;
   passage?: string;
+  passageTitle?: string;
+  instructions?: string;
+  followUpQuestions?: string[];
   passageId?: string;
   
   // Item Properties
@@ -55,6 +74,8 @@ export interface AssessmentItem {
   cognitiveLevel?: string;
   contentDomain?: string;
   languageVariety?: string;
+  topic?: string;
+  grammarFocus?: string;
   enemyItems?: string[];
   
   // Discrimination & Confidence
@@ -71,7 +92,7 @@ export interface AssessmentItem {
   };
   
   // Workflow tracking
-  workflowState?: 'Draft' | 'In Review' | 'Approved' | 'Calibrated' | 'Live' | 'Retired';
+  workflowState?: WorkflowState;
   reviewHistory?: ReviewHistoryEntry[];
   flaggedForReview?: boolean;
   flagReason?: string;

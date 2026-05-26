@@ -9,20 +9,11 @@
 
   Run `npm run dev` to start the development server.
 
-  ## Figma MCP in VS Code
+  ## Testing
 
-  This repo now includes a workspace MCP config in `.vscode/mcp.json` for the remote Figma MCP server.
+  Run `pnpm run test:unit` to execute unit tests with coverage.
 
-  To use it in VS Code:
+  Run `pnpm run test:e2e` to execute Playwright end-to-end tests.
 
-  1. Open this workspace.
-  2. Open the Command Palette and run `MCP: Open Workspace Folder MCP Configuration` if you want to inspect the config.
-  3. In the MCP view or config editor, start the `figma` server.
-  4. Complete the Figma OAuth flow in the browser when prompted.
-
-  Notes:
-
-  - The shared server definition is committed to the repo so teammates do not need to recreate it.
-  - Authentication is user-specific and cannot be safely committed; each teammate must authorize Figma once on their own machine.
-  - The configured remote endpoint is `https://mcp.figma.com/mcp`, which is the recommended Figma setup.
+  Run `pnpm run test:ci` to execute the full CI-equivalent test pipeline.
   

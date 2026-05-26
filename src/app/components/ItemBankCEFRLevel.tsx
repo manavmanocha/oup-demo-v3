@@ -5,6 +5,7 @@ import { Badge } from './ui/badge';
 import { AlertCircle } from 'lucide-react';
 import { getItemsByLevel, bankCapacityData } from '../data/mockData';
 import { CEFRLevel } from '../data/types';
+import { PIPELINE_WORKFLOW_STATES, getWorkflowStateLabel, isAnyWorkflowState } from '../data/workflowState';
 import {
   Tooltip,
   TooltipContent,
@@ -17,20 +18,25 @@ export function ItemBankCEFRLevel() {
 
   const items = getItemsByLevel(level as CEFRLevel);
   const levelData = bankCapacityData.find(l => l.level === level);
+  const levelTotal = Math.max(items.length, 1);
+  const pendingCount = items.filter(item => isAnyWorkflowState(item.workflowState, PIPELINE_WORKFLOW_STATES)).length;
 
   const skillDistribution = [
-    { skill: 'Reading', count: items.filter(i => i.skill === 'Reading').length, percentage: 137 },
-    { skill: 'Writing', count: items.filter(i => i.skill === 'Writing').length, percentage: 8 },
-    { skill: 'Listening', count: items.filter(i => i.skill === 'Listening').length, percentage: 12 },
-    { skill: 'Speaking', count: items.filter(i => i.skill === 'Speaking').length, percentage: 8 },
-  ];
+    { skill: 'Reading', count: items.filter(i => i.skill === 'Reading').length },
+    { skill: 'Writing', count: items.filter(i => i.skill === 'Writing').length },
+    { skill: 'Listening', count: items.filter(i => i.skill === 'Listening').length },
+    { skill: 'Speaking', count: items.filter(i => i.skill === 'Speaking').length },
+  ].map((row) => ({
+    ...row,
+    percentage: Math.round((row.count / levelTotal) * 100),
+  }));
 
   if (!level || !levelData) {
-    return <div className="p-8">Level not found</div>;
+    return <div className="p-4 sm:p-6 md:p-8">Level not found</div>;
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
@@ -82,7 +88,7 @@ export function ItemBankCEFRLevel() {
                   </span>
                 )}
                 <span className="text-gray-500">
-                  <span className="font-semibold">76</span> pending in pipeline
+                  <span className="font-semibold">{pendingCount}</span> pending in pipeline
                 </span>
               </div>
             </div>
@@ -172,7 +178,7 @@ export function ItemBankCEFRLevel() {
         )}
 
         {/* In Pipeline Section */}
-        {items.filter(item => ['Draft', 'In Review', 'Approved'].includes(item.workflowState || '')).length > 0 && (
+        {items.filter(item => isAnyWorkflowState(item.workflowState, PIPELINE_WORKFLOW_STATES)).length > 0 && (
           <Card className="border-blue-200">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-blue-600 uppercase">In Pipeline</CardTitle>
@@ -190,7 +196,7 @@ export function ItemBankCEFRLevel() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {items.filter(item => ['Draft', 'In Review', 'Approved'].includes(item.workflowState || '')).map((item) => (
+                    {items.filter(item => isAnyWorkflowState(item.workflowState, PIPELINE_WORKFLOW_STATES)).map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3">
                           <Link
@@ -210,7 +216,7 @@ export function ItemBankCEFRLevel() {
                         </td>
                         <td className="px-4 py-3">
                           <Badge variant="outline" className="text-xs">
-                            {item.workflowState}
+                            {getWorkflowStateLabel(item.workflowState)}
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-right">
@@ -230,3 +236,4 @@ export function ItemBankCEFRLevel() {
     </div>
   );
 }
+

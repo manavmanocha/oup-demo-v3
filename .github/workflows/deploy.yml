@@ -1,0 +1,70 @@
+name: Deploy to App Runner
+
+on:
+  workflow_dispatch:
+
+  workflow_run:
+    workflows: ["Tests"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main'
+      )
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Trigger App Runner deployment
+        env:
+          SERVICE_ARN: ${{ secrets.APPRUNNER_SERVICE_ARN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ATTEMPTS=12
+          SLEEP_SECONDS=60
+
+          for i in $(seq 1 $ATTEMPTS); do
+            STATUS=$(aws apprunner describe-service \
+              --service-arn "$SERVICE_ARN" \
+              --query 'Service.Status' \
+              --output text)
+
+            echo "Attempt $i/$ATTEMPTS - App Runner status: $STATUS"
+
+            if [ "$STATUS" = "RUNNING" ]; then
+              echo "Starting deployment..."
+
+              aws apprunner start-deployment \
+                --service-arn "$SERVICE_ARN"
+
+              echo "Deployment triggered successfully."
+              exit 0
+            fi
+
+            if [ "$STATUS" = "OPERATION_IN_PROGRESS" ]; then
+              echo "Another deployment/operation is in progress. Waiting..."
+            fi
+
+            sleep $SLEEP_SECONDS
+          done
+
+          echo "App Runner service did not reach RUNNING state in time."
+          exit 1

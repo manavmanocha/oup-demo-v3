@@ -1,65 +1,87 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Info } from 'lucide-react';
+import { acceptPredictedItems, getAllItems } from '../data/mockData';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
+import { isWorkflowState } from '../data/workflowState';
+
+const toTimestamp = (value?: string): number => {
+  if (!value) return 0;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
 
 export function DifficultyPrediction() {
-  const needsReview = [
-    {
-      id: 'ITM-GEN-0009',
-      level: 'A1',
-      skill: 'Listening',
-      itemType: 'Multiple Choice',
-      content: 'What does the woman want?',
-      confidence: 78,
-      difficulty: 'Easy',
-      discrimination: 'Good',
-    },
-    {
-      id: 'ITM-GEN-0189',
-      level: 'C1',
-      skill: 'Writing',
-      itemType: 'Multiple Choice',
-      content: 'Write a card with a top and a bottom. The top has a picture of a clock...',
-      confidence: 85,
-      difficulty: 'Very Hard',
-      discrimination: 'Moderate',
-    },
-    {
-      id: 'ITM-GEN-0110',
-      level: 'B2',
-      skill: 'Writing',
-      itemType: 'Multiple Choice',
-      content: 'The fisherman\'s initial results were inconclusive, prompting further investigation.',
-      confidence: 91,
-      difficulty: 'Hard',
-      discrimination: 'Moderate',
-    },
-  ];
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const allItems = useMemo(() => getAllItems(), [refreshVersion]);
+  const waitingForPrediction = allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED'));
 
-  const readyToAccept = [
-    { id: 'ITM-RACE-0027', item: 'This passage primarily deals with...', level: 'B1', confidence: 92, difficulty: 'Medium', discrimination: 'Good' },
-    { id: 'ITM-RACE-0077', item: 'Why did the man decide to quit?', level: 'B1', confidence: 92, difficulty: 'Medium', discrimination: 'Moderate' },
-    { id: 'ITM-RACE-0150', item: 'How about you? What does the passage mainly tell us?', level: 'B1', confidence: 91, difficulty: 'Medium', discrimination: 'Moderate' },
-    { id: 'ITM-RACE-0199', item: 'What\'s the best title of the passage?', level: 'B1', confidence: 92, difficulty: 'Medium', discrimination: 'Moderate' },
-    { id: 'ITM-RACE-0202', item: 'What does this passage mainly tell us about?', level: 'B1', confidence: 92, difficulty: 'Hard', discrimination: 'Good' },
-  ];
+  const calibratedItems = useMemo(
+    () => allItems
+      .filter((item) => isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW'))
+      .map((item) => ({
+        id: item.id,
+        item: item.title,
+        level: item.level,
+        skill: item.skill,
+        itemType: item.itemType,
+        content: item.content,
+        confidence: item.confidence ?? 0,
+        difficulty: item.difficulty ?? 'Medium',
+        discrimination: item.discrimination ?? 'Moderate',
+        recencyTimestamp: Math.max(
+          toTimestamp(item.aiPredictionDate),
+          toTimestamp(item.irtParameters?.predictionDate),
+          toTimestamp(item.lastEditedDate),
+          toTimestamp(item.createdDate),
+        ),
+      }))
+      .sort((a, b) => {
+        if (b.recencyTimestamp !== a.recencyTimestamp) {
+          return b.recencyTimestamp - a.recencyTimestamp;
+        }
+
+        return b.id.localeCompare(a.id);
+      }),
+    [allItems],
+  );
+
+  const needsReview = calibratedItems.filter((item) => item.confidence < 85);
+  const readyToAccept = calibratedItems.filter((item) => item.confidence >= 85);
+
+  const handleAcceptItem = (itemId: string) => {
+    acceptPredictedItems([itemId]);
+    setRefreshVersion((prev) => prev + 1);
+  };
+
+  const handleAcceptAll = () => {
+    const itemIds = readyToAccept.map((item) => item.id);
+    if (!itemIds.length) {
+      return;
+    }
+
+    acceptPredictedItems(itemIds);
+    setRefreshVersion((prev) => prev + 1);
+  };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
           <Link to="/workflows" className="hover:underline">Workflows</Link>
           <span className="text-gray-400">/</span>
           <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
           <span className="text-gray-400">/</span>
           <span className="text-gray-900">Difficulty Prediction</span>
         </div>
@@ -85,7 +107,7 @@ export function DifficultyPrediction() {
               <CardTitle className="text-sm font-medium text-gray-500 uppercase">Need Your Review</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">79</div>
+                <div className="text-3xl font-bold text-gray-900">{needsReview.length}</div>
             </CardContent>
           </Card>
 
@@ -94,7 +116,7 @@ export function DifficultyPrediction() {
               <CardTitle className="text-sm font-medium text-gray-500 uppercase">Ready to Accept</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">392</div>
+                <div className="text-3xl font-bold text-gray-900">{readyToAccept.length}</div>
             </CardContent>
           </Card>
 
@@ -103,7 +125,7 @@ export function DifficultyPrediction() {
               <CardTitle className="text-sm font-medium text-gray-500 uppercase">Waiting for Prediction</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">0</div>
+                <div className="text-3xl font-bold text-gray-900">{waitingForPrediction.length}</div>
             </CardContent>
           </Card>
         </div>
@@ -219,6 +241,7 @@ export function DifficultyPrediction() {
                     <div className="flex items-center gap-3 flex-wrap">
                       <Link
                         to={`/item-bank/${item.level}/${item.id}`}
+                        state={{ fromWorkflow: true }}
                         className="text-sm font-medium text-blue-600 hover:underline"
                       >
                         {item.id}
@@ -247,12 +270,18 @@ export function DifficultyPrediction() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Button size="sm">Accept</Button>
+                    <Button size="sm" onClick={() => handleAcceptItem(item.id)}>Accept</Button>
                     <Button size="sm" variant="outline">Reject</Button>
                     <Button size="sm" variant="outline">Override</Button>
                   </div>
                 </div>
               ))}
+
+              {needsReview.length === 0 && (
+                <div className="text-sm text-gray-600 border rounded-lg p-6 bg-gray-50">
+                  No low-confidence predictions are pending manual review.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -263,7 +292,7 @@ export function DifficultyPrediction() {
             <CardTitle className="text-sm font-medium text-gray-500 uppercase">
               Ready to Accept · {readyToAccept.length} items
             </CardTitle>
-            <Button size="sm">Accept All</Button>
+            <Button size="sm" onClick={handleAcceptAll} disabled={readyToAccept.length === 0}>Accept All</Button>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-6">
@@ -288,6 +317,7 @@ export function DifficultyPrediction() {
                       <td className="px-4 py-3">
                         <Link
                           to={`/item-bank/${item.level}/${item.id}`}
+                          state={{ fromWorkflow: true }}
                           className="text-sm font-medium text-blue-600 hover:underline"
                         >
                           {item.id}
@@ -300,6 +330,13 @@ export function DifficultyPrediction() {
                       <td className="px-4 py-3 text-sm text-gray-700">{item.discrimination}</td>
                     </tr>
                   ))}
+                  {readyToAccept.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                        No high-confidence predictions available yet.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -309,3 +346,4 @@ export function DifficultyPrediction() {
     </div>
   );
 }
+

@@ -3,8 +3,6 @@ import { Link } from "react-router";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
 } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -16,17 +14,32 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  Clock,
   LayoutGrid,
   List,
   X,
   RotateCcw,
 } from "lucide-react";
-import { getAllItems } from "../data/mockData";
+import { getAllItems, getIngestedItems } from "../data/mockData";
 import { QuestionCard } from "./QuestionCard";
 
 const ITEMS_PER_PAGE = 50;
 const LIBRARY_FILTER_STATE_KEY = "library-filter-state-v1";
+
+const prioritizeIngestedFirst = <T extends { id: string }>(items: T[], ingestedIds: Set<string>): T[] => {
+  const ingested: T[] = [];
+  const nonIngested: T[] = [];
+
+  items.forEach((item) => {
+    if (ingestedIds.has(item.id)) {
+      ingested.push(item);
+      return;
+    }
+
+    nonIngested.push(item);
+  });
+
+  return [...ingested, ...nonIngested];
+};
 
 type LibraryFilterState = {
   searchQuery: string;
@@ -40,6 +53,15 @@ type LibraryFilterState = {
 };
 
 const getInitialLibraryState = (): LibraryFilterState => {
+  const pickOne = (values: unknown): string[] => {
+    if (!Array.isArray(values) || values.length === 0) {
+      return [];
+    }
+
+    const first = values[0];
+    return typeof first === "string" ? [first] : [];
+  };
+
   const fallback: LibraryFilterState = {
     searchQuery: "",
     selectedStatuses: [],
@@ -58,6 +80,10 @@ const getInitialLibraryState = (): LibraryFilterState => {
     return {
       ...fallback,
       ...parsed,
+      selectedStatuses: pickOne(parsed.selectedStatuses),
+      selectedItemTypes: pickOne(parsed.selectedItemTypes),
+      selectedLevels: pickOne(parsed.selectedLevels),
+      selectedSkills: pickOne(parsed.selectedSkills),
       expandedSections:
         Array.isArray(parsed.expandedSections) && parsed.expandedSections.length > 0
           ? parsed.expandedSections
@@ -100,7 +126,9 @@ export function Library() {
   const allItems = getAllItems();
 
   const filteredItems = useMemo(() => {
-    return allItems.filter((item) => {
+    const ingestedIdSet = new Set(getIngestedItems().map((item) => item.id));
+
+    const matchedItems = allItems.filter((item) => {
       const matchesSearch =
         item.id
           .toLowerCase()
@@ -138,6 +166,8 @@ export function Library() {
         matchesStatus
       );
     });
+
+    return prioritizeIngestedFirst(matchedItems, ingestedIdSet);
   }, [
     allItems,
     searchQuery,
@@ -160,7 +190,7 @@ export function Library() {
   // Calculate counts for filters
   const statusCounts = {
     Draft: allItems.filter((item) => item.status === "Draft").length,
-    Published: allItems.filter((item) => item.status === "Active").length,
+    Published: allItems.filter((item) => item.status === "Published").length,
     Retired: allItems.filter((item) => item.status === "Retired").length,
     Compromised: allItems.filter((item) => item.status === "Compromised").length,
   };
@@ -206,38 +236,22 @@ export function Library() {
   };
 
   const toggleStatus = (status: string) => {
-    setSelectedStatuses((prev) =>
-      prev.includes(status)
-        ? prev.filter((s) => s !== status)
-        : [...prev, status],
-    );
+    setSelectedStatuses((prev) => (prev[0] === status ? [] : [status]));
     setCurrentPage(1);
   };
 
   const toggleItemType = (type: string) => {
-    setSelectedItemTypes((prev) =>
-      prev.includes(type)
-        ? prev.filter((t) => t !== type)
-        : [...prev, type],
-    );
+    setSelectedItemTypes((prev) => (prev[0] === type ? [] : [type]));
     setCurrentPage(1);
   };
 
   const toggleLevel = (level: string) => {
-    setSelectedLevels((prev) =>
-      prev.includes(level)
-        ? prev.filter((l) => l !== level)
-        : [...prev, level],
-    );
+    setSelectedLevels((prev) => (prev[0] === level ? [] : [level]));
     setCurrentPage(1);
   };
 
   const toggleSkill = (skill: string) => {
-    setSelectedSkills((prev) =>
-      prev.includes(skill)
-        ? prev.filter((s) => s !== skill)
-        : [...prev, skill],
-    );
+    setSelectedSkills((prev) => (prev[0] === skill ? [] : [skill]));
     setCurrentPage(1);
   };
 
@@ -327,9 +341,9 @@ export function Library() {
         </Card>
 
         {/* Main Layout: Sidebar + Content */}
-        <div className="flex gap-6">
+        <div className="flex flex-col xl:flex-row gap-6">
           {/* Left Sidebar - Filters */}
-          <div className="w-64 flex-shrink-0 space-y-6">
+          <div className="w-full xl:w-64 xl:flex-shrink-0 space-y-6">
             {/* Total Count */}
             <div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">
@@ -514,16 +528,31 @@ export function Library() {
           </div>
 
           {/* Right Content - Items */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {/* Active Filters Bar - Top */}
-            {(selectedStatuses.length > 0 ||
+            {(searchQuery.trim().length > 0 ||
+              selectedStatuses.length > 0 ||
               selectedLevels.length > 0 ||
               selectedSkills.length > 0 ||
               selectedItemTypes.length > 0) && (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className="text-sm font-semibold text-gray-700">Filters:</span>
+                    {searchQuery.trim().length > 0 && (
+                      <Badge
+                        variant="secondary"
+                        className="text-sm pl-3 pr-2 py-1 bg-white border border-gray-300"
+                      >
+                        Keyword: {searchQuery}
+                        <button
+                          onClick={() => handleSearchChange("")}
+                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    )}
                     {selectedStatuses.map(status => (
                       <Badge
                         key={status}
@@ -533,7 +562,7 @@ export function Library() {
                         {status}
                         <button
                           onClick={() => toggleStatus(status)}
-                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5"
+                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -548,7 +577,7 @@ export function Library() {
                         CEFR level &gt; {level}
                         <button
                           onClick={() => toggleLevel(level)}
-                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5"
+                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -563,7 +592,7 @@ export function Library() {
                         {skill}
                         <button
                           onClick={() => toggleSkill(skill)}
-                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5"
+                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -578,7 +607,7 @@ export function Library() {
                         {type}
                         <button
                           onClick={() => toggleItemType(type)}
-                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5"
+                          className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -589,9 +618,9 @@ export function Library() {
                     variant="ghost"
                     size="sm"
                     onClick={clearFilters}
-                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 cursor-pointer border border-blue-600"
                   >
-                    <RotateCcw className="w-4 h-4 mr-2" />
+                    <RotateCcw className="w-4 h-4" />
                     Reset
                   </Button>
                 </div>
@@ -599,10 +628,19 @@ export function Library() {
             )}
 
             {/* Items Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
               <div>
                 <p className="text-sm text-gray-600">
-                  Showing <span className="font-semibold text-gray-900">{filteredItems.length}</span> of {allItems.length} questions
+                  {filteredItems.length > 0 ? (
+                    <>
+                      Showing <span className="font-semibold text-gray-900">{startIndex + 1}</span>-
+                      <span className="font-semibold text-gray-900">{Math.min(endIndex, filteredItems.length)}</span> of {filteredItems.length} items
+                    </>
+                  ) : (
+                    <>
+                      Showing <span className="font-semibold text-gray-900">0</span> of 0 items
+                    </>
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -653,26 +691,25 @@ export function Library() {
               /* Table View */
               <Card>
                 <CardContent className="p-0">
-                  <div className="border rounded-lg overflow-hidden">
-                    <table className="w-full">
+                  <div className="border rounded-lg overflow-hidden overflow-x-auto">
+                    <table className="w-full min-w-[640px] table-fixed">
                       <thead className="bg-gray-50 border-b">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="w-36 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Item ID
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="w-20 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Level
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="w-28 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Skill
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Title
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="w-36 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Status
                           </th>
-                          <th className="px-4 py-3"></th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
@@ -694,7 +731,7 @@ export function Library() {
                               <td className="px-4 py-3">
                                 <Link
                                   to={`/item-bank/${item.level}/${item.id}`}
-                                  className="text-sm font-medium text-blue-600 hover:underline"
+                                  className="block text-sm font-medium text-blue-600 hover:underline max-w-sm truncate"
                                 >
                                   {item.id}
                                 </Link>
@@ -720,7 +757,7 @@ export function Library() {
                               <td className="px-4 py-3">
                                 <Badge
                                   variant={
-                                    item.status === "Active"
+                                    item.status === "Published"
                                       ? "secondary"
                                       : item.status === "Compromised"
                                         ? "destructive"
@@ -729,18 +766,6 @@ export function Library() {
                                 >
                                   {item.status}
                                 </Badge>
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <Link
-                                  to={`/item-bank/${item.level}/${item.id}`}
-                                >
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                  >
-                                    View
-                                  </Button>
-                                </Link>
                               </td>
                             </tr>
                           ))
@@ -754,13 +779,13 @@ export function Library() {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-between">
+              <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div className="text-sm text-gray-600">
                   Showing {startIndex + 1}-
                   {Math.min(endIndex, filteredItems.length)}{" "}
                   of {filteredItems.length} items
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
