@@ -897,10 +897,6 @@ export function ItemDetailRedesign() {
                         </div>
                         <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
                       </div>
-
-                      <div className="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-700">
-                        Item bank view: response entry is disabled. Use the answer section below for the model/sample response.
-                      </div>
                     </div>
                   </div>
                 )}
@@ -942,12 +938,6 @@ export function ItemDetailRedesign() {
                           </div>
                         </div>
                       )}
-
-                      <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4">
-                        <p className="text-sm text-gray-700">
-                          Item bank view: recording controls are disabled. Review the sample response and rubric in the answer section below.
-                        </p>
-                      </div>
                     </div>
                   </div>
                 )}

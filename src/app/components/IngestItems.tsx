@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -170,6 +170,7 @@ const toTitleFromText = (content: string) => {
 const INGEST_AUTHORS = ['Aisha Verma', 'Daniel Brooks', 'Neha Kapoor', 'Rohan Mehta', 'Elena Petrova'];
 const INGEST_REVIEWERS = ['Maya Thompson', 'Arjun Nair', 'Sofia Martinez', 'Kabir Singh', 'Liam O\'Connell'];
 const INGEST_PREVIEW_ITEMS_STORAGE_KEY = 'ingest-preview-items-v1';
+const INGEST_SESSION_STORAGE_KEY = 'ingest-session-v1';
 
 const hashFromId = (id: string) =>
   id.split('').reduce((sum, char) => sum + (char.codePointAt(0) ?? 0), 0);
@@ -251,22 +252,53 @@ const buildPreviewItem = (
 
 export function IngestItems() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<'upload' | 'metadata' | 'validate' | 'success'>('upload');
-  const [fileName, setFileName] = useState('');
-  const [itemCount, setItemCount] = useState(0);
+
+  const [savedSession] = useState<Record<string, unknown> | null>(() => {
+    try {
+      const raw = localStorage.getItem(INGEST_SESSION_STORAGE_KEY);
+      return raw ? (JSON.parse(raw) as Record<string, unknown>) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [step, setStep] = useState<'upload' | 'metadata' | 'validate' | 'success'>(
+    (savedSession?.step as 'upload' | 'metadata' | 'validate' | 'success') ?? 'upload',
+  );
+  const [fileName, setFileName] = useState((savedSession?.fileName as string) ?? '');
+  const [itemCount, setItemCount] = useState((savedSession?.itemCount as number) ?? 0);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [validationError, setValidationError] = useState('');
-  const [parsedItems, setParsedItems] = useState<ParsedUploadItem[]>([]);
+  const [parsedItems, setParsedItems] = useState<ParsedUploadItem[]>(
+    (savedSession?.parsedItems as ParsedUploadItem[]) ?? [],
+  );
   const [ingestedCount, setIngestedCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Import configuration state
-  const [defaultCognitiveLevel, setDefaultCognitiveLevel] = useState('');
-  const [defaultGrammar, setDefaultGrammar] = useState('');
-  const [defaultContentDomain, setDefaultContentDomain] = useState('');
-  const [defaultLanguageVariety, setDefaultLanguageVariety] = useState('');
-  const [defaultTopic, setDefaultTopic] = useState('');
+  const [defaultCognitiveLevel, setDefaultCognitiveLevel] = useState((savedSession?.defaultCognitiveLevel as string) ?? '');
+  const [defaultGrammar, setDefaultGrammar] = useState((savedSession?.defaultGrammar as string) ?? '');
+  const [defaultContentDomain, setDefaultContentDomain] = useState((savedSession?.defaultContentDomain as string) ?? '');
+  const [defaultLanguageVariety, setDefaultLanguageVariety] = useState((savedSession?.defaultLanguageVariety as string) ?? '');
+  const [defaultTopic, setDefaultTopic] = useState((savedSession?.defaultTopic as string) ?? '');
+
+  // Persist session state so navigating to item preview and back restores the validate step
+  useEffect(() => {
+    if (step === 'upload' || step === 'success') return;
+    const session = {
+      step,
+      parsedItems,
+      fileName,
+      itemCount,
+      defaultCognitiveLevel,
+      defaultGrammar,
+      defaultContentDomain,
+      defaultLanguageVariety,
+      defaultTopic,
+    };
+    localStorage.setItem(INGEST_SESSION_STORAGE_KEY, JSON.stringify(session));
+  }, [step, parsedItems, fileName, itemCount, defaultCognitiveLevel, defaultGrammar, defaultContentDomain, defaultLanguageVariety, defaultTopic]);
 
   const cognitiveLevelsTaxonomy = taxonomies.find((taxonomy) => taxonomy.id === 'cognitiveLevels');
   const grammarTaxonomy = taxonomies.find((taxonomy) => taxonomy.id === 'grammar');
@@ -340,6 +372,7 @@ export function IngestItems() {
 
   const handleFileUpload = async (file: File) => {
     setUploadError('');
+    localStorage.removeItem(INGEST_SESSION_STORAGE_KEY);
 
     const isCsv = file.name.toLowerCase().endsWith('.csv');
     if (!isCsv) {
@@ -551,7 +584,13 @@ export function IngestItems() {
   };
 
   const handleFinish = () => {
+    localStorage.removeItem(INGEST_SESSION_STORAGE_KEY);
     navigate('/library');
+  };
+
+  const clearSessionAndNavigate = (path: string) => {
+    localStorage.removeItem(INGEST_SESSION_STORAGE_KEY);
+    navigate(path);
   };
 
   const handleBack = () => {
@@ -697,7 +736,7 @@ export function IngestItems() {
             <div className="flex items-center justify-end gap-3">
               <Button
                 variant="outline"
-                onClick={() => navigate('/library')}
+                onClick={() => clearSessionAndNavigate('/library')}
                 className="cursor-pointer"
               >
                 Back to Library
@@ -861,7 +900,7 @@ export function IngestItems() {
                 Back
               </Button>
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => navigate('/library')} className="cursor-pointer">
+                <Button variant="outline" onClick={() => clearSessionAndNavigate('/library')} className="cursor-pointer">
                   Cancel
                 </Button>
                 <Button
@@ -1016,7 +1055,7 @@ export function IngestItems() {
                 Back
               </Button>
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => navigate('/library')} className="cursor-pointer">
+                <Button variant="outline" onClick={() => clearSessionAndNavigate('/library')} className="cursor-pointer">
                   Cancel
                 </Button>
                 <Button onClick={handleValidationSubmit} className="cursor-pointer">
