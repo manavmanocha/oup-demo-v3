@@ -313,7 +313,7 @@ const getPsychometricsForItem = (
   const c = clampValue(item.irtC ?? defaultGuessingByItemType(resolvedType), 0, 0.35);
   const confidence = Math.round(clampValue(item.confidence ?? baseline.confidence, 50, 99));
   const sampleSize = Math.round(item.sampleSize ?? baseline.sampleSize);
-  const modelVersion = item.modelVersion?.trim() || 'ingest-level-profile-v1';
+  const modelVersion = item.modelVersion?.trim() || 'IRT-2.7';
 
   return {
     irtParameters: {

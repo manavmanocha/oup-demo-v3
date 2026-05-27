@@ -1,4 +1,4 @@
-import { AssessmentItem, BankCapacity, CEFRLevel, ItemType } from './types';
+import { AssessmentItem, BankCapacity, CEFRLevel, Difficulty, ItemType } from './types';
 import { isAnyWorkflowState, normalizeWorkflowStateInput, REVIEW_WORKFLOW_STATES } from './workflowState';
 
 import questionsData from './questions.json';
@@ -67,7 +67,7 @@ export type DifficultyPredictionResult = {
   id: string;
   b: number;
   confidence: number;
-  difficulty: AssessmentItem['difficulty'];
+  difficulty: Difficulty;
   discrimination: string;
 };
 
@@ -145,23 +145,23 @@ const DEMO_SCREENING_FIXTURES: Record<string, DemoScreeningFixture> = {
 const DEMO_DP_FIXTURES: Record<string, DifficultyPredictionResult> = {
   'EAS-DEM-SPK-B2-103': {
     id: 'EAS-DEM-SPK-B2-103',
-    b: 0.88,
+    b: 0.58,
     confidence: 91,
     difficulty: 'Medium',
     discrimination: 'High',
   },
   'EAS-DEM-WRT-C1-104': {
     id: 'EAS-DEM-WRT-C1-104',
-    b: 1.36,
+    b: 1.08,
     confidence: 58,
     difficulty: 'Hard',
     discrimination: 'Moderate',
   },
   'EAS-DEM-SPK-C1-105': {
     id: 'EAS-DEM-SPK-C1-105',
-    b: 1.18,
+    b: 1.02,
     confidence: 89,
-    difficulty: 'Medium',
+    difficulty: 'Hard',
     discrimination: 'High',
   },
 };
@@ -169,6 +169,57 @@ const DEMO_DP_FIXTURES: Record<string, DifficultyPredictionResult> = {
 type ItemWorkflowOverride = {
   id: string;
   patch: Partial<AssessmentItem>;
+};
+
+type DifficultyProfile = {
+  meanB: number;
+  spread: number;
+  confidence: number;
+};
+
+const LEVEL_DIFFICULTY_PROFILE: Record<CEFRLevel, DifficultyProfile> = {
+  A1: { meanB: -1.7, spread: 0.18, confidence: 92 },
+  A2: { meanB: -1.1, spread: 0.16, confidence: 90 },
+  B1: { meanB: -0.35, spread: 0.18, confidence: 88 },
+  B2: { meanB: 0.35, spread: 0.2, confidence: 86 },
+  C1: { meanB: 1.05, spread: 0.18, confidence: 84 },
+  C2: { meanB: 1.65, spread: 0.15, confidence: 82 },
+};
+
+const sumHashString = (value: string) =>
+  value.split('').reduce((sum, char) => sum + (char.codePointAt(0) ?? 0), 0);
+
+const deterministicOffset = (seed: string, spread: number) => {
+  const normalized = (sumHashString(seed) % 1000) / 999;
+  return (normalized * 2 - 1) * spread;
+};
+
+const clampBValue = (value: number) => Math.min(2.5, Math.max(-2.5, value));
+
+const getDifficultyLabelFromB = (b: number): DifficultyPredictionResult['difficulty'] => {
+  if (b <= -1.2) return 'Very Easy';
+  if (b <= -0.45) return 'Easy';
+  if (b <= 0.7) return 'Medium';
+  if (b <= 1.35) return 'Hard';
+  return 'Very Hard';
+};
+
+const getAlignedDifficultyPrediction = (item: AssessmentItem): DifficultyPredictionResult => {
+  const profile = LEVEL_DIFFICULTY_PROFILE[item.level];
+  const b = Number(
+    clampBValue(profile.meanB + deterministicOffset(`${item.id}:${item.level}`, profile.spread)).toFixed(2),
+  );
+  const confidence = Math.round(
+    Math.min(99, Math.max(70, profile.confidence + deterministicOffset(`${item.id}:confidence`, 4))),
+  );
+
+  return {
+    id: item.id,
+    b,
+    confidence,
+    difficulty: getDifficultyLabelFromB(b),
+    discrimination: confidence >= 90 ? 'High' : confidence >= 80 ? 'Moderate' : 'Low',
+  };
 };
 
 const randomScreeningResults = (): ScreeningResults => {
@@ -209,14 +260,21 @@ export const getMockDifficultyPredictionResult = (id: string): DifficultyPredict
     return predefined;
   }
 
+  const matchedItem = getAllItems().find((item) => item.id === id);
+
+  if (matchedItem) {
+    return getAlignedDifficultyPrediction(matchedItem);
+  }
+
   const b = Number((Math.random() * 2).toFixed(2));
   const confidence = Math.floor(Math.random() * 30) + 70;
+  const difficulty = getDifficultyLabelFromB(b);
 
   return {
     id,
     b,
     confidence,
-    difficulty: b < 0.4 ? 'Easy' : b < 1.2 ? 'Medium' : 'Hard',
+    difficulty,
     discrimination: confidence >= 90 ? 'High' : confidence >= 80 ? 'Moderate' : 'Low',
   };
 };
@@ -958,7 +1016,7 @@ const LANGUAGE_VARIETY_CATEGORIES: string[] = [
 
 const ASSIGNMENT_TARGET_COUNT = 70;
 
-const hashString = (value: string): number => {
+const assignmentHashString = (value: string): number => {
   let hash = 0;
 
   for (let index = 0; index < value.length; index += 1) {
@@ -978,11 +1036,11 @@ const buildCategoryAssignments = (
 
   // Deterministically shuffle category assignments so the split appears random while remaining stable.
   for (let index = assignmentPool.length - 1; index > 0; index -= 1) {
-    const swapIndex = hashString(`${seed}:${index}`) % (index + 1);
+    const swapIndex = assignmentHashString(`${seed}:${index}`) % (index + 1);
     [assignmentPool[index], assignmentPool[swapIndex]] = [assignmentPool[swapIndex], assignmentPool[index]];
   }
 
-  const sortedItems = [...items].sort((left, right) => hashString(`${seed}:${left.id}`) - hashString(`${seed}:${right.id}`));
+  const sortedItems = [...items].sort((left, right) => assignmentHashString(`${seed}:${left.id}`) - assignmentHashString(`${seed}:${right.id}`));
   const assignments = new Map<string, string>();
 
   sortedItems.slice(0, assignmentCount).forEach((item, index) => {
