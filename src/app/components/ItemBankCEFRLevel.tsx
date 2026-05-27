@@ -49,9 +49,11 @@ export function ItemBankCEFRLevel() {
       <div className="mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
-          <Link to="/library" className="hover:underline">Library</Link>
+          <Link to="/workflows" className="hover:underline">Workflows</Link>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-900">{level}</span>
+          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pre-Testing Pipeline</Link>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-900">CEFR Level {level}</span>
         </div>
 
         {/* Header */}

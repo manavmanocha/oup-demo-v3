@@ -936,9 +936,74 @@ const mappedItemsById = new Map<string, AssessmentItem>();
   mappedItemsById.set(item.id, item);
 });
 
-export const allMockItems: AssessmentItem[] = allQuestions
+const GRAMMAR_FOCUS_CATEGORIES: string[] = [
+  'Present Simple',
+  'Past Simple',
+  'Past Perfect',
+  'Passive Voice',
+  'Conditionals',
+  'Reported Speech',
+];
+
+const LANGUAGE_VARIETY_CATEGORIES: string[] = [
+  'British English',
+  'American English',
+  'Australian English',
+  'Canadian English',
+  'Indian English',
+  'International English',
+  'Formal English',
+  'Informal English',
+];
+
+const ASSIGNMENT_TARGET_COUNT = 70;
+
+const hashString = (value: string): number => {
+  let hash = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + (value.codePointAt(index) ?? 0)) >>> 0;
+  }
+
+  return hash;
+};
+
+const buildCategoryAssignments = (
+  items: AssessmentItem[],
+  categories: string[],
+  seed: string,
+): Map<string, string> => {
+  const assignmentCount = Math.min(items.length, ASSIGNMENT_TARGET_COUNT);
+  const assignmentPool = Array.from({ length: assignmentCount }, (_, idx) => categories[idx % categories.length]);
+
+  // Deterministically shuffle category assignments so the split appears random while remaining stable.
+  for (let index = assignmentPool.length - 1; index > 0; index -= 1) {
+    const swapIndex = hashString(`${seed}:${index}`) % (index + 1);
+    [assignmentPool[index], assignmentPool[swapIndex]] = [assignmentPool[swapIndex], assignmentPool[index]];
+  }
+
+  const sortedItems = [...items].sort((left, right) => hashString(`${seed}:${left.id}`) - hashString(`${seed}:${right.id}`));
+  const assignments = new Map<string, string>();
+
+  sortedItems.slice(0, assignmentCount).forEach((item, index) => {
+    assignments.set(item.id, assignmentPool[index]);
+  });
+
+  return assignments;
+};
+
+const mappedMockItems: AssessmentItem[] = allQuestions
   .map((question) => mappedItemsById.get(question.id))
   .filter((item): item is AssessmentItem => Boolean(item));
+
+const grammarFocusAssignments = buildCategoryAssignments(mappedMockItems, GRAMMAR_FOCUS_CATEGORIES, 'grammar-focus');
+const languageVarietyAssignments = buildCategoryAssignments(mappedMockItems, LANGUAGE_VARIETY_CATEGORIES, 'language-variety');
+
+export const allMockItems: AssessmentItem[] = mappedMockItems.map((item) => ({
+  ...item,
+  grammarFocus: grammarFocusAssignments.get(item.id) ?? item.grammarFocus,
+  languageVariety: languageVarietyAssignments.get(item.id) ?? item.languageVariety,
+}));
 
 export const getItemsByLevel = (level: CEFRLevel) => {
   return getAllItems().filter(item => item.level === level);
