@@ -26,6 +26,15 @@ import { QuestionCard } from "./QuestionCard";
 const ITEMS_PER_PAGE = 50;
 const LIBRARY_FILTER_STATE_KEY = "library-filter-state-v1";
 
+const toNormalizedKey = (value: string): string => {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
 const prioritizeIngestedFirst = <T extends { id: string }>(items: T[], ingestedIds: Set<string>): T[] => {
   const ingested: T[] = [];
   const nonIngested: T[] = [];
@@ -157,6 +166,105 @@ export function Library() {
 
   const allItems = getAllItems();
 
+  const flattenTaxonomyLabels = (nodes: TaxonomyNode[]): string[] => {
+    const labels: string[] = [];
+
+    const visit = (currentNodes: TaxonomyNode[]) => {
+      currentNodes.forEach((node) => {
+        labels.push(node.label);
+        if (node.children && node.children.length > 0) {
+          visit(node.children);
+        }
+      });
+    };
+
+    visit(nodes);
+    return labels;
+  };
+
+  const flattenTaxonomyNodes = (nodes: TaxonomyNode[]): TaxonomyNode[] => {
+    const flattened: TaxonomyNode[] = [];
+
+    const visit = (currentNodes: TaxonomyNode[]) => {
+      currentNodes.forEach((node) => {
+        flattened.push(node);
+        if (node.children && node.children.length > 0) {
+          visit(node.children);
+        }
+      });
+    };
+
+    visit(nodes);
+    return flattened;
+  };
+
+  const createTaxonomyAliasMap = (taxonomyId: string): Map<string, string> => {
+    const taxonomy = getTaxonomyById(taxonomyId);
+    const nodes = taxonomy ? flattenTaxonomyNodes(taxonomy.tree) : [];
+    const aliasMap = new Map<string, string>();
+
+    nodes.forEach((node, index) => {
+      const label = node.label;
+
+      aliasMap.set(toNormalizedKey(label), label);
+      aliasMap.set(toNormalizedKey(node.id), label);
+
+      if (taxonomyId === "cognitiveLevels") {
+        aliasMap.set(toNormalizedKey(`L${index + 1} ${label}`), label);
+      }
+
+      if (taxonomyId === "languageVarieties" && label.endsWith(" English")) {
+        aliasMap.set(toNormalizedKey(label.replace(/\s+english$/i, "")), label);
+      }
+
+      if (taxonomyId === "languageVarieties" && !label.endsWith(" English")) {
+        aliasMap.set(toNormalizedKey(`${label} English`), label);
+      }
+
+      if (taxonomyId === "grammar") {
+        const withoutTense = label.replace(/\s+tense$/i, "");
+        aliasMap.set(toNormalizedKey(withoutTense), label);
+        aliasMap.set(toNormalizedKey(`${withoutTense} tense`), label);
+        aliasMap.set(toNormalizedKey(`${withoutTense} grammar`), label);
+      }
+    });
+
+    return aliasMap;
+  };
+
+  const toCanonicalTaxonomyLabel = (
+    taxonomyId: string,
+    value: string | undefined,
+  ): string | undefined => {
+    if (!value) {
+      return undefined;
+    }
+
+    const aliasMap = createTaxonomyAliasMap(taxonomyId);
+    return aliasMap.get(toNormalizedKey(value)) ?? value;
+  };
+
+  const matchesTaxonomyFilter = (
+    selectedValues: string[],
+    taxonomyId: string,
+    rawValue: string | undefined,
+  ): boolean => {
+    if (selectedValues.length === 0) {
+      return true;
+    }
+
+    const canonicalItemValue = toCanonicalTaxonomyLabel(taxonomyId, rawValue);
+
+    if (!canonicalItemValue) {
+      return false;
+    }
+
+    return selectedValues.some((selectedValue) => {
+      const canonicalSelectedValue = toCanonicalTaxonomyLabel(taxonomyId, selectedValue);
+      return canonicalSelectedValue === canonicalItemValue;
+    });
+  };
+
   const filteredItems = useMemo(() => {
     const ingestedIdSet = new Set(getIngestedItems().map((item) => item.id));
 
@@ -192,26 +300,29 @@ export function Library() {
       const languageVariety = item.languageVariety ?? "";
       const topic = item.topic ?? "";
       const grammarFocus = item.grammarFocus ?? "";
-      const matchesCognitiveLevel =
-        selectedCognitiveLevels.length === 0
-          ? true
-          : selectedCognitiveLevels.includes(cognitiveLevel);
+      const matchesCognitiveLevel = matchesTaxonomyFilter(
+        selectedCognitiveLevels,
+        "cognitiveLevels",
+        cognitiveLevel,
+      );
       const matchesContentDomain =
         selectedContentDomains.length === 0
           ? true
           : selectedContentDomains.includes(contentDomain);
-      const matchesLanguageVariety =
-        selectedLanguageVarieties.length === 0
-          ? true
-          : selectedLanguageVarieties.includes(languageVariety);
+      const matchesLanguageVariety = matchesTaxonomyFilter(
+        selectedLanguageVarieties,
+        "languageVarieties",
+        languageVariety,
+      );
       const matchesTopic =
         selectedTopics.length === 0
           ? true
           : selectedTopics.includes(topic);
-      const matchesGrammarFocus =
-        selectedGrammarFocuses.length === 0
-          ? true
-          : selectedGrammarFocuses.includes(grammarFocus);
+      const matchesGrammarFocus = matchesTaxonomyFilter(
+        selectedGrammarFocuses,
+        "grammar",
+        grammarFocus,
+      );
 
       return (
         matchesSearch &&
@@ -296,33 +407,23 @@ export function Library() {
     return Object.fromEntries(Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)));
   };
 
-  const flattenTaxonomyLabels = (nodes: TaxonomyNode[]): string[] => {
-    const labels: string[] = [];
-
-    const visit = (currentNodes: TaxonomyNode[]) => {
-      currentNodes.forEach((node) => {
-        labels.push(node.label);
-        if (node.children && node.children.length > 0) {
-          visit(node.children);
-        }
-      });
-    };
-
-    visit(nodes);
-    return labels;
-  };
-
   const createTaxonomyCounts = (
     taxonomyId: string,
     values: Array<string | undefined>,
   ): Record<string, number> => {
-    const observedCounts = createOptionalFieldCounts(values);
+    const observedCounts = createOptionalFieldCounts(
+      values.map((value) => toCanonicalTaxonomyLabel(taxonomyId, value)),
+    );
     const taxonomy = getTaxonomyById(taxonomyId);
     const taxonomyLabels = taxonomy ? flattenTaxonomyLabels(taxonomy.tree) : [];
     const counts: Record<string, number> = {};
 
     taxonomyLabels.forEach((label) => {
       counts[label] = observedCounts[label] ?? 0;
+    });
+
+    Object.entries(observedCounts).forEach(([label, count]) => {
+      counts[label] ??= count;
     });
 
     return Object.fromEntries(Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)));
