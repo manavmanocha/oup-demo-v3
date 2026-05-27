@@ -70,6 +70,7 @@ export function ItemDetailRedesign() {
   const [audioError, setAudioError] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
   const [passageExpanded, setPassageExpanded] = useState(true);
+  const [expandedScreeningReasons, setExpandedScreeningReasons] = useState<Record<string, boolean>>({});
 
   const isListening = item?.skill === 'Listening';
   const locationState = location.state as { fromWorkflow?: boolean; backTo?: string } | null;
@@ -366,13 +367,50 @@ export function ItemDetailRedesign() {
   const shortAnswerExpectedValues = splitExpectedAnswers(item?.answerKey);
   const screeningEntries = item?.screening
     ? [
-        { label: 'CEFR Fit', value: item.screening.cefrFit },
-        { label: 'Distractor Strength', value: item.screening.distractorStrength },
-        { label: 'Clarity', value: item.screening.clarity },
-        { label: 'Fairness', value: item.screening.fairness },
-        { label: 'Similarity', value: item.screening.similarity },
+        { key: 'cefrFit', label: 'CEFR Fit', value: item.screening.cefrFit },
+        { key: 'distractorStrength', label: 'Distractor Strength', value: item.screening.distractorStrength },
+        { key: 'clarity', label: 'Clarity', value: item.screening.clarity },
+        { key: 'fairness', label: 'Fairness', value: item.screening.fairness },
+        { key: 'similarity', label: 'Similarity', value: item.screening.similarity },
       ].filter((entry) => Boolean(entry.value))
     : [];
+  const failedScreeningDimensions = screeningEntries.filter((entry) => entry.value === 'Fail');
+  const screeningFailureReasonByKey = useMemo(() => {
+    if (!item || failedScreeningDimensions.length === 0) {
+      return new Map<string, string>();
+    }
+
+    const sharedReviewerReason = item.flagReason
+      ?? [...(item.reviewHistory ?? [])]
+        .reverse()
+        .find((entry) => entry.state === 'PENDING_SCREENING_REVIEW' && entry.notes)
+        ?.notes
+      ?? '';
+
+    const defaultReasons: Record<string, string> = {
+      cefrFit: 'The prompt appears misaligned with the targeted CEFR level and needs level calibration.',
+      distractorStrength: 'The distractors are too weak or predictable and need stronger competing alternatives.',
+      clarity: 'The wording is ambiguous and should be revised for clearer task intent and response expectations.',
+      fairness: 'Potential bias or accessibility concerns were detected and should be addressed before approval.',
+      similarity: 'The item is too similar to existing content and needs differentiation to avoid overlap.',
+    };
+
+    return new Map(
+      failedScreeningDimensions.map((entry) => [
+        entry.key,
+        failedScreeningDimensions.length === 1 && sharedReviewerReason
+          ? sharedReviewerReason
+          : defaultReasons[entry.key],
+      ]),
+    );
+  }, [item, failedScreeningDimensions]);
+
+  const toggleScreeningReason = (dimensionKey: string) => {
+    setExpandedScreeningReasons((prev) => ({
+      ...prev,
+      [dimensionKey]: !prev[dimensionKey],
+    }));
+  };
 
   const formatAudioTime = (seconds: number) => {
     if (!Number.isFinite(seconds) || seconds < 0) {
@@ -1271,40 +1309,75 @@ export function ItemDetailRedesign() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {screeningEntries.map((entry) => (
-                      <div
-                        key={entry.label}
-                        className={`flex items-center justify-between rounded-xl px-4 py-3 ${
-                          entry.value === 'Review'
-                            ? 'bg-amber-50/80 border border-amber-100'
-                            : entry.value === 'Pass'
-                              ? 'bg-green-50/80 border border-green-100'
-                              : 'bg-red-50/80 border border-red-100'
-                        }`}
-                      >
-                        <div className="text-base font-semibold leading-tight text-gray-900 sm:text-md">
-                          {entry.label}
-                        </div>
-                        <Badge
-                          variant={
-                            entry.value === 'Fail'
-                              ? 'destructive'
-                              : entry.value === 'Review'
-                                ? 'secondary'
-                                : 'outline'
-                          }
-                          className={`rounded-full px-4 py-1 text-xs font-semibold tracking-wide uppercase ${
-                            entry.value === 'Pass'
-                              ? 'bg-green-100 text-green-700 border-green-200'
-                              : entry.value === 'Review'
-                                ? 'bg-amber-200/80 text-amber-800 border-amber-300'
-                                : ''
+                    {screeningEntries.map((entry) => {
+                      const isFailed = entry.value === 'Fail';
+                      const isExpanded = Boolean(expandedScreeningReasons[entry.key]);
+
+                      return (
+                        <div
+                          key={entry.label}
+                          className={`overflow-hidden rounded-xl border ${
+                            entry.value === 'Review'
+                              ? 'border-amber-200 bg-amber-50/70'
+                              : entry.value === 'Pass'
+                                ? 'border-green-200 bg-green-50/70'
+                                : 'border-red-200 bg-red-50/70'
                           }`}
                         >
-                          {entry.value}
-                        </Badge>
-                      </div>
-                    ))}
+                       
+                          <div
+                            className={`flex items-center justify-between gap-3 px-4 py-3 ${isFailed ? 'cursor-pointer' : ''}`}
+                            onClick={isFailed ? () => toggleScreeningReason(entry.key) : undefined}
+                            role={isFailed ? 'button' : undefined}
+                            tabIndex={isFailed ? 0 : undefined}
+                            onKeyDown={isFailed ? (event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                toggleScreeningReason(entry.key);
+                              }
+                            } : undefined}
+                            aria-expanded={isFailed ? isExpanded : undefined}
+                          >
+                            <div className="text-base font-semibold leading-tight text-gray-900 sm:text-md">
+                              {entry.label}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant={
+                                  entry.value === 'Fail'
+                                    ? 'destructive'
+                                    : entry.value === 'Review'
+                                      ? 'secondary'
+                                      : 'outline'
+                                }
+                                className={`rounded-full px-4 py-1 text-xs font-semibold tracking-wide uppercase ${
+                                  entry.value === 'Pass'
+                                    ? 'bg-green-100 text-green-700 border-green-200'
+                                    : entry.value === 'Review'
+                                      ? 'bg-amber-200/80 text-amber-800 border-amber-300'
+                                      : ''
+                                }`}
+                              >
+                                {entry.value}
+                              </Badge>
+                              {/* {isFailed && (
+                                <span className="text-xs font-medium text-red-700">
+                                  {isExpanded ? 'Hide reason' : 'Show reason'}
+                                </span>
+                              )} */}
+                            </div>
+                          </div>
+                          {isFailed && isExpanded && (
+                            <div className="border-t border-red-200 bg-white/80 px-4 py-3">
+                              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-red-700">Failure Reason</p>
+                              <p className="mt-1 text-sm leading-relaxed text-gray-700">
+                                {screeningFailureReasonByKey.get(entry.key)}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
