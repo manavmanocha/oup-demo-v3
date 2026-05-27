@@ -66,8 +66,8 @@ export function ScreenItems() {
         item.title
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
-        item.content
-          .toLowerCase()
+        item?.content
+          ?.toLowerCase()
           .includes(searchQuery.toLowerCase()),
     );
   }, [availableItems, searchQuery]);
@@ -146,14 +146,26 @@ export function ScreenItems() {
             </div>
 
             {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="Search items..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  placeholder="Search items..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Link to="/workflows/pre-testing-pipeline/screening">
+                <Button variant="outline">Cancel</Button>
+              </Link>
+              <Button
+                onClick={handleContinue}
+                disabled={selectedItemIds.length === 0}
+              >
+                Continue
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
             </div>
 
             {/* Selection Summary */}
@@ -258,19 +270,7 @@ export function ScreenItems() {
               </CardContent>
             </Card>
 
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t">
-              <Link to="/workflows/pre-testing-pipeline/screening">
-                <Button variant="outline">Cancel</Button>
-              </Link>
-              <Button
-                onClick={handleContinue}
-                disabled={selectedItemIds.length === 0}
-              >
-                Continue
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
+
           </div>
         )}
 
