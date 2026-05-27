@@ -1,6 +1,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -43,6 +43,7 @@ import { getWorkflowStateLabel } from '../data/workflowState';
 export function ItemDetailRedesign() {
   const { itemId } = useParams<{ level: CEFRLevel; itemId: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const previewItems = useMemo<AssessmentItem[]>(() => {
     if (globalThis.window === undefined) {
       return [];
@@ -71,11 +72,17 @@ export function ItemDetailRedesign() {
   const [passageExpanded, setPassageExpanded] = useState(true);
 
   const isListening = item?.skill === 'Listening';
-  const fromWorkflowState = (location.state as { fromWorkflow?: boolean } | null)?.fromWorkflow;
+  const locationState = location.state as { fromWorkflow?: boolean; backTo?: string } | null;
+  const fromWorkflowState = locationState?.fromWorkflow;
   const fromWorkflowQuery = new URLSearchParams(location.search).get('from') === 'workflow';
   const isPreviewMode = new URLSearchParams(location.search).get('mode') === 'preview';
   const isFromIngest = new URLSearchParams(location.search).get('from') === 'ingest';
   const isFromWorkflow = Boolean(fromWorkflowState || fromWorkflowQuery);
+  const fallbackBackPath = isFromIngest
+    ? '/library/ingest'
+    : isFromWorkflow
+      ? '/workflows/pre-testing-pipeline/stages'
+      : '/library';
   const hasOptionAnswers = Boolean(item?.options && item.options.length > 0);
   const hasMatchingAnswerKey = Boolean(item?.itemType === 'Matching' && item?.answerKey,
   );
@@ -405,6 +412,20 @@ export function ItemDetailRedesign() {
     setAudioCurrentTime(nextTime);
   };
 
+  const handleBack = () => {
+    if (locationState?.backTo) {
+      navigate(locationState.backTo);
+      return;
+    }
+
+    if (location.key !== 'default') {
+      navigate(-1);
+      return;
+    }
+
+    navigate(fallbackBackPath);
+  };
+
   useEffect(() => {
     if (!audioRef.current || (!isListening && !isSpeakingQuestion) || !item?.audioAsset) {
       return;
@@ -466,12 +487,15 @@ export function ItemDetailRedesign() {
             <div className="flex items-center justify-between gap-4">
               {/* Left section - Back button with proper alignment */}
               <div className="flex items-center gap-4 min-w-0 flex-shrink-0">
-                <Link to={isFromIngest ? '/library/ingest' : '/library'} className="flex-shrink-0">
-                  <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    {isFromIngest ? 'Back to Ingest Items' : 'Back to Library'}
-                  </Button>
-                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBack}
+                  className="flex-shrink-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
                 <Separator orientation="vertical" className="h-6 flex-shrink-0" />
                 {/* Item metadata badges - highlighted */}
                 <div className="flex items-center gap-2 flex-wrap">
