@@ -1128,22 +1128,16 @@ export function Library() {
                     <table className="w-full table-fixed">
                       <thead className="bg-gray-50 border-b">
                         <tr>
-                          <th className="w-44 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="w-[44%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Item ID
                           </th>
-                          <th className="w-16 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Level
-                          </th>
-                          <th className="w-20 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Skill
-                          </th>
-                          <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="w-[18%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Item Type
                           </th>
-                          <th className="w-44 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="w-[24%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Title
                           </th>
-                          <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          <th className="w-[14%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Status
                           </th>
                         </tr>
@@ -1152,70 +1146,80 @@ export function Library() {
                         {paginatedItems.length === 0 ? (
                           <tr>
                             <td
-                              colSpan={6}
+                              colSpan={4}
                               className="px-3 py-8 text-center text-gray-500"
                             >
                               No items found matching your filters.
                             </td>
                           </tr>
                         ) : (
-                          paginatedItems.map((item) => (
-                            <tr
-                              key={item.id}
-                              className="hover:bg-gray-50 cursor-pointer focus-within:bg-gray-50"
-                              role="link"
-                              tabIndex={0}
-                              onClick={() => navigate(`/item-bank/${item.level}/${item.id}`)}
-                              onKeyDown={(event) => {
-                                if (event.key === "Enter" || event.key === " ") {
-                                  event.preventDefault();
-                                  navigate(`/item-bank/${item.level}/${item.id}`);
-                                }
-                              }}
-                            >
-                              <td className="px-3 py-3">
-                                <div className="text-sm font-medium text-blue-600">
-                                  {item.id}
-                                </div>
-                              </td>
-                              <td className="px-3 py-3">
-                                <Badge
-                                  variant="outline"
-                                  className="font-medium"
-                                >
-                                  {item.level}
-                                </Badge>
-                              </td>
-                              <td className="px-3 py-3">
-                                <Badge variant="outline">
-                                  {item.skill}
-                                </Badge>
-                              </td>
-                              <td className="px-3 py-3">
-                                <div className="text-sm text-gray-700 truncate">
-                                  {item.itemType}
-                                </div>
-                              </td>
-                              <td className="px-3 py-3">
-                                <div className="text-sm text-gray-700 truncate">
-                                  {item.title}
-                                </div>
-                              </td>
-                              <td className="px-3 py-3">
-                                <Badge
-                                  variant={
-                                    item.status === "Published"
-                                      ? "secondary"
-                                      : item.status === "Compromised"
-                                        ? "destructive"
-                                        : "outline"
+                          paginatedItems.map((item) => {
+                            const taxonomyBadges = [
+                              item.subSkill ? `Sub-skill: ${item.subSkill}` : null,
+                              item.cognitiveLevel ? `Cognitive: ${item.cognitiveLevel}` : null,
+                              item.contentDomain ? `Content: ${item.contentDomain}` : null,
+                              item.languageVariety ? `Variety: ${item.languageVariety}` : null,
+                              item.topic ? `Topic: ${item.topic}` : null,
+                              item.grammarFocus ? `Grammar: ${item.grammarFocus}` : null,
+                            ].filter((value): value is string => Boolean(value));
+
+                            let statusVariant: "secondary" | "destructive" | "outline" = "outline";
+                            if (item.status === "Published") {
+                              statusVariant = "secondary";
+                            } else if (item.status === "Compromised") {
+                              statusVariant = "destructive";
+                            }
+
+                            return (
+                              <tr
+                                key={item.id}
+                                className="hover:bg-gray-50 cursor-pointer focus-within:bg-gray-50"
+                                role="link"
+                                tabIndex={0}
+                                onClick={() => navigate(`/item-bank/${item.level}/${item.id}`)}
+                                onKeyDown={(event) => {
+                                  if (event.key === "Enter" || event.key === " ") {
+                                    event.preventDefault();
+                                    navigate(`/item-bank/${item.level}/${item.id}`);
                                   }
-                                >
-                                  {item.status}
-                                </Badge>
-                              </td>
-                            </tr>
-                          ))
+                                }}
+                              >
+                                <td className="px-3 py-3 align-top">
+                                  <div className="text-sm font-medium text-blue-600">
+                                    {item.id}
+                                  </div>
+                                  <div className="mt-2 flex flex-wrap gap-1 pr-2">
+                                    <Badge variant="outline" className="text-xs font-medium">
+                                      CEFR: {item.level}
+                                    </Badge>
+                                    <Badge variant="outline" className="text-xs font-medium">
+                                      Skill: {item.skill}
+                                    </Badge>
+                                    {taxonomyBadges.map((badgeText) => (
+                                      <Badge key={badgeText} variant="outline" className="text-xs font-medium">
+                                        {badgeText}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-3 align-top">
+                                  <div className="text-sm text-gray-700 break-words">
+                                    {item.itemType}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-3 align-top">
+                                  <div className="text-sm text-gray-700 break-words">
+                                    {item.title}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-3 align-top">
+                                  <Badge variant={statusVariant}>
+                                    {item.status}
+                                  </Badge>
+                                </td>
+                              </tr>
+                            );
+                          })
                         )}
                       </tbody>
                     </table>

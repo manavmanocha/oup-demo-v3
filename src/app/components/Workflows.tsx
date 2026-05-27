@@ -1,15 +1,15 @@
-import { Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
 import { Workflow } from 'lucide-react';
+import { useNavigate } from 'react-router';
 
 export function Workflows() {
+  const navigate = useNavigate();
+
   const workflows = [
     {
       id: 'pre-testing-pipeline',
       title: 'Pre-Testing Pipeline',
       description: 'Review queue health, run screening and difficulty prediction, and seed approved items into the item bank.',
-      path: '/workflows/pre-testing-pipeline',
     },
     {
       id: 'pdf-to-text',
@@ -17,9 +17,44 @@ export function Workflows() {
       description: 'Convert uploaded PDF content into structured text with extraction quality checks and metadata mapping.',
     },
     {
+      id: 'pdf-to-image',
+      title: 'PDF to Image',
+      description: 'Convert PDF documents into images for asset pipelines and downstream publishing workflows.',
+    },
+    {
       id: 'pdf-to-epub',
       title: 'PDF to Accessible ePub',
       description: 'Transform PDF source files into WCAG-friendly ePub outputs with semantic tagging and navigation.',
+    },
+    {
+      id: 'pdf-to-reflowable-html',
+      title: 'PDF to Reflowable HTML',
+      description: 'Transform book PDFs into reflowable HTML content for responsive and accessible reader experiences.',
+    },
+    {
+      id: 'toc-extraction-and-structuring',
+      title: 'TOC extraction and Structuring',
+      description: 'Automatically extract and organize table of contents entries from book PDFs for structured navigation.',
+    },
+    {
+      id: 'alt-text-generation',
+      title: 'Alt Text Generation',
+      description: 'Generate descriptive alternative text for images to support accessibility and compliance standards.',
+    },
+    {
+      id: 'hotlinking',
+      title: 'Hotlinking',
+      description: 'Insert contextual internal and external hyperlinks across book content for better navigation.',
+    },
+    {
+      id: 'standard-tagging',
+      title: 'Standard Tagging',
+      description: 'Apply curriculum frameworks or standards tags systematically across content.',
+    },
+    {
+      id: 'glossary-term-linking',
+      title: 'Glossary Term Linking',
+      description: 'Identify glossary terms and create contextual links across book pages to support comprehension.',
     },
     {
       id: 'video-captioning',
@@ -28,21 +63,42 @@ export function Workflows() {
     },
   ];
 
+  const handleCardClick = (workflowId: string) => {
+    if (workflowId === 'pre-testing-pipeline') {
+      navigate('/workflows/pre-testing-pipeline');
+    }
+  };
+
+  const handleCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, workflowId: string) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleCardClick(workflowId);
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6 md:p-8">
-      <div className="max-w-5xl mx-auto">
+      <div className="mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Workflows</h1>
           <p className="text-gray-600">
-            Choose a workflow to start processing. Additional workflows are listed below and will be enabled over time.
+            Browse available and upcoming workflows. Cards are currently shown for planning and visibility only.
           </p>
         </div>
 
         {/* Workflows Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {workflows.map((workflow) => (
-            <Card key={workflow.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={workflow.id}
+              className="cursor-pointer select-none hover:shadow-md active:scale-[0.99] transition duration-150"
+              onClick={() => handleCardClick(workflow.id)}
+              onKeyDown={(event) => handleCardKeyDown(event, workflow.id)}
+              role="button"
+              tabIndex={0}
+              aria-label={`${workflow.title} workflow card`}
+            >
               <CardHeader>
                 <div className="flex items-center gap-2 mb-2">
                   <Workflow className="w-5 h-5 text-gray-600" />
@@ -52,17 +108,8 @@ export function Workflows() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">{workflow.title}</h3>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent>
                 <p className="text-sm text-gray-600">{workflow.description}</p>
-                {workflow.path ? (
-                  <Link to={workflow.path}>
-                    <Button className="w-full">Open Workflow</Button>
-                  </Link>
-                ) : (
-                  <Button className="w-full" onClick={() => {}}>
-                    Open Workflow
-                  </Button>
-                )}
               </CardContent>
             </Card>
           ))}
