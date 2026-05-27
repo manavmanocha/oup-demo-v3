@@ -71,7 +71,7 @@ export function Workflows() {
 
   return (
     <div className="p-4 sm:p-6 md:p-8">
-      <div className="max-w-5xl mx-auto">
+      <div className="mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Workflows</h1>
@@ -81,7 +81,7 @@ export function Workflows() {
         </div>
 
         {/* Workflows Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {workflows.map((workflow) => (
             <Card
               key={workflow.id}
