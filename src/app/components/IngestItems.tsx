@@ -121,6 +121,14 @@ type ParsedUploadItem = {
   type: string;
   answerKey: string;
   distractors: string;
+  irtB?: number;
+  irtA?: number;
+  irtC?: number;
+  confidence?: number;
+  discrimination?: string;
+  sampleSize?: number;
+  modelVersion?: string;
+  predictionDate?: string;
   audioAsset?: string;
   passage?: string;
   passageTitle?: string;
@@ -266,6 +274,63 @@ const mapLevelToDifficulty = (level: string): Difficulty => {
   return 'Hard';
 };
 
+const parseOptionalNumber = (value: string | undefined): number | undefined => {
+  if (!value) return undefined;
+  const normalized = value.trim();
+  if (!normalized) return undefined;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const clampValue = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const LEVEL_PSYCHOMETRICS: Record<CEFRLevel, { b: number; a: number; confidence: number; sampleSize: number }> = {
+  A1: { b: -1.6, a: 0.85, confidence: 88, sampleSize: 1800 },
+  A2: { b: -1.1, a: 0.95, confidence: 86, sampleSize: 1650 },
+  B1: { b: -0.4, a: 1.1, confidence: 84, sampleSize: 1450 },
+  B2: { b: 0.4, a: 1.2, confidence: 82, sampleSize: 1300 },
+  C1: { b: 1.1, a: 1.3, confidence: 80, sampleSize: 1100 },
+  C2: { b: 1.7, a: 1.35, confidence: 78, sampleSize: 900 },
+};
+
+const inferDiscriminationBand = (a: number): string => {
+  if (a >= 1.25) return 'High';
+  if (a >= 1.0) return 'Moderate';
+  return 'Low';
+};
+
+const defaultGuessingByItemType = (itemType: ItemType): number => (itemType === 'Multiple Choice' ? 0.2 : 0.05);
+
+const getPsychometricsForItem = (
+  item: ParsedUploadItem,
+  resolvedType: ItemType,
+  resolvedLevel: CEFRLevel,
+  predictionDate: string,
+) => {
+  const baseline = LEVEL_PSYCHOMETRICS[resolvedLevel];
+  const a = clampValue(item.irtA ?? baseline.a, 0.5, 2.5);
+  const b = clampValue(item.irtB ?? baseline.b, -3, 3);
+  const c = clampValue(item.irtC ?? defaultGuessingByItemType(resolvedType), 0, 0.35);
+  const confidence = Math.round(clampValue(item.confidence ?? baseline.confidence, 50, 99));
+  const sampleSize = Math.round(item.sampleSize ?? baseline.sampleSize);
+  const modelVersion = item.modelVersion?.trim() || 'ingest-level-profile-v1';
+
+  return {
+    irtParameters: {
+      a,
+      b,
+      c,
+      sampleSize,
+      modelVersion,
+      predictionDate,
+      calibratedFromFieldTest: false,
+      predictedByAI: false,
+    },
+    confidence,
+    discrimination: item.discrimination?.trim() || inferDiscriminationBand(a),
+  };
+};
+
 const INGEST_AUTHORS = ['Aisha Verma', 'Daniel Brooks', 'Neha Kapoor', 'Rohan Mehta', 'Elena Petrova'];
 const INGEST_PREVIEW_ITEMS_STORAGE_KEY = 'ingest-preview-items-v1';
 const INGEST_SESSION_STORAGE_KEY = 'ingest-session-v1';
@@ -300,7 +365,9 @@ const buildPreviewItem = (
   const author = INGEST_AUTHORS[itemHash % INGEST_AUTHORS.length];
   const createdDate = new Date().toISOString().slice(0, 10);
   const resolvedType = resolveItemType(item.type, item.type);
+  const resolvedLevel = resolveLevel(item.level) ?? 'B1';
   const isMCQ = resolvedType === 'Multiple Choice';
+  const psychometrics = getPsychometricsForItem(item, resolvedType, resolvedLevel, createdDate);
   const distractors = item.distractors
     .split(/[|;]/)
     .map((value) => value.trim())
@@ -322,11 +389,12 @@ const buildPreviewItem = (
     id: item.id,
     title: item.content || item.id,
     answerKey: item.answerKey,
-    level: resolveLevel(item.level) ?? 'B1',
+    level: resolvedLevel,
     skill: resolveSkill(item.skill) ?? 'Reading',
     itemType: resolvedType,
     status: 'Draft',
-    difficulty: mapLevelToDifficulty(resolveLevel(item.level) ?? 'B1'),
+    difficulty: mapLevelToDifficulty(resolvedLevel),
+    irtParameters: psychometrics.irtParameters,
     options,
     audioAsset: item.skill === 'Listening' ? item.audioAsset : undefined,
     passage: item.passage || undefined,
@@ -339,8 +407,8 @@ const buildPreviewItem = (
     languageVariety: defaultLanguageVarietyLabel || 'International',
     topic: defaultTopicLabel || undefined,
     grammarFocus: defaultGrammarLabel || undefined,
-    discrimination: 'Moderate',
-    confidence: 80,
+    discrimination: psychometrics.discrimination,
+    confidence: psychometrics.confidence,
     workflowState: 'NOT_STARTED',
     author,
     createdDate,
@@ -543,6 +611,14 @@ export function IngestItems() {
     const typeIndex = headers.findIndex((h) => h === 'type' || h === 'itemtype');
     const answerIndex = headers.findIndex((h) => h === 'answerkey' || h === 'answer' || h === 'correctanswer');
     const distractorIndex = headers.findIndex((h) => h === 'distractors' || h === 'options');
+    const irtBIndex = headers.findIndex((h) => h === 'irtb' || h === 'bparameter' || h === 'difficultymetric');
+    const irtAIndex = headers.findIndex((h) => h === 'irta' || h === 'aparameter' || h === 'discriminationmetric');
+    const irtCIndex = headers.findIndex((h) => h === 'irtc' || h === 'cparameter' || h === 'guessingmetric');
+    const confidenceIndex = headers.findIndex((h) => h === 'confidence' || h === 'confidencepercent');
+    const discriminationIndex = headers.findIndex((h) => h === 'discrimination' || h === 'discriminationband');
+    const sampleSizeIndex = headers.findIndex((h) => h === 'samplesize' || h === 'irtsamplesize');
+    const modelVersionIndex = headers.findIndex((h) => h === 'modelversion' || h === 'irtmodelversion');
+    const predictionDateIndex = headers.findIndex((h) => h === 'predictiondate' || h === 'irtpredictiondate');
     const audioIndex = headers.findIndex((h) => h === 'audio' || h === 'audiofile' || h === 'audioasset');
     const passageIndex = headers.findIndex((h) => h === 'passage' || h === 'passagetext' || h === 'readingpassage');
     const passageTitleIndex = headers.findIndex((h) => h === 'passagetitle' || h === 'readingpassagetitle');
@@ -562,6 +638,14 @@ export function IngestItems() {
       const type = (typeIndex >= 0 ? row[typeIndex] : '').trim();
       const answerKey = (answerIndex >= 0 ? row[answerIndex] : '').trim();
       const distractors = (distractorIndex >= 0 ? row[distractorIndex] : '').trim();
+      const irtB = parseOptionalNumber(irtBIndex >= 0 ? row[irtBIndex] : undefined);
+      const irtA = parseOptionalNumber(irtAIndex >= 0 ? row[irtAIndex] : undefined);
+      const irtC = parseOptionalNumber(irtCIndex >= 0 ? row[irtCIndex] : undefined);
+      const confidence = parseOptionalNumber(confidenceIndex >= 0 ? row[confidenceIndex] : undefined);
+      const sampleSize = parseOptionalNumber(sampleSizeIndex >= 0 ? row[sampleSizeIndex] : undefined);
+      const discrimination = discriminationIndex >= 0 ? (row[discriminationIndex] ?? '').trim() : '';
+      const modelVersion = modelVersionIndex >= 0 ? (row[modelVersionIndex] ?? '').trim() : '';
+      const predictionDate = predictionDateIndex >= 0 ? (row[predictionDateIndex] ?? '').trim() : '';
       const audioAsset = audioIndex >= 0 ? (row[audioIndex] ?? '').trim() : '';
       const passage = passageIndex >= 0 ? (row[passageIndex] ?? '').trim() : '';
       const passageTitle = passageTitleIndex >= 0 ? (row[passageTitleIndex] ?? '').trim() : '';
@@ -599,6 +683,14 @@ export function IngestItems() {
         type: resolvedType,
         answerKey,
         distractors,
+        irtB,
+        irtA,
+        irtC,
+        confidence,
+        discrimination: discrimination || undefined,
+        sampleSize,
+        modelVersion: modelVersion || undefined,
+        predictionDate: predictionDate || undefined,
         audioAsset: audioAsset || undefined,
         passage: passage || undefined,
         passageTitle: passageTitle || undefined,
@@ -661,7 +753,11 @@ export function IngestItems() {
         existingIds.add(uniqueId);
 
         const resolvedType = resolveItemType(item.type, item.type);
+        const resolvedLevel = item.level as CEFRLevel;
         const isMCQ = resolvedType === 'Multiple Choice';
+        const createdDate = new Date().toISOString();
+        const ingestDate = createdDate.slice(0, 10);
+        const psychometrics = getPsychometricsForItem(item, resolvedType, resolvedLevel, ingestDate);
         const distractors = item.distractors
           .split(/[|;]/)
           .map((value) => value.trim())
@@ -679,7 +775,6 @@ export function IngestItems() {
             }))
           : undefined;
 
-        const createdDate = new Date().toISOString();
         const itemHash = hashFromId(uniqueId);
         const author = INGEST_AUTHORS[itemHash % INGEST_AUTHORS.length];
         const reviewer = ingestReviewer;
@@ -692,6 +787,7 @@ export function IngestItems() {
           skill: item.skill as Skill,
           itemType: resolvedType,
           status: 'Draft',
+          irtParameters: psychometrics.irtParameters,
           difficulty: mapLevelToDifficulty(item.level),
           options,
           audioAsset: item.skill === 'Listening' ? item.audioAsset : undefined,
@@ -705,8 +801,8 @@ export function IngestItems() {
           languageVariety: defaultLanguageVarietyLabel || 'International',
           topic: defaultTopicLabel || undefined,
           grammarFocus: defaultGrammarLabel || undefined,
-          discrimination: 'Moderate',
-          confidence: 80,
+          discrimination: psychometrics.discrimination,
+          confidence: psychometrics.confidence,
           workflowState: 'NOT_STARTED',
           author,
           createdDate,
