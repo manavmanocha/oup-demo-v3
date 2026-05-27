@@ -1115,7 +1115,7 @@ export function ItemDetailRedesign() {
                       {item.irtParameters.predictionDate && (
                         <div>
                           <div className="text-sm text-gray-600 mb-1">
-                            {item.irtParameters.calibratedFromFieldTest ? 'Calibration Date' : 'Prediction Date'}
+                            {item.irtParameters.calibratedFromFieldTest ? 'Calibration Date' : 'Estimation Date'}
                           </div>
                           <div className="text-lg font-semibold text-gray-900">
                             {new Date(item.irtParameters.predictionDate).toLocaleDateString('en-US', {

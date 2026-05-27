@@ -9,7 +9,7 @@ export function Workflows() {
     {
       id: 'pre-testing-pipeline',
       title: 'Pre-Testing Pipeline',
-      description: 'Review queue health, run screening and difficulty prediction, and seed approved items into the item bank.',
+      description: 'Review queue health, run screening and difficulty estimation, and seed approved items into the item bank.',
     },
     {
       id: 'pdf-to-text',

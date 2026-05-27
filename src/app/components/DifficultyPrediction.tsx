@@ -16,7 +16,7 @@ import { isWorkflowState } from '../data/workflowState';
 const DEFAULT_VISIBLE_ITEMS = 5;
 
 const metricHelpText = {
-  confidence: 'How sure the model is about its prediction (higher is better)',
+  confidence: 'How sure the model is about its estimation (higher is better)',
   difficulty: 'How hard the question is for students at the target level',
   discrimination: 'How well the question separates stronger from weaker students (better discrimination = better)',
 };
@@ -148,20 +148,20 @@ export function DifficultyPrediction() {
           <span className="text-gray-400">/</span>
           <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-900">Difficulty Prediction</span>
+          <span className="text-gray-900">Difficulty Estimation</span>
         </div>
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <div className="text-sm font-medium text-gray-500 uppercase mb-1">Step 2</div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Difficulty Prediction</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Difficulty Estimation</h1>
             <p className="text-gray-600">
               Our model estimates how hard each question is, and how well it separates stronger from weaker students.
             </p>
           </div>
           <Link to="/workflows/pre-testing-pipeline/difficulty-prediction/start">
-            <Button>+ Start Prediction</Button>
+            <Button>+ Start Estimation</Button>
           </Link>
         </div>
 
@@ -187,7 +187,7 @@ export function DifficultyPrediction() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-500 uppercase">Waiting for Prediction</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-500 uppercase">Waiting for Estimation</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="text-3xl font-bold text-gray-900">{waitingForPrediction.length}</div>
@@ -204,7 +204,7 @@ export function DifficultyPrediction() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-6">
-              The model isn't sure about these — please check the predictions before accepting.
+              The model isn't sure about these — please check the estimations before accepting.
             </p>
 
             <div className="space-y-4">
@@ -255,7 +255,7 @@ export function DifficultyPrediction() {
 
               {needsReview.length === 0 && (
                 <div className="text-sm text-gray-600 border rounded-lg p-6 bg-gray-50">
-                  No low-confidence predictions are pending manual review.
+                  No low-confidence estimations are pending manual review.
                 </div>
               )}
 
@@ -280,7 +280,7 @@ export function DifficultyPrediction() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-6">
-              The model is highly confident about these predictions. You can accept them all at once.
+              The model is highly confident about these estimations. You can accept them all at once.
             </p>
 
             <div className="border rounded-lg overflow-hidden">
@@ -384,7 +384,7 @@ export function DifficultyPrediction() {
                   {readyToAccept.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                        No high-confidence predictions available yet.
+                        No high-confidence estimations available yet.
                       </td>
                     </tr>
                   )}

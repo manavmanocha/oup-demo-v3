@@ -264,7 +264,7 @@ export function Screening() {
 
           <ScreeningQueueSection
             title="Passed / Ready to Approve"
-            description="These items passed all screening checks but are still awaiting reviewer approval before difficulty prediction."
+            description="These items passed all screening checks but are still awaiting reviewer approval before difficulty estimation."
             items={passedPendingItems}
             feedbackClassName="p-3 bg-green-50 border border-green-200 rounded text-sm text-gray-700"
             emptyMessage="No all-clear screening items are waiting for approval."

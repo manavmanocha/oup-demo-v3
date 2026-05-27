@@ -138,7 +138,7 @@ const DEMO_SCREENING_FIXTURES: Record<string, DemoScreeningFixture> = {
       similarity: 'Pass',
     },
     feedback:
-      'Reviewer feedback: Passed all screening checks. The client-resolution scenario is authentic, appropriately constrained, and strong enough to move into difficulty prediction.',
+      'Reviewer feedback: Passed all screening checks. The client-resolution scenario is authentic, appropriately constrained, and strong enough to move into difficulty estimation.',
   },
 };
 

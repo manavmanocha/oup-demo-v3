@@ -24,10 +24,10 @@ export function PreTestingPipeline() {
     {
       step: 'Step 2',
       status: '• Complete',
-      title: 'Difficulty Prediction',
+      title: 'Difficulty Estimation',
       description: 'ML model predicts IRT difficulty and CEFR alignment before live testing.',
       queueCount: predictionQueueCount,
-      queueLabel: 'Screening approved items waiting for prediction',
+      queueLabel: 'Screening approved items waiting for estimation',
       to: '/workflows/pre-testing-pipeline/difficulty-prediction',
     },
     {
@@ -43,7 +43,7 @@ export function PreTestingPipeline() {
 
   const recentRuns = [
     { id: 'RUN-0051', stage: 'Screening', items: 21, flagged: 5, status: 'Success', date: '11 Mar 2025' },
-    { id: 'RUN-0050', stage: 'Difficulty Prediction', items: 16, flagged: 0, status: 'Success', date: '10 Mar 2025' },
+    { id: 'RUN-0050', stage: 'Difficulty Estimation', items: 16, flagged: 0, status: 'Success', date: '10 Mar 2025' },
     { id: 'RUN-0049', stage: 'Seeding', items: 5, flagged: 0, status: 'Success', date: '9 Mar 2025' },
     { id: 'RUN-0048', stage: 'Screening', items: 14, flagged: 2, status: 'Success', date: '7 Mar 2025' },
   ];

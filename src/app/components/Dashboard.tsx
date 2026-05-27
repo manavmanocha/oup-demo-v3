@@ -44,7 +44,7 @@ export function Dashboard() {
   const aiInsights = [
     { message: '12 items may be over-difficult for their CEFR level', severity: 'warning' },
     { message: '5 items require metadata review before seeding', severity: 'info' },
-    { message: 'Reading set shows high confidence predictions (avg 89%)', severity: 'success' },
+    { message: 'Reading set shows high confidence estimations (avg 89%)', severity: 'success' },
   ];
 
   return (
@@ -76,7 +76,7 @@ export function Dashboard() {
           <Card className="border-gray-200">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-600">Predictions Generated</div>
+                <div className="text-sm font-medium text-gray-600">Estimations Generated</div>
                 <Gauge className="w-4 h-4 text-purple-500" />
               </div>
               <div className="text-3xl font-bold text-gray-900">412</div>
@@ -146,7 +146,7 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Difficulty Prediction */}
+          {/* Difficulty Estimation */}
           <Card className="border-purple-200 hover:shadow-lg transition-shadow">
             <CardHeader className="space-y-4 pb-4">
               <div className="flex items-center gap-3">
@@ -154,7 +154,7 @@ export function Dashboard() {
                   <Gauge className="w-6 h-6 text-purple-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold">Difficulty Prediction</CardTitle>
+                  <CardTitle className="text-xl font-bold">Difficulty Estimation</CardTitle>
                   <Badge variant="outline" className="mt-1 text-xs">
                     <TrendingUp className="w-3 h-3 mr-1" />
                     ML Model
@@ -164,7 +164,7 @@ export function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-gray-600">
-                AI-predicted CEFR alignment and difficulty with confidence indicators
+                AI-estimated CEFR alignment and difficulty with confidence indicators
               </p>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500">Queue Status</span>
@@ -176,7 +176,7 @@ export function Dashboard() {
               </div>
               <Link to="/workflows/pre-testing-pipeline/difficulty-prediction">
                 <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                  Start Prediction
+                  Start Estimation
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>

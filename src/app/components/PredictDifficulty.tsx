@@ -53,7 +53,7 @@ export function PredictDifficulty() {
     );
   }, [availableItems, searchQuery]);
 
-  // Keep selected items resolvable after prediction changes state after prediction starts
+  // Keep selected items resolvable after estimation changes state after estimation starts
   const selectedItems = allItems
     .filter(item => selectedItemIds.includes(item.id))
     .map(item => ({
@@ -107,7 +107,7 @@ export function PredictDifficulty() {
     const generatedResults: { id: string; b: number; confidence: number; difficulty: Difficulty; discrimination: string }[] =
       selectedItemIds.map((id) => getMockDifficultyPredictionResult(id));
 
-    // Simulate prediction processing
+    // Simulate estimation processing
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -144,9 +144,9 @@ export function PredictDifficulty() {
           <span className="text-gray-400">/</span>
           <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
           <span className="text-gray-400">/</span>
-          <Link to="/workflows/pre-testing-pipeline/difficulty-prediction" className="hover:underline">Difficulty Prediction</Link>
+          <Link to="/workflows/pre-testing-pipeline/difficulty-prediction" className="hover:underline">Difficulty Estimation</Link>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-900">Predict Difficulty</span>
+          <span className="text-gray-900">Estimate Difficulty</span>
         </div>
 
         {step === 'select' && (
@@ -156,10 +156,10 @@ export function PredictDifficulty() {
               <Sparkles className="w-8 h-8 text-purple-600" />
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
-                  Select Items for Difficulty Prediction
+                  Select Items for Difficulty Estimation
                 </h1>
                 <p className="text-gray-600">
-                  Choose items that have passed screening to run ML-based difficulty prediction.
+                  Choose items that have passed screening to run ML-based difficulty estimation.
                 </p>
               </div>
             </div>
@@ -230,7 +230,7 @@ export function PredictDifficulty() {
                       {filteredItems.length === 0 ? (
                         <tr>
                           <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                            No items available for difficulty prediction
+                            No items available for difficulty estimation
                           </td>
                         </tr>
                       ) : (
@@ -272,10 +272,10 @@ export function PredictDifficulty() {
               <Sparkles className="w-8 h-8 text-purple-600" />
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
-                  Start Difficulty Prediction
+                  Start Difficulty Estimation
                 </h1>
                 <p className="text-gray-600">
-                  {selectedItems.length} items selected for ML-based difficulty prediction.
+                  {selectedItems.length} items selected for ML-based difficulty estimation.
                 </p>
               </div>
             </div>
@@ -310,24 +310,9 @@ export function PredictDifficulty() {
               </CardContent>
             </Card>
 
-            {/* <Card className="bg-purple-50 border-purple-200">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-purple-900">
-                    <p className="font-medium mb-1">AI Model: IRT-LSTM-3.1</p>
-                    <p className="text-purple-700">
-                      This model predicts IRT difficulty parameters and CEFR alignment with an average accuracy of 82%.
-                      Prediction typically takes 10-15 seconds per item.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card> */}
-
             <div className="pt-4">
               <p className="text-sm font-medium text-gray-900 mb-2">
-                Would you like to start difficulty prediction on these items?
+                Would you like to start difficulty estimation on these items?
               </p>
             </div>
 
@@ -342,7 +327,7 @@ export function PredictDifficulty() {
                 </Link>
                 <Button onClick={handleStartPrediction}>
                   <Sparkles className="w-4 h-4 mr-2" />
-                  Start Prediction
+                  Start Estimation
                 </Button>
               </div>
             </div>
@@ -359,7 +344,7 @@ export function PredictDifficulty() {
 
             <div className="text-center">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Running Predictions...
+                Running Estimations...
               </h1>
               <p className="text-gray-600 mb-6">
                 AI is analyzing {selectedItems.length} items. This may take a moment.
@@ -383,7 +368,7 @@ export function PredictDifficulty() {
 
             <div className="text-center">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Predictions Complete
+                Estimations Complete
               </h1>
               <p className="text-gray-600 mb-6">
                 {selectedItems.length} items have been analyzed successfully.
@@ -393,7 +378,7 @@ export function PredictDifficulty() {
             {/* Results Summary */}
             <Card>
               <CardContent className="pt-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Prediction Results</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">Estimation Results</h3>
                 <div className="space-y-3">
                   {selectedItems.map((item) => (
                     <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -403,7 +388,7 @@ export function PredictDifficulty() {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <p className="text-xs text-gray-500">Predicted Level</p>
+                          <p className="text-xs text-gray-500">Estimated Level</p>
                           <p className="text-sm font-semibold text-gray-900">
                             {predictionResults[item.id]?.difficulty ?? 'N/A'}
                           </p>
@@ -431,7 +416,7 @@ export function PredictDifficulty() {
 
             <div className="text-center">
               <p className="text-sm text-gray-700 mb-4">
-                Would you like to predict more items?
+                Would you like to estimate more items?
               </p>
             </div>
 
@@ -441,7 +426,7 @@ export function PredictDifficulty() {
                 No, Finish
               </Button>
               <Button onClick={handleAddMore}>
-                Predict More Items
+                Estimate More Items
               </Button>
             </div>
           </div>

@@ -1225,7 +1225,7 @@ export function IngestItems() {
                   <div className="text-sm text-blue-900">
                     <p className="font-medium mb-1">Next Steps</p>
                     <p className="text-blue-700">
-                      Your items are now in the global library with "Draft" status. You can review them in the Library and add them to the Pre-Testing Pipeline for screening and difficulty prediction.
+                      Your items are now in the global library with "Draft" status. You can review them in the Library and add them to the Pre-Testing Pipeline for screening and difficulty estimation.
                     </p>
                   </div>
                 </div>
