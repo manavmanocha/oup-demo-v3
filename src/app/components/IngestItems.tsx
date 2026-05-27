@@ -3,11 +3,114 @@ import { Link, useNavigate } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Upload, Download, FileText, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Input } from './ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Upload, Download, FileText, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight, ChevronsUpDown, X } from 'lucide-react';
 import { taxonomies } from '../data/taxonomy';
 import { addIngestedItems, getAllItems } from '../data/mockData';
 import { AssessmentItem, CEFRLevel, Difficulty, ItemType, Skill } from '../data/types';
+import { cn } from './ui/utils';
+
+type MultiSelectOption = {
+  value: string;
+  label: string;
+};
+
+type MetadataMultiSelectProps = {
+  label: string;
+  placeholder: string;
+  options: MultiSelectOption[];
+  selectedValues: string[];
+  onChange: (values: string[]) => void;
+};
+
+function MetadataMultiSelect({
+  label,
+  placeholder,
+  options,
+  selectedValues,
+  onChange,
+}: MetadataMultiSelectProps) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const selectedOptions = options.filter((option) => selectedValues.includes(option.value));
+  const filteredOptions = options
+    .filter((option) => !selectedValues.includes(option.value))
+    .filter((option) => option.label.toLowerCase().includes(query.trim().toLowerCase()));
+
+  const toggleValue = (value: string) => {
+    onChange(
+      selectedValues.includes(value)
+        ? selectedValues.filter((entry) => entry !== value)
+        : [...selectedValues, value],
+    );
+  };
+
+  return (
+    <div>
+      <label className="text-sm font-medium text-gray-700 mb-2 block">{label}</label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger
+          role="combobox"
+          aria-expanded={open}
+          className={cn(
+            'inline-flex min-h-10 h-auto w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm',
+            'focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400',
+          )}
+        >
+          <div className="flex flex-wrap items-center gap-2 text-left">
+            {selectedOptions.length === 0 && (
+              <span className="text-sm text-gray-500">{placeholder}</span>
+            )}
+            {selectedOptions.map((option) => (
+              <Badge key={option.value} variant="outline" className="gap-1 border border-gray-400 px-1">
+                {option.label}
+                <span
+                  className="inline-flex h-3 w-3 items-center justify-center"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    toggleValue(option.value);
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </span>
+              </Badge>
+            ))}
+          </div>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </PopoverTrigger>
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] border-gray-200 p-0" align="start">
+          <div className="border-b p-2">
+            <Input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={`Search ${label.toLowerCase()}...`}
+            />
+          </div>
+          <div className="max-h-64 overflow-y-auto p-1">
+            {filteredOptions.length === 0 && (
+              <div className="py-6 text-center text-sm text-gray-500">No options found.</div>
+            )}
+            {filteredOptions.map((option) => {
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  className="flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => toggleValue(option.value)}
+                >
+                  <span>{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
 
 type ParsedUploadItem = {
   id: string;
@@ -167,6 +270,18 @@ const INGEST_REVIEWERS = ['Maya Thompson', 'Arjun Nair', 'Sofia Martinez', 'Kabi
 const INGEST_PREVIEW_ITEMS_STORAGE_KEY = 'ingest-preview-items-v1';
 const INGEST_SESSION_STORAGE_KEY = 'ingest-session-v1';
 
+const normalizeSavedSelection = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.filter((entry): entry is string => typeof entry === 'string');
+  }
+
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return [value];
+  }
+
+  return [];
+};
+
 const hashFromId = (id: string) =>
   id.split('').reduce((sum, char) => sum + (char.codePointAt(0) ?? 0), 0);
 
@@ -271,11 +386,21 @@ export function IngestItems() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Import configuration state
-  const [defaultCognitiveLevel, setDefaultCognitiveLevel] = useState((savedSession?.defaultCognitiveLevel as string) ?? '');
-  const [defaultGrammar, setDefaultGrammar] = useState((savedSession?.defaultGrammar as string) ?? '');
-  const [defaultContentDomain, setDefaultContentDomain] = useState((savedSession?.defaultContentDomain as string) ?? '');
-  const [defaultLanguageVariety, setDefaultLanguageVariety] = useState((savedSession?.defaultLanguageVariety as string) ?? '');
-  const [defaultTopic, setDefaultTopic] = useState((savedSession?.defaultTopic as string) ?? '');
+  const [defaultCognitiveLevels, setDefaultCognitiveLevels] = useState<string[]>(
+    normalizeSavedSelection(savedSession?.defaultCognitiveLevel),
+  );
+  const [defaultGrammars, setDefaultGrammars] = useState<string[]>(
+    normalizeSavedSelection(savedSession?.defaultGrammar),
+  );
+  const [defaultContentDomains, setDefaultContentDomains] = useState<string[]>(
+    normalizeSavedSelection(savedSession?.defaultContentDomain),
+  );
+  const [defaultLanguageVarieties, setDefaultLanguageVarieties] = useState<string[]>(
+    normalizeSavedSelection(savedSession?.defaultLanguageVariety),
+  );
+  const [defaultTopics, setDefaultTopics] = useState<string[]>(
+    normalizeSavedSelection(savedSession?.defaultTopic),
+  );
 
   // Persist session state so navigating to item preview and back restores the validate step
   useEffect(() => {
@@ -285,14 +410,24 @@ export function IngestItems() {
       parsedItems,
       fileName,
       itemCount,
-      defaultCognitiveLevel,
-      defaultGrammar,
-      defaultContentDomain,
-      defaultLanguageVariety,
-      defaultTopic,
+      defaultCognitiveLevel: defaultCognitiveLevels,
+      defaultGrammar: defaultGrammars,
+      defaultContentDomain: defaultContentDomains,
+      defaultLanguageVariety: defaultLanguageVarieties,
+      defaultTopic: defaultTopics,
     };
     localStorage.setItem(INGEST_SESSION_STORAGE_KEY, JSON.stringify(session));
-  }, [step, parsedItems, fileName, itemCount, defaultCognitiveLevel, defaultGrammar, defaultContentDomain, defaultLanguageVariety, defaultTopic]);
+  }, [
+    step,
+    parsedItems,
+    fileName,
+    itemCount,
+    defaultCognitiveLevels,
+    defaultGrammars,
+    defaultContentDomains,
+    defaultLanguageVarieties,
+    defaultTopics,
+  ]);
 
   const cognitiveLevelsTaxonomy = taxonomies.find((taxonomy) => taxonomy.id === 'cognitiveLevels');
   const grammarTaxonomy = taxonomies.find((taxonomy) => taxonomy.id === 'grammar');
@@ -300,11 +435,27 @@ export function IngestItems() {
   const languageVarietiesTaxonomy = taxonomies.find((taxonomy) => taxonomy.id === 'languageVarieties');
   const topicsTaxonomy = taxonomies.find((taxonomy) => taxonomy.id === 'topics');
 
-  const defaultCognitiveLevelLabel = cognitiveLevelsTaxonomy?.tree.find((node) => node.id === defaultCognitiveLevel)?.label ?? '';
-  const defaultGrammarLabel = grammarTaxonomy?.tree.find((node) => node.id === defaultGrammar)?.label ?? '';
-  const defaultContentDomainLabel = contentDomainsTaxonomy?.tree.find((node) => node.id === defaultContentDomain)?.label ?? '';
-  const defaultLanguageVarietyLabel = languageVarietiesTaxonomy?.tree.find((node) => node.id === defaultLanguageVariety)?.label ?? '';
-  const defaultTopicLabel = topicsTaxonomy?.tree.find((node) => node.id === defaultTopic)?.label ?? '';
+  const defaultCognitiveLevelLabel = (cognitiveLevelsTaxonomy?.tree
+    .filter((node) => defaultCognitiveLevels.includes(node.id))
+    .map((node) => node.label) ?? []).join(', ');
+  const defaultGrammarLabel = (grammarTaxonomy?.tree
+    .filter((node) => defaultGrammars.includes(node.id))
+    .map((node) => node.label) ?? []).join(', ');
+  const defaultContentDomainLabel = (contentDomainsTaxonomy?.tree
+    .filter((node) => defaultContentDomains.includes(node.id))
+    .map((node) => node.label) ?? []).join(', ');
+  const defaultLanguageVarietyLabel = (languageVarietiesTaxonomy?.tree
+    .filter((node) => defaultLanguageVarieties.includes(node.id))
+    .map((node) => node.label) ?? []).join(', ');
+  const defaultTopicLabel = (topicsTaxonomy?.tree
+    .filter((node) => defaultTopics.includes(node.id))
+    .map((node) => node.label) ?? []).join(', ');
+
+  const cognitiveLevelOptions = cognitiveLevelsTaxonomy?.tree.map((node) => ({ value: node.id, label: node.label })) ?? [];
+  const grammarOptions = grammarTaxonomy?.tree.map((node) => ({ value: node.id, label: node.label })) ?? [];
+  const contentDomainOptions = contentDomainsTaxonomy?.tree.map((node) => ({ value: node.id, label: node.label })) ?? [];
+  const languageVarietyOptions = languageVarietiesTaxonomy?.tree.map((node) => ({ value: node.id, label: node.label })) ?? [];
+  const topicOptions = topicsTaxonomy?.tree.map((node) => ({ value: node.id, label: node.label })) ?? [];
 
   const parsedLevels = useMemo(
     () => Array.from(new Set(parsedItems.map((item) => item.level).filter(Boolean))),
@@ -789,100 +940,45 @@ export function IngestItems() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Cognitive Level
-                  </label>
-                  <Select value={defaultCognitiveLevel || '__none__'} onValueChange={(value) => setDefaultCognitiveLevel(value === '__none__' ? '' : value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Optional default cognitive level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">None</SelectItem>
-                      {cognitiveLevelsTaxonomy?.tree.map((node) => (
-                        <SelectItem key={node.id} value={node.id}>
-                          {node.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <MetadataMultiSelect
+                  label="Cognitive Level"
+                  placeholder="Optional default cognitive level"
+                  options={cognitiveLevelOptions}
+                  selectedValues={defaultCognitiveLevels}
+                  onChange={setDefaultCognitiveLevels}
+                />
 
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Grammar
-                  </label>
-                  <Select value={defaultGrammar || '__none__'} onValueChange={(value) => setDefaultGrammar(value === '__none__' ? '' : value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Optional default grammar focus" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">None</SelectItem>
-                      {grammarTaxonomy?.tree.map((node) => (
-                        <SelectItem key={node.id} value={node.id}>
-                          {node.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <MetadataMultiSelect
+                  label="Grammar"
+                  placeholder="Optional default grammar focus"
+                  options={grammarOptions}
+                  selectedValues={defaultGrammars}
+                  onChange={setDefaultGrammars}
+                />
 
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Content Domain
-                  </label>
-                  <Select value={defaultContentDomain || '__none__'} onValueChange={(value) => setDefaultContentDomain(value === '__none__' ? '' : value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Optional default content domain" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">None</SelectItem>
-                      {contentDomainsTaxonomy?.tree.map((node) => (
-                        <SelectItem key={node.id} value={node.id}>
-                          {node.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <MetadataMultiSelect
+                  label="Content Domain"
+                  placeholder="Optional default content domain"
+                  options={contentDomainOptions}
+                  selectedValues={defaultContentDomains}
+                  onChange={setDefaultContentDomains}
+                />
 
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Language Variety
-                  </label>
-                  <Select value={defaultLanguageVariety || '__none__'} onValueChange={(value) => setDefaultLanguageVariety(value === '__none__' ? '' : value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Optional default language variety" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">None</SelectItem>
-                      {languageVarietiesTaxonomy?.tree.map((node) => (
-                        <SelectItem key={node.id} value={node.id}>
-                          {node.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <MetadataMultiSelect
+                  label="Language Variety"
+                  placeholder="Optional default language variety"
+                  options={languageVarietyOptions}
+                  selectedValues={defaultLanguageVarieties}
+                  onChange={setDefaultLanguageVarieties}
+                />
 
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Topic
-                  </label>
-                  <Select value={defaultTopic || '__none__'} onValueChange={(value) => setDefaultTopic(value === '__none__' ? '' : value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Optional default topic" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">None</SelectItem>
-                      {topicsTaxonomy?.tree.map((node) => (
-                        <SelectItem key={node.id} value={node.id}>
-                          {node.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <MetadataMultiSelect
+                  label="Topic"
+                  placeholder="Optional default topic"
+                  options={topicOptions}
+                  selectedValues={defaultTopics}
+                  onChange={setDefaultTopics}
+                />
 
               </CardContent>
             </Card>
@@ -1144,11 +1240,11 @@ export function IngestItems() {
                 setUploadError('');
                 setParsedItems([]);
                 setIngestedCount(0);
-                setDefaultCognitiveLevel('');
-                setDefaultGrammar('');
-                setDefaultContentDomain('');
-                setDefaultLanguageVariety('');
-                setDefaultTopic('');
+                setDefaultCognitiveLevels([]);
+                setDefaultGrammars([]);
+                setDefaultContentDomains([]);
+                setDefaultLanguageVarieties([]);
+                setDefaultTopics([]);
               }} className="cursor-pointer">
                 Ingest More Items
               </Button>
