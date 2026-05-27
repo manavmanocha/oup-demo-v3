@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { Checkbox } from './ui/checkbox';
 import { Info } from 'lucide-react';
 import { acceptPredictedItems, getAllItems } from '../data/mockData';
 import {
@@ -65,6 +66,7 @@ export function DifficultyPrediction() {
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [showAllNeedsReview, setShowAllNeedsReview] = useState(false);
   const [showAllReadyToAccept, setShowAllReadyToAccept] = useState(false);
+  const [selectedReadyIds, setSelectedReadyIds] = useState<string[]>([]);
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
   const waitingForPrediction = allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED'));
 
@@ -105,18 +107,33 @@ export function DifficultyPrediction() {
   const hiddenNeedsReviewCount = Math.max(needsReview.length - DEFAULT_VISIBLE_ITEMS, 0);
   const hiddenReadyToAcceptCount = Math.max(readyToAccept.length - DEFAULT_VISIBLE_ITEMS, 0);
 
+  const toggleReadyItem = (itemId: string) => {
+    setSelectedReadyIds((prev) =>
+      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]
+    );
+  };
+
+  const toggleAllReady = () => {
+    if (selectedReadyIds.length === readyToAccept.length) {
+      setSelectedReadyIds([]);
+    } else {
+      setSelectedReadyIds(readyToAccept.map((item) => item.id));
+    }
+  };
+
   const handleAcceptItem = (itemId: string) => {
     acceptPredictedItems([itemId]);
+    setSelectedReadyIds((prev) => prev.filter((id) => id !== itemId));
     setRefreshVersion((prev) => prev + 1);
   };
 
   const handleAcceptAll = () => {
-    const itemIds = readyToAccept.map((item) => item.id);
-    if (!itemIds.length) {
+    if (!selectedReadyIds.length) {
       return;
     }
 
-    acceptPredictedItems(itemIds);
+    acceptPredictedItems(selectedReadyIds);
+    setSelectedReadyIds([]);
     setRefreshVersion((prev) => prev + 1);
   };
 
@@ -257,7 +274,9 @@ export function DifficultyPrediction() {
             <CardTitle className="text-sm font-medium text-gray-500 uppercase">
               Ready to Accept · {readyToAccept.length} items
             </CardTitle>
-            <Button size="sm" onClick={handleAcceptAll} disabled={readyToAccept.length === 0}>Accept All</Button>
+            <Button size="sm" onClick={handleAcceptAll} disabled={selectedReadyIds.length === 0}>
+              {selectedReadyIds.length > 0 ? `Accept All (${selectedReadyIds.length})` : 'Accept All'}
+            </Button>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-6">
@@ -268,6 +287,13 @@ export function DifficultyPrediction() {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
                   <tr>
+                    <th className="px-4 py-3 text-left w-12">
+                      <Checkbox
+                        checked={readyToAccept.length > 0 && selectedReadyIds.length === readyToAccept.length}
+                        onCheckedChange={toggleAllReady}
+                        aria-label="Select all ready items"
+                      />
+                    </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CEFR</th>
@@ -279,6 +305,12 @@ export function DifficultyPrediction() {
                 <tbody className="divide-y">
                   {visibleReadyToAccept.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <Checkbox
+                          checked={selectedReadyIds.includes(item.id)}
+                          onCheckedChange={() => toggleReadyItem(item.id)}
+                        />
+                      </td>
                       <td className="px-4 py-3">
                         <Link
                           to={`/item-bank/${item.level}/${item.id}`}
@@ -351,7 +383,7 @@ export function DifficultyPrediction() {
                   ))}
                   {readyToAccept.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                         No high-confidence predictions available yet.
                       </td>
                     </tr>
