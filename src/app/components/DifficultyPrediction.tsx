@@ -275,7 +275,7 @@ export function DifficultyPrediction() {
               Ready to Accept · {readyToAccept.length} items
             </CardTitle>
             <Button size="sm" onClick={handleAcceptAll} disabled={selectedReadyIds.length === 0}>
-              {selectedReadyIds.length > 0 ? `Accept All (${selectedReadyIds.length})` : 'Accept All'}
+              {selectedReadyIds.length > 0 && readyToAccept.length === selectedReadyIds.length ? 'Accept All' : `Accept (${selectedReadyIds.length})`}
             </Button>
           </CardHeader>
           <CardContent>
