@@ -79,6 +79,135 @@
       "lastEditedDate": "2026-05-22"
     },
     {
+      "id": "ITMBK-WRT-B2-013",
+      "skill": "Writing",
+      "questionNumber": 13,
+      "questionType": "Essay",
+      "prompt": "Write a short report summarising the survey findings and recommending one action for the company.",
+      "correctAnswer": "Open response (rubric-based scoring)",
+      "difficulty": "Medium",
+      "level": "B2",
+      "topic": "Business",
+      "skillTag": "Summarising data and making recommendations",
+      "skillTagId": "writing-summarising-data-and-making-recommendations",
+      "options": [],
+      "skillDetails": {
+        "writing": {
+          "task": 1,
+          "promptContext": "You are preparing a short internal report for a company manager based on the survey results.",
+          "imageTitle": "Report on Employee Learning Survey",
+          "imageAsset": "/assets/wrt_b2_013_image.png",
+          "imageAltText": "Staff survey results: 62% prefer short weekly training sessions, 21% prefer full-day workshops, 17% prefer self-study modules. Main barriers to learning: lack of time 48%, unclear relevance 29%, technical problems 15%, other 8%.",
+          "instructions": "Write 170 to 220 words in a neutral professional style.",
+          "rubric": "Assess how accurately the candidate summarises data, organises the report, uses clear register, and supports recommendations with evidence from the survey.",
+          "wordCount": 200,
+          "timeAllocation": 25
+        }
+      },
+      "status": "Draft",
+      "workflowState": "PENDING_SCREENING_REVIEW",
+      "subSkill": "Summarising data and making recommendations",
+      "cognitiveLevel": "L3 Apply",
+      "contentDomain": "Business",
+      "languageVariety": "International",
+      "confidence": 82,
+      "irtParameters": {
+        "b": 0.86,
+        "a": 1.12,
+        "c": 0,
+        "sampleSize": 390,
+        "modelVersion": "Rasch-WRT-1.9",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "flaggedForReview": false,
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        },
+        {
+          "date": "2026-05-22",
+          "reviewer": "Writing Reviewer",
+          "action": "Reviewed",
+          "state": "In Review"
+        }
+      ],
+      "author": "Neha Kapoor",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22"
+    },
+    {
+      "id": "ITMBK-LIS-A2-006",
+      "skill": "Listening",
+      "questionNumber": 6,
+      "questionType": "Note Completion",
+      "prompt": "Complete the missing note: The patient prefers an appointment on ______.",
+      "correctAnswer": "Thursday",
+      "difficulty": "Easy",
+      "level": "A2",
+      "topic": "Health",
+      "skillTag": "Listening for specific details",
+      "skillTagId": "listening-listening-for-specific-details",
+      "options": [],
+      "skillDetails": {
+        "listening": {
+          "audioTitle": "Clinic Appointment Form",
+          "context": "A patient calls a clinic to arrange a check-up.",
+          "audioFile": "lis_a2_006_clinic_booking.mp3",
+          "audioAsset": "/audio/lis_a2_006_clinic_booking.mp3",
+          "instructions": "Listen and write one word for each answer.",
+          "transcript": "Receptionist: Good morning, Greenway Clinic.\nPatient: Hello, I'd like to book a general check-up.\nReceptionist: We have space on Tuesday at 11 o'clock or Thursday at 9:30.\nPatient: Thursday is better for me."
+        }
+      },
+      "status": "Draft",
+      "workflowState": "NOT_STARTED",
+      "subSkill": "Listening for specific details",
+      "cognitiveLevel": "L2 Understand",
+      "contentDomain": "Health",
+      "languageVariety": "International",
+      "confidence": 87,
+      "irtParameters": {
+        "b": -0.22,
+        "a": 1.15,
+        "c": 0,
+        "sampleSize": 1320,
+        "modelVersion": "IRT-2.7",
+        "predictionDate": "2026-05-22",
+        "calibratedFromFieldTest": false,
+        "predictedByAI": true
+      },
+      "screening": {
+        "cefrFit": "Pass",
+        "distractorStrength": "Pass",
+        "clarity": "Pass",
+        "fairness": "Pass",
+        "similarity": "Pass"
+      },
+      "flaggedForReview": false,
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Neha Kapoor",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22"
+    },
+    {
       "id": "ITMBK-RDG-B1-002",
       "skill": "Reading",
       "questionNumber": 2,
@@ -341,66 +470,6 @@
         }
       ],
       "author": "Daniel Brooks",
-      "createdDate": "2026-05-22",
-      "lastEditedDate": "2026-05-22"
-    },
-    {
-      "id": "ITMBK-LIS-A2-006",
-      "skill": "Listening",
-      "questionNumber": 6,
-      "questionType": "Note Completion",
-      "prompt": "Complete the missing note: The patient prefers an appointment on ______.",
-      "correctAnswer": "Thursday",
-      "difficulty": "Easy",
-      "level": "A2",
-      "topic": "Health",
-      "skillTag": "Listening for specific details",
-      "skillTagId": "listening-listening-for-specific-details",
-      "options": [],
-      "skillDetails": {
-        "listening": {
-          "audioTitle": "Clinic Appointment Form",
-          "context": "A patient calls a clinic to arrange a check-up.",
-          "audioFile": "lis_a2_006_clinic_booking.mp3",
-          "audioAsset": "/audio/lis_a2_006_clinic_booking.mp3",
-          "instructions": "Listen and write one word for each answer.",
-          "transcript": "Receptionist: Good morning, Greenway Clinic.\nPatient: Hello, I'd like to book a general check-up.\nReceptionist: We have space on Tuesday at 11 o'clock or Thursday at 9:30.\nPatient: Thursday is better for me."
-        }
-      },
-      "status": "Draft",
-      "workflowState": "NOT_STARTED",
-      "subSkill": "Listening for specific details",
-      "cognitiveLevel": "L2 Understand",
-      "contentDomain": "Health",
-      "languageVariety": "International",
-      "confidence": 87,
-      "irtParameters": {
-        "b": -0.22,
-        "a": 1.15,
-        "c": 0,
-        "sampleSize": 1320,
-        "modelVersion": "IRT-2.7",
-        "predictionDate": "2026-05-22",
-        "calibratedFromFieldTest": false,
-        "predictedByAI": true
-      },
-      "screening": {
-        "cefrFit": "Pass",
-        "distractorStrength": "Pass",
-        "clarity": "Pass",
-        "fairness": "Pass",
-        "similarity": "Pass"
-      },
-      "flaggedForReview": false,
-      "reviewHistory": [
-        {
-          "date": "2026-05-22",
-          "reviewer": "Maya Thompson",
-          "action": "Created",
-          "state": "Draft"
-        }
-      ],
-      "author": "Neha Kapoor",
       "createdDate": "2026-05-22",
       "lastEditedDate": "2026-05-22"
     },
@@ -793,75 +862,6 @@
         }
       ],
       "author": "Aisha Verma",
-      "createdDate": "2026-05-22",
-      "lastEditedDate": "2026-05-22"
-    },
-    {
-      "id": "ITMBK-WRT-B2-013",
-      "skill": "Writing",
-      "questionNumber": 13,
-      "questionType": "Essay",
-      "prompt": "Write a short report summarising the survey findings and recommending one action for the company.",
-      "correctAnswer": "Open response (rubric-based scoring)",
-      "difficulty": "Medium",
-      "level": "B2",
-      "topic": "Business",
-      "skillTag": "Summarising data and making recommendations",
-      "skillTagId": "writing-summarising-data-and-making-recommendations",
-      "options": [],
-      "skillDetails": {
-        "writing": {
-          "task": 1,
-          "promptContext": "You are preparing a short internal report for a company manager based on the survey results.",
-          "imageTitle": "Report on Employee Learning Survey",
-          "imageAsset": "/assets/wrt_b2_013_image.png",
-          "imageAltText": "Staff survey results: 62% prefer short weekly training sessions, 21% prefer full-day workshops, 17% prefer self-study modules. Main barriers to learning: lack of time 48%, unclear relevance 29%, technical problems 15%, other 8%.",
-          "instructions": "Write 170 to 220 words in a neutral professional style.",
-          "rubric": "Assess how accurately the candidate summarises data, organises the report, uses clear register, and supports recommendations with evidence from the survey.",
-          "wordCount": 200,
-          "timeAllocation": 25
-        }
-      },
-      "status": "Draft",
-      "workflowState": "PENDING_SCREENING_REVIEW",
-      "subSkill": "Summarising data and making recommendations",
-      "cognitiveLevel": "L3 Apply",
-      "contentDomain": "Business",
-      "languageVariety": "International",
-      "confidence": 82,
-      "irtParameters": {
-        "b": 0.86,
-        "a": 1.12,
-        "c": 0,
-        "sampleSize": 390,
-        "modelVersion": "Rasch-WRT-1.9",
-        "predictionDate": "2026-05-22",
-        "calibratedFromFieldTest": false,
-        "predictedByAI": true
-      },
-      "screening": {
-        "cefrFit": "Pass",
-        "distractorStrength": "Pass",
-        "clarity": "Pass",
-        "fairness": "Pass",
-        "similarity": "Pass"
-      },
-      "flaggedForReview": false,
-      "reviewHistory": [
-        {
-          "date": "2026-05-22",
-          "reviewer": "Maya Thompson",
-          "action": "Created",
-          "state": "Draft"
-        },
-        {
-          "date": "2026-05-22",
-          "reviewer": "Writing Reviewer",
-          "action": "Reviewed",
-          "state": "In Review"
-        }
-      ],
-      "author": "Neha Kapoor",
       "createdDate": "2026-05-22",
       "lastEditedDate": "2026-05-22"
     },

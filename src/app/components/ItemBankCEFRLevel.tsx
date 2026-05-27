@@ -64,7 +64,6 @@ export function ItemBankCEFRLevel() {
               {levelData.active + levelData.compromised} of {levelData.target} items active · {levelData.gapToTarget} needed to reach target
             </p>
           </div>
-          <Button>+ Ingest Items</Button>
         </div>
 
         {/* Capacity Bar */}
