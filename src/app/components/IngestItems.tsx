@@ -162,11 +162,6 @@ const mapLevelToDifficulty = (level: string): Difficulty => {
   return 'Hard';
 };
 
-const toTitleFromText = (content: string) => {
-  const trimmed = content.trim();
-  return trimmed.length <= 120 ? trimmed : `${trimmed.slice(0, 117)}...`;
-};
-
 const INGEST_AUTHORS = ['Aisha Verma', 'Daniel Brooks', 'Neha Kapoor', 'Rohan Mehta', 'Elena Petrova'];
 const INGEST_REVIEWERS = ['Maya Thompson', 'Arjun Nair', 'Sofia Martinez', 'Kabir Singh', 'Liam O\'Connell'];
 const INGEST_PREVIEW_ITEMS_STORAGE_KEY = 'ingest-preview-items-v1';
@@ -210,8 +205,7 @@ const buildPreviewItem = (
 
   return {
     id: item.id,
-    title: toTitleFromText(item.content || item.id),
-    content: item.content,
+    title: item.content || item.id,
     answerKey: item.answerKey,
     level: resolveLevel(item.level) ?? 'B1',
     skill: resolveSkill(item.skill) ?? 'Reading',
@@ -538,11 +532,10 @@ export function IngestItems() {
 
         return {
           id: uniqueId,
-          title: toTitleFromText(item.content),
-          content: item.content,
+          title: item.content,
           answerKey: item.answerKey,
-          level: item.level,
-          skill: item.skill,
+          level: item.level as CEFRLevel,
+          skill: item.skill as Skill,
           itemType: resolvedType,
           status: 'Draft',
           difficulty: mapLevelToDifficulty(item.level),

@@ -682,7 +682,7 @@ export function ItemDetailRedesign() {
                   )}
 
                   {/* Short Answer Layout */}
-                {(isShortAnswer && isListening || isEssay || (isSpeakingQuestion && item?.content)) && (
+                {(isShortAnswer && isListening || (isEssay && item?.content) || (isSpeakingQuestion && item?.content)) && (
                   <div className="text-lg text-gray-800 leading-relaxed">
                         {item.content}
                   </div>
