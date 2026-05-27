@@ -1,7 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Workflow } from 'lucide-react';
+import { useNavigate } from 'react-router';
 
 export function Workflows() {
+  const navigate = useNavigate();
+
   const workflows = [
     {
       id: 'pre-testing-pipeline',
@@ -60,12 +63,16 @@ export function Workflows() {
     },
   ];
 
-  const handleCardClick = () => {};
+  const handleCardClick = (workflowId: string) => {
+    if (workflowId === 'pre-testing-pipeline') {
+      navigate('/workflows/pre-testing-pipeline');
+    }
+  };
 
-  const handleCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, workflowId: string) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      handleCardClick();
+      handleCardClick(workflowId);
     }
   };
 
@@ -86,8 +93,8 @@ export function Workflows() {
             <Card
               key={workflow.id}
               className="cursor-pointer select-none hover:shadow-md active:scale-[0.99] transition duration-150"
-              onClick={handleCardClick}
-              onKeyDown={handleCardKeyDown}
+              onClick={() => handleCardClick(workflow.id)}
+              onKeyDown={(event) => handleCardKeyDown(event, workflow.id)}
               role="button"
               tabIndex={0}
               aria-label={`${workflow.title} workflow card`}

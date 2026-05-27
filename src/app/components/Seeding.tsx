@@ -6,7 +6,8 @@ import { Badge } from './ui/badge';
 import { getAllItems, moveItemsToSeeded } from '../data/mockData';
 import { isWorkflowState } from '../data/workflowState';
 
-const DEFAULT_VISIBLE_ITEMS = 5;
+const DEFAULT_VISIBLE_RECOMMENDED_ITEMS = 4;
+const DEFAULT_VISIBLE_SEEDED_ITEMS = 5;
 
 const toTimestamp = (value?: string): number => {
   if (!value) return 0;
@@ -36,11 +37,26 @@ export function Seeding() {
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
 
   const recommendedItems = useMemo(
-    () => sortNewestFirst(
-      allItems.filter(
-        (item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING') && (item.confidence ?? 0) < 60,
-      ),
-    ),
+    () => {
+      const explicitRecommendations = sortNewestFirst(
+        allItems.filter(
+          (item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING') && (item.confidence ?? 0) < 60,
+        ),
+      );
+
+      if (explicitRecommendations.length > 0) {
+        return explicitRecommendations;
+      }
+
+      return sortNewestFirst(
+        allItems.filter(
+          (item) =>
+            isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW') &&
+            (item.confidence ?? 0) < 60 &&
+            !item.flaggedForReview,
+        ),
+      ).slice(0, DEFAULT_VISIBLE_RECOMMENDED_ITEMS);
+    },
     [allItems],
   );
 
@@ -48,10 +64,12 @@ export function Seeding() {
     () => sortNewestFirst(allItems.filter((item) => isWorkflowState(item.workflowState, 'SEEDED'))),
     [allItems],
   );
-  const visibleRecommendedItems = showAllRecommended ? recommendedItems : recommendedItems.slice(0, DEFAULT_VISIBLE_ITEMS);
-  const visibleSeededItems = showAllSeeded ? currentlySeeded : currentlySeeded.slice(0, DEFAULT_VISIBLE_ITEMS);
-  const hiddenRecommendedCount = Math.max(recommendedItems.length - DEFAULT_VISIBLE_ITEMS, 0);
-  const hiddenSeededCount = Math.max(currentlySeeded.length - DEFAULT_VISIBLE_ITEMS, 0);
+  const visibleRecommendedItems = showAllRecommended
+    ? recommendedItems
+    : recommendedItems.slice(0, DEFAULT_VISIBLE_RECOMMENDED_ITEMS);
+  const visibleSeededItems = showAllSeeded ? currentlySeeded : currentlySeeded.slice(0, DEFAULT_VISIBLE_SEEDED_ITEMS);
+  const hiddenRecommendedCount = Math.max(recommendedItems.length - DEFAULT_VISIBLE_RECOMMENDED_ITEMS, 0);
+  const hiddenSeededCount = Math.max(currentlySeeded.length - DEFAULT_VISIBLE_SEEDED_ITEMS, 0);
 
   const toggleSelected = (itemId: string) => {
     setSelectedItemIds((prev) =>
