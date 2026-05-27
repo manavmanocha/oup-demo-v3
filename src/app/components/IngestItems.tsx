@@ -9,6 +9,7 @@ import { Upload, Download, FileText, CheckCircle2, AlertCircle, ChevronLeft, Che
 import { taxonomies } from '../data/taxonomy';
 import { addIngestedItems, getAllItems } from '../data/mockData';
 import { AssessmentItem, CEFRLevel, Difficulty, ItemType, Skill } from '../data/types';
+import { useAuth } from '../context/AuthContext';
 import { cn } from './ui/utils';
 
 type MultiSelectOption = {
@@ -266,7 +267,6 @@ const mapLevelToDifficulty = (level: string): Difficulty => {
 };
 
 const INGEST_AUTHORS = ['Aisha Verma', 'Daniel Brooks', 'Neha Kapoor', 'Rohan Mehta', 'Elena Petrova'];
-const INGEST_REVIEWERS = ['Maya Thompson', 'Arjun Nair', 'Sofia Martinez', 'Kabir Singh', 'Liam O\'Connell'];
 const INGEST_PREVIEW_ITEMS_STORAGE_KEY = 'ingest-preview-items-v1';
 const INGEST_SESSION_STORAGE_KEY = 'ingest-session-v1';
 
@@ -288,6 +288,7 @@ const hashFromId = (id: string) =>
 const buildPreviewItem = (
   item: ParsedUploadItem,
   fileName: string,
+  reviewer: string,
   defaultCognitiveLevelLabel: string,
   defaultGrammarLabel: string,
   defaultContentDomainLabel: string,
@@ -297,7 +298,6 @@ const buildPreviewItem = (
   const fallbackId = item.id || 'ITM-INGEST-PREVIEW';
   const itemHash = hashFromId(fallbackId);
   const author = INGEST_AUTHORS[itemHash % INGEST_AUTHORS.length];
-  const reviewer = INGEST_REVIEWERS[itemHash % INGEST_REVIEWERS.length];
   const createdDate = new Date().toISOString().slice(0, 10);
   const resolvedType = resolveItemType(item.type, item.type);
   const isMCQ = resolvedType === 'Multiple Choice';
@@ -361,6 +361,8 @@ const buildPreviewItem = (
 
 export function IngestItems() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const ingestReviewer = user?.name || 'Current User';
 
   const [savedSession] = useState<Record<string, unknown> | null>(() => {
     try {
@@ -623,6 +625,7 @@ export function IngestItems() {
         buildPreviewItem(
           item,
           fileName,
+          ingestReviewer,
           defaultCognitiveLevelLabel,
           defaultGrammarLabel,
           defaultContentDomainLabel,
@@ -679,7 +682,7 @@ export function IngestItems() {
         const createdDate = new Date().toISOString();
         const itemHash = hashFromId(uniqueId);
         const author = INGEST_AUTHORS[itemHash % INGEST_AUTHORS.length];
-        const reviewer = INGEST_REVIEWERS[itemHash % INGEST_REVIEWERS.length];
+        const reviewer = ingestReviewer;
 
         return {
           id: uniqueId,
