@@ -8,8 +8,10 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Checkbox } from "./ui/checkbox";
 import { Input } from "./ui/input";
+import { Progress } from "./ui/progress";
 import {
   CheckCircle2,
+  Sparkles,
   Search,
   ChevronRight,
 } from "lucide-react";
@@ -35,13 +37,15 @@ const prioritizeIngestedFirst = <T extends { id: string }>(items: T[], ingestedI
 export function ScreenItems() {
   const navigate = useNavigate();
   const [step, setStep] = useState<
-    "select" | "confirm" | "success"
+    "select" | "confirm" | "processing" | "success"
   >("select");
   const [selectedItemIds, setSelectedItemIds] = useState<
     string[]
   >([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [queuedCount, setQueuedCount] = useState(0);
+  const [isQueueing, setIsQueueing] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   // Get all items from library - filter to draft or screening-review items
   const allItems = getAllItems();
@@ -98,10 +102,38 @@ export function ScreenItems() {
     }
   };
 
-  const handleStartScreening = () => {
+  const handleStartScreening = async () => {
+    if (isQueueing) {
+      return;
+    }
+
+    setIsQueueing(true);
     setQueuedCount(selectedItemIds.length);
-    queueItemsForScreening(selectedItemIds);
-    setStep("success");
+    setStep("processing");
+    setProgress(5);
+
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 90) {
+          return 90;
+        }
+
+        return prev + 5;
+      });
+    }, 250);
+
+    try {
+      await queueItemsForScreening(selectedItemIds);
+      clearInterval(interval);
+      setProgress(100);
+      setStep("success");
+    } catch {
+      clearInterval(interval);
+      setProgress(0);
+      setStep("confirm");
+    } finally {
+      setIsQueueing(false);
+    }
   };
 
   const handleAddMore = () => {
@@ -109,6 +141,7 @@ export function ScreenItems() {
     setStep("select");
     setSelectedItemIds([]);
     setSearchQuery("");
+    setProgress(0);
   };
 
   const handleFinish = () => {
@@ -361,8 +394,8 @@ export function ScreenItems() {
                 <Link to="/workflows/pre-testing-pipeline/screening">
                   <Button variant="outline">Cancel</Button>
                 </Link>
-                <Button onClick={handleStartScreening}>
-                  Add to Queue
+                <Button onClick={handleStartScreening} disabled={isQueueing}>
+                  {isQueueing ? 'Adding...' : 'Add to Queue'}
                 </Button>
               </div>
             </div>
@@ -402,6 +435,30 @@ export function ScreenItems() {
               <Button onClick={handleAddMore}>
                 Add More Items
               </Button>
+            </div>
+          </div>
+        )}
+
+        {step === "processing" && (
+          <div className="space-y-6 py-12">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center animate-pulse">
+                <Sparkles className="w-10 h-10 text-blue-600" />
+              </div>
+            </div>
+
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Running Screening...
+              </h1>
+              <p className="text-gray-600 mb-6">
+                AI is analyzing {queuedCount} items. This may take a moment.
+              </p>
+
+              <div className="max-w-md mx-auto">
+                <Progress value={progress} className="h-3 mb-2" />
+                <p className="text-sm text-gray-600">{progress}% complete</p>
+              </div>
             </div>
           </div>
         )}

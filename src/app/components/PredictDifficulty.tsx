@@ -7,7 +7,7 @@ import { Checkbox } from './ui/checkbox';
 import { Input } from './ui/input';
 import { CheckCircle2, Sparkles, Search, ChevronRight } from 'lucide-react';
 import { Progress } from './ui/progress';
-import { applyDifficultyPredictions, getAllItems, getMockDifficultyPredictionResult } from '../data/mockData';
+import { applyDifficultyPredictions, getAllItems, getDifficultyPredictionResultForItemAsync } from '../data/mockData';
 import { Difficulty } from '../data/types';
 import { isWorkflowState } from '../data/workflowState';
 
@@ -100,24 +100,32 @@ export function PredictDifficulty() {
     setStep('success');
   };
 
-  const handleStartPrediction = () => {
+  const handleStartPrediction = async () => {
     setStep('processing');
-    setProgress(0);
+    setProgress(5);
 
-    const generatedResults: { id: string; b: number; confidence: number; difficulty: Difficulty; discrimination: string }[] =
-      selectedItemIds.map((id) => getMockDifficultyPredictionResult(id));
-
-    // Simulate estimation processing
     const interval = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          completePredictionRun(generatedResults);
-          return 100;
+        if (prev >= 90) {
+          return 90;
         }
-        return prev + 20;
+
+        return prev + 5;
       });
-    }, 400);
+    }, 250);
+
+    try {
+      const generatedResults: { id: string; b: number; confidence: number; difficulty: Difficulty; discrimination: string }[] =
+        await Promise.all(selectedItemIds.map((id) => getDifficultyPredictionResultForItemAsync(id)));
+
+      clearInterval(interval);
+      setProgress(100);
+      completePredictionRun(generatedResults);
+    } catch {
+      clearInterval(interval);
+      setProgress(0);
+      setStep('confirm');
+    }
   };
 
   const handleAddMore = () => {
