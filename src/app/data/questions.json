@@ -339,7 +339,7 @@
       "questionNumber": 4,
       "questionType": "True/False/Not Given",
       "prompt": "Decide whether the statement is True, False, or Not Given: The study proved that checking social media after 10 p.m. directly causes lower exam scores.",
-      "correctAnswer": "Not Given",
+      "correctAnswer": "False",
       "difficulty": "Medium",
       "level": "B2",
       "topic": "Social Media",
@@ -352,12 +352,12 @@
         },
         {
           "label": "B",
-          "text": "False"
+          "text": "False",
+          "correct": true
         },
         {
           "label": "C",
-          "text": "Not Given",
-          "correct": true
+          "text": "Not Given"
         }
       ],
       "skillDetails": {
@@ -419,7 +419,7 @@
       "questionNumber": 5,
       "questionType": "Short Answer",
       "prompt": "According to the passage, why did local clinics support the new walking-route project?",
-      "correctAnswer": "Because short routine walks were more realistic for patients.",
+      "correctAnswer": "Short routine walks were more realistic",
       "difficulty": "Hard",
       "level": "C1",
       "topic": "Health",
@@ -962,7 +962,7 @@
       "workflowState": "NOT_STARTED",
       "subSkill": "Extended persuasive workplace writing",
       "cognitiveLevel": "L4 Analyze",
-      "contentDomain": "Workplace",
+      "contentDomain": "Environment",
       "languageVariety": "International",
       "confidence": 78,
       "irtParameters": {
@@ -1124,7 +1124,7 @@
       "skill": "Speaking",
       "questionNumber": 18,
       "questionType": "Speaking",
-      "prompt": "Describe the information shown in image and mention any important changes or comparisons.",
+      "prompt": "Describe the information shown in the image and mention any important changes or comparisons.",
       "correctAnswer": "Open response (rubric-based scoring)",
       "difficulty": "Medium",
       "level": "B2",
@@ -1146,9 +1146,9 @@
       },
       "status": "Draft",
       "workflowState": "PENDING_SCREENING_REVIEW",
-      "subSkill": "Balanced spoken argument",
+      "subSkill": "Describing visual information",
       "cognitiveLevel": "L4 Analyze",
-      "contentDomain": "Workplace",
+      "contentDomain": "Health",
       "languageVariety": "International",
       "confidence": 81,
       "irtParameters": {
@@ -1188,8 +1188,8 @@
       "questionType": "Speaking",
       "prompt": "Give your opinion on whether remote learning can be as effective as classroom learning.",
       "correctAnswer": "Open response (rubric-based scoring)",
-      "difficulty": "Medium",
-      "level": "B2",
+      "difficulty": "Hard",
+      "level": "C1",
       "topic": "Education",
       "skillTag": "Giving and supporting opinions orally",
       "skillTagId": "speaking-giving-and-supporting-opinions-orally",
@@ -1212,7 +1212,7 @@
       "workflowState": "PENDING_SCREENING_REVIEW",
       "subSkill": "Critical discussion",
       "cognitiveLevel": "L5 Evaluate",
-      "contentDomain": "Technology",
+      "contentDomain": "Education",
       "languageVariety": "International",
       "confidence": 78,
       "irtParameters": {
