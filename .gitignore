@@ -20,7 +20,8 @@ dist-ssr
 # Coverage and test output
 coverage
 .nyc_output
-test-results/**
+test-results
+test-results/.last-run.json
 
 # Environment files
 .env

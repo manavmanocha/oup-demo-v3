@@ -12,9 +12,9 @@ test('opens pre-testing workflow and navigates to pipeline stages', async ({ pag
   await expect(page.getByRole('heading', { name: 'Workflows' })).toBeVisible();
   await expect(page.getByText('Pre-Testing Pipeline')).toBeVisible();
   await expect(page.getByText('PDF to Text')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Unavailable' })).toHaveCount(3);
+  await expect(page.getByRole('button', { name: /workflow card/i })).toHaveCount(11);
 
-  await page.locator('a:has(button:has-text("Open Workflow"))').first().click();
+  await page.getByRole('button', { name: 'Pre-Testing Pipeline workflow card' }).click();
   await expect(page).toHaveURL(/\/workflows\/pre-testing-pipeline$/);
   await expect(page.getByRole('heading', { name: 'Pre-Testing Pipeline Overview' })).toBeVisible();
 

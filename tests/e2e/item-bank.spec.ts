@@ -17,6 +17,6 @@ test('navigates from item bank overview to a level and item detail', async ({ pa
 
   await page.locator('a[href*="/item-bank/A2/"]').first().click();
   await expect(page).toHaveURL(/\/item-bank\/A2\//);
-  await expect(page.getByRole('link', { name: 'Back to Library' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Back' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Question' })).toBeVisible();
 });

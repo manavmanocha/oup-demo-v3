@@ -5,6 +5,7 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     test: {
+      pool: 'threads',
       environment: 'jsdom',
       setupFiles: ['./tests/setup/vitest.setup.ts'],
       include: ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.tsx'],

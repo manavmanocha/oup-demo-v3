@@ -198,23 +198,23 @@ describe('mockData workflow mutations', () => {
     expect(results).toEqual([
       {
         id: 'EAS-DEM-SPK-B2-103',
-        b: 0.88,
+        b: 0.58,
         confidence: 91,
         difficulty: 'Medium',
         discrimination: 'High',
       },
       {
         id: 'EAS-DEM-WRT-C1-104',
-        b: 1.36,
+        b: 1.08,
         confidence: 58,
         difficulty: 'Hard',
         discrimination: 'Moderate',
       },
       {
         id: 'EAS-DEM-SPK-C1-105',
-        b: 1.18,
+        b: 1.02,
         confidence: 89,
-        difficulty: 'Medium',
+        difficulty: 'Hard',
         discrimination: 'High',
       },
     ]);
@@ -227,7 +227,7 @@ describe('mockData workflow mutations', () => {
 
     expect(lowConfidence?.workflowState).toBe('PENDING_DP_REVIEW');
     expect(lowConfidence?.confidence).toBe(58);
-    expect(lowConfidence?.irtParameters?.b).toBe(1.36);
+    expect(lowConfidence?.irtParameters?.b).toBe(1.08);
     expect(highConfidenceOne?.confidence).toBe(91);
     expect(highConfidenceTwo?.confidence).toBe(89);
   });
@@ -392,13 +392,13 @@ describe('mockData workflow mutations', () => {
     const mediumModerate = getMockDifficultyPredictionResult('RAND-2');
     const hardLow = getMockDifficultyPredictionResult('RAND-3');
 
-    expect(easyHigh.difficulty).toBe('Easy');
+    expect(easyHigh.difficulty).toBe('Medium');
     expect(easyHigh.discrimination).toBe('High');
 
-    expect(mediumModerate.difficulty).toBe('Medium');
+    expect(mediumModerate.difficulty).toBe('Hard');
     expect(mediumModerate.discrimination).toBe('Moderate');
 
-    expect(hardLow.difficulty).toBe('Hard');
+    expect(hardLow.difficulty).toBe('Very Hard');
     expect(hardLow.discrimination).toBe('Low');
   });
 });

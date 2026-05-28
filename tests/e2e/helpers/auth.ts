@@ -11,8 +11,10 @@ export async function clearSession(page: Page) {
 
 export async function loginAsDemo(page: Page) {
   await clearSession(page);
+  await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
   await page.getByLabel('Username Or Email').fill(DEMO_EMAIL);
   await page.getByLabel('Password*').fill(DEMO_PASSWORD);
   await page.getByRole('button', { name: 'LOGIN' }).click();
+  await expect(page).toHaveURL(/\/(library)?$/);
   await expect(page.getByRole('link', { name: 'Library' })).toBeVisible();
 }
