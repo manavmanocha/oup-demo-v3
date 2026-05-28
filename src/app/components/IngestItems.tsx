@@ -936,7 +936,8 @@ export function IngestItems() {
                           <p className="font-medium mb-1">File Requirements</p>
                           <ul className="text-blue-700 space-y-1 list-disc list-inside">
                             <li>Required columns: itemId, content, cefrLevel, skill, itemType, answerKey</li>
-                            <li>Optional columns: distractors, audioAsset, passage, passageTitle, instructions, rubric</li>
+                            <li>Optional content columns: distractors, audioAsset, passage, passageTitle, instructions, rubric</li>
+                            <li>Optional psychometric columns: irtB, irtA, irtC, confidence, discrimination, sampleSize, modelVersion</li>
                             <li>Maximum 500 items per upload</li>
                           </ul>
                         </div>
