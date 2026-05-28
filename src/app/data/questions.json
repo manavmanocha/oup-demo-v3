@@ -5,7 +5,7 @@
       "skill": "Reading",
       "questionNumber": 1,
       "questionType": "Multiple Choice",
-      "prompt": "Lina’s flight leaves at 10:40. She wants to arrive at the airport by 09:10. Which shuttle should she take?",
+      "prompt": "Lina has an international flight at 10:40 on a weekday. She wants to arrive at the airport at least 90 minutes before her flight and avoid a busy shuttle if possible. Which shuttle should she take?",
       "correctAnswer": "B",
       "difficulty": "Easy",
       "level": "A2",
@@ -35,8 +35,8 @@
         "reading": {
           "passageNumber": 1,
           "passageTitle": "Airport Shuttle Timetable",
-          "passageText": "CityLink Shuttle Service runs daily from Central Station to Northgate Airport. Buses leave Central Station at 07:30, 08:00, 08:40, 09:15 and 10:00. The journey usually takes 35 minutes, but passengers are advised to arrive at the airport at least 90 minutes before departure for international flights. Tickets can be bought online or from the driver. The 08:40 service is often busy on weekdays because many business travellers use it.",
-          "instructions": "Read the shuttle notice and choose the best answer.",
+          "passageText": "CityLink Shuttle Service runs daily from Central Station to Northgate Airport. Buses leave Central Station at 07:30, 08:00, 08:40, 09:15, and 10:00. The journey usually takes 35 minutes, but passengers are advised to arrive at the airport at least 90 minutes before international flights. Tickets can be bought online or from the driver. The 08:40 service is often very busy on weekdays because many business travellers use it.",
+          "instructions": "Read the shuttle notice and choose the most suitable shuttle for Lina.",
           "testId": "GEN-A2-Reading",
           "testName": "Generated Assessment Items"
         }
@@ -44,14 +44,14 @@
       "status": "Draft",
       "workflowState": "NOT_STARTED",
       "subSkill": "Reading for specific information",
-      "cognitiveLevel": "L2 Understand",
+      "cognitiveLevel": "L3 Apply",
       "contentDomain": "Travel",
       "languageVariety": "International",
-      "confidence": 86,
+      "confidence": 89,
       "irtParameters": {
-        "b": -0.35,
-        "a": 1.18,
-        "c": 0.24,
+        "b": -0.12,
+        "a": 1.32,
+        "c": 0.21,
         "sampleSize": 1180,
         "modelVersion": "IRT-2.7",
         "predictionDate": "2026-05-22",
@@ -76,7 +76,7 @@
       ],
       "author": "Daniel Brooks",
       "createdDate": "2026-05-22",
-      "lastEditedDate": "2026-05-22"
+      "lastEditedDate": "2026-05-27"
     },
     {
       "id": "ITMBK-WRT-B2-013",
