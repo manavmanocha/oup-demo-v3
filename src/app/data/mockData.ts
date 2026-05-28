@@ -1,4 +1,13 @@
-import { AssessmentItem, BankCapacity, CEFRLevel, Difficulty, ItemType } from './types';
+import {
+  AnalysisApiPayload,
+  AssessmentItem,
+  BankCapacity,
+  CEFRLevel,
+  Difficulty,
+  ItemAnalysisLogEntry,
+  ItemAnalysisResult,
+  ItemType,
+} from './types';
 import { isAnyWorkflowState, normalizeWorkflowStateInput, REVIEW_WORKFLOW_STATES } from './workflowState';
 
 import questionsData from './questions.json';
@@ -58,10 +67,15 @@ const writingQuestions: WritingQuestion[] = allQuestions.filter((question): ques
 const speakingQuestions: SpeakingQuestion[] = allQuestions.filter((question): question is SpeakingQuestion => question.skill === 'Speaking');
 const INGESTED_ITEMS_STORAGE_KEY = 'ingested-library-items-v1';
 const WORKFLOW_OVERRIDES_STORAGE_KEY = 'workflow-item-overrides-v1';
+const ANALYSIS_API_ENDPOINT = 'http://13.201.7.229:8765/analyze';
+const ANALYSIS_API_TIMEOUT_MS = 180000;
+const ANALYSIS_API_MAX_RETRIES = 3;
+const ANALYSIS_API_RETRY_DELAY_MS = 1000;
 
 type ScreeningDimensionKey = keyof NonNullable<AssessmentItem['screening']>;
-type ScreeningDimensionResult = NonNullable<AssessmentItem['screening']>[ScreeningDimensionKey];
+type ScreeningDimensionResult = Exclude<NonNullable<AssessmentItem['screening']>[ScreeningDimensionKey], undefined>;
 type ScreeningResults = Record<ScreeningDimensionKey, ScreeningDimensionResult>;
+type AnalysisFeedback = NonNullable<ItemAnalysisResult['responseMapped']>['feedback'];
 
 export type DifficultyPredictionResult = {
   id: string;
@@ -202,6 +216,396 @@ const getDifficultyLabelFromB = (b: number): DifficultyPredictionResult['difficu
   if (b <= 0.7) return 'Medium';
   if (b <= 1.35) return 'Hard';
   return 'Very Hard';
+};
+
+const pause = (milliseconds: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, milliseconds);
+  });
+
+const toNumericValue = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return undefined;
+};
+
+const toScreeningResult = (value: unknown): ScreeningDimensionResult => {
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'pass') return 'Pass';
+    if (normalized === 'review') return 'Review';
+    if (normalized === 'fail') return 'Fail';
+    if (normalized === 'high') return 'Pass';
+    if (normalized === 'medium') return 'Pass';
+    if (normalized === 'low') return 'Fail';
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'Pass' : 'Fail';
+  }
+
+  const numeric = toNumericValue(value);
+  if (numeric !== undefined) {
+    if (numeric >= 0.75) return 'Pass';
+    if (numeric >= 0.45) return 'Review';
+    return 'Fail';
+  }
+
+  return 'Review';
+};
+
+const getRatingValue = (value: unknown): unknown => {
+  if (value && typeof value === 'object' && 'rating' in value) {
+    const rating = (value as { rating?: unknown }).rating;
+    if (rating !== undefined) {
+      return rating;
+    }
+  }
+
+  return value;
+};
+
+const ratingToNumeric = (value: unknown): number | undefined => {
+  const directNumeric = toNumericValue(value);
+  if (directNumeric !== undefined) {
+    return directNumeric;
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'high') return 0.85;
+    if (normalized === 'medium') return 0.55;
+    if (normalized === 'low') return 0.3;
+  }
+
+  return undefined;
+};
+
+const toDiscriminationBand = (value: unknown): string => {
+  const numeric = toNumericValue(value);
+  if (numeric === undefined) {
+    if (typeof value === 'string' && value.trim()) {
+      const normalized = value.trim().toLowerCase();
+      if (normalized === 'high') return 'High';
+      if (normalized === 'medium') return 'Moderate';
+      if (normalized === 'low') return 'Low';
+
+      return value;
+    }
+
+    return 'Moderate';
+  }
+
+  if (numeric >= 0.75) return 'High';
+  if (numeric >= 0.45) return 'Moderate';
+  return 'Low';
+};
+
+const defaultScreeningFromAnalysisFailure = (): ScreeningResults => ({
+  cefrFit: 'Review',
+  distractorStrength: 'Review',
+  clarity: 'Review',
+  fairness: 'Review',
+  similarity: 'Review',
+});
+
+const toCompleteScreeningResults = (
+  screening: Partial<ScreeningResults> | undefined,
+): ScreeningResults => ({
+  cefrFit: screening?.cefrFit ?? 'Review',
+  distractorStrength: screening?.distractorStrength ?? 'Review',
+  clarity: screening?.clarity ?? 'Review',
+  fairness: screening?.fairness ?? 'Review',
+  similarity: screening?.similarity ?? 'Review',
+});
+
+const buildFailureFeedback = (
+  screening: ScreeningResults,
+  feedback: AnalysisFeedback | undefined,
+): string | undefined => {
+  const failedReasons = [
+    screening.cefrFit === 'Fail' && feedback?.cefrFit ? `CEFR Fit: ${feedback.cefrFit}` : undefined,
+    screening.distractorStrength === 'Fail' && feedback?.distractorStrength
+      ? `Distractor Strength: ${feedback.distractorStrength}`
+      : undefined,
+    screening.clarity === 'Fail' && feedback?.clarity ? `Clarity: ${feedback.clarity}` : undefined,
+    screening.fairness === 'Fail' && feedback?.fairness ? `Fairness: ${feedback.fairness}` : undefined,
+  ].filter(Boolean);
+
+  return failedReasons.length ? failedReasons.join(' ') : undefined;
+};
+
+const computeConfidenceFromScreening = (screening: ScreeningResults): number => {
+  const weights: Record<ScreeningDimensionResult, number> = {
+    Pass: 100,
+    Review: 70,
+    Fail: 40,
+  };
+
+  const total = SCREENING_DIMENSIONS.reduce((sum, key) => sum + weights[screening[key]], 0);
+  return Math.round(total / SCREENING_DIMENSIONS.length);
+};
+
+const extractQuestionPrompts = (item: AssessmentItem): string[] => {
+  if (item.followUpQuestions?.length) {
+    return item.followUpQuestions.filter((question) => question.trim().length > 0);
+  }
+
+  const prompt = item.content?.trim() || item.title?.trim() || item.id;
+  return [prompt];
+};
+
+const extractOptionSets = (item: AssessmentItem, questionCount: number): string[][] => {
+  if (!item.options?.length) {
+    return Array.from({ length: questionCount }, () => []);
+  }
+
+  const optionTexts = item.options.map((option) => option.text);
+  return Array.from({ length: questionCount }, () => optionTexts);
+};
+
+const resolveAnswerIndex = (item: AssessmentItem, options: string[]): number => {
+  const correctOptionIndex = item.options?.findIndex((option) => option.correct) ?? -1;
+  if (correctOptionIndex >= 0) {
+    return correctOptionIndex;
+  }
+
+  const normalizedAnswerKey = item.answerKey?.trim().toLowerCase();
+  if (!normalizedAnswerKey) {
+    return -1;
+  }
+
+  const byText = options.findIndex((option) => option.trim().toLowerCase() === normalizedAnswerKey);
+  if (byText >= 0) {
+    return byText;
+  }
+
+  const letterCharCode = normalizedAnswerKey.codePointAt(0);
+  if (letterCharCode && letterCharCode >= 97 && letterCharCode <= 122) {
+    const byLabel = letterCharCode - 97;
+    if (byLabel >= 0 && byLabel < options.length) {
+      return byLabel;
+    }
+  }
+
+  const numeric = Number(normalizedAnswerKey);
+  if (Number.isInteger(numeric) && numeric >= 0 && numeric < options.length) {
+    return numeric;
+  }
+
+  return -1;
+};
+
+const buildAnalysisPayload = (item: AssessmentItem): AnalysisApiPayload => {
+  const questions = extractQuestionPrompts(item);
+  const options = extractOptionSets(item, questions.length);
+  const answers = options.map((optionSet) => resolveAnswerIndex(item, optionSet));
+
+  return {
+    id: item.id,
+    article: item.passage?.trim() || item.content?.trim() || item.title,
+    questions,
+    options,
+    answers,
+  };
+};
+
+const mapAnalysisResponse = (responseRaw: unknown): ItemAnalysisResult['responseMapped'] => {
+  type QualityDimension = {
+    rating?: unknown;
+    justification?: unknown;
+  };
+
+  const response = (responseRaw ?? {}) as {
+    results?: Array<{
+      id?: string;
+      quality_evaluation?: {
+        cefr_fit?: QualityDimension | unknown;
+        distractor_quality?: QualityDimension | unknown;
+        clarity?: QualityDimension | unknown;
+        fairness?: QualityDimension | unknown;
+        discrimination_power?: QualityDimension | unknown;
+      };
+      numeric_difficulty?: unknown;
+    }>;
+    quality_evaluation?: {
+      cefr_fit?: QualityDimension | unknown;
+      distractor_quality?: QualityDimension | unknown;
+      clarity?: QualityDimension | unknown;
+      fairness?: QualityDimension | unknown;
+      discrimination_power?: QualityDimension | unknown;
+    };
+    numeric_difficulty?: unknown;
+  };
+
+  const firstResult = response.results?.[0];
+  const quality = firstResult?.quality_evaluation ?? response.quality_evaluation ?? {};
+  const numericDifficulty = toNumericValue(firstResult?.numeric_difficulty ?? response.numeric_difficulty);
+  const discriminationRating = getRatingValue(quality.discrimination_power);
+  const discriminationPower = ratingToNumeric(discriminationRating);
+
+  const getJustification = (value: unknown): string | undefined => {
+    if (!value || typeof value !== 'object') {
+      return undefined;
+    }
+
+    const justification = (value as { justification?: unknown }).justification;
+    if (typeof justification === 'string' && justification.trim()) {
+      return justification.trim();
+    }
+
+    return undefined;
+  };
+
+  const feedback = {
+    cefrFit: getJustification(quality.cefr_fit),
+    distractorStrength: getJustification(quality.distractor_quality),
+    clarity: getJustification(quality.clarity),
+    fairness: getJustification(quality.fairness),
+    discrimination: getJustification(quality.discrimination_power),
+  };
+
+  const combinedFeedback = [
+    feedback.cefrFit ? `CEFR Fit: ${feedback.cefrFit}` : undefined,
+    feedback.distractorStrength ? `Distractor Strength: ${feedback.distractorStrength}` : undefined,
+    feedback.clarity ? `Clarity: ${feedback.clarity}` : undefined,
+    feedback.fairness ? `Fairness: ${feedback.fairness}` : undefined,
+    feedback.discrimination ? `Discrimination: ${feedback.discrimination}` : undefined,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    screening: {
+      cefrFit: toScreeningResult(getRatingValue(quality.cefr_fit)),
+      distractorStrength: toScreeningResult(getRatingValue(quality.distractor_quality)),
+      clarity: toScreeningResult(getRatingValue(quality.clarity)),
+      fairness: toScreeningResult(getRatingValue(quality.fairness)),
+      similarity: 'Pass',
+    },
+    feedback: {
+      ...feedback,
+      combined: combinedFeedback || undefined,
+    },
+    numericDifficulty,
+    discriminationPower,
+    difficultyBand: numericDifficulty !== undefined ? getDifficultyLabelFromB(numericDifficulty) : undefined,
+    discriminationBand: toDiscriminationBand(discriminationRating),
+  };
+};
+
+const runAnalysisForItem = async (item: AssessmentItem): Promise<ItemAnalysisResult> => {
+  const payload = buildAnalysisPayload(item);
+  const logs: ItemAnalysisLogEntry[] = [];
+
+  for (let attempt = 1; attempt <= ANALYSIS_API_MAX_RETRIES; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), ANALYSIS_API_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(ANALYSIS_API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      const timestamp = new Date().toISOString();
+      const text = await response.text();
+      const json = text ? JSON.parse(text) : {};
+
+      if (!response.ok) {
+        const message = `Analysis API returned HTTP ${response.status}`;
+        logs.push({
+          timestamp,
+          attempt,
+          status: 'failed',
+          httpStatus: response.status,
+          message,
+        });
+
+        if (attempt < ANALYSIS_API_MAX_RETRIES) {
+          await pause(attempt * ANALYSIS_API_RETRY_DELAY_MS);
+          continue;
+        }
+
+        return {
+          status: 'failed',
+          attempts: attempt,
+          requestPayload: payload,
+          responseRaw: json,
+          lastAttemptAt: timestamp,
+          error: message,
+          logs,
+        };
+      }
+
+      logs.push({
+        timestamp,
+        attempt,
+        status: 'success',
+        httpStatus: response.status,
+        message: 'Analysis API call succeeded',
+      });
+
+      return {
+        status: 'completed',
+        attempts: attempt,
+        requestPayload: payload,
+        responseRaw: json,
+        responseMapped: mapAnalysisResponse(json),
+        lastAttemptAt: timestamp,
+        completedAt: timestamp,
+        logs,
+      };
+    } catch (error) {
+      clearTimeout(timeout);
+      const timestamp = new Date().toISOString();
+      const message = error instanceof Error ? error.message : 'Unexpected analysis API error';
+      logs.push({
+        timestamp,
+        attempt,
+        status: 'failed',
+        message,
+      });
+
+      if (attempt < ANALYSIS_API_MAX_RETRIES) {
+        await pause(attempt * ANALYSIS_API_RETRY_DELAY_MS);
+        continue;
+      }
+
+      return {
+        status: 'failed',
+        attempts: attempt,
+        requestPayload: payload,
+        lastAttemptAt: timestamp,
+        error: message,
+        logs,
+      };
+    }
+  }
+
+  return {
+    status: 'failed',
+    attempts: ANALYSIS_API_MAX_RETRIES,
+    requestPayload: payload,
+    lastAttemptAt: new Date().toISOString(),
+    error: 'Analysis API retries exhausted',
+    logs,
+  };
 };
 
 const getAlignedDifficultyPrediction = (item: AssessmentItem): DifficultyPredictionResult => {
@@ -377,6 +781,7 @@ const mergeItemWithPatch = (baseItem: AssessmentItem, patch: Partial<AssessmentI
   const hasIrt = Boolean(baseItem.irtParameters || patch.irtParameters);
   const mergedWorkflowState = patch.workflowState ?? baseItem.workflowState;
   const mergedStatus = patch.status ?? baseItem.status;
+  const hasAnalysis = Boolean(baseItem.analysis || patch.analysis);
 
   return {
     ...baseItem,
@@ -398,6 +803,14 @@ const mergeItemWithPatch = (baseItem: AssessmentItem, patch: Partial<AssessmentI
           calibratedFromFieldTest:
             patch.irtParameters?.calibratedFromFieldTest ?? baseItem.irtParameters?.calibratedFromFieldTest,
           predictedByAI: patch.irtParameters?.predictedByAI ?? baseItem.irtParameters?.predictedByAI,
+        }
+      : undefined,
+    analysis: hasAnalysis
+      ? {
+          ...(baseItem.analysis ?? { status: 'pending', attempts: 0 }),
+          ...(patch.analysis ?? {}),
+          responseMapped: patch.analysis?.responseMapped ?? baseItem.analysis?.responseMapped,
+          logs: patch.analysis?.logs ?? baseItem.analysis?.logs,
         }
       : undefined,
   };
@@ -459,14 +872,55 @@ export const addIngestedItems = (items: AssessmentItem[]) => {
   setStoredIngestedItems(Array.from(mergedById.values()));
 };
 
-export const queueItemsForScreening = (itemIds: string[]) => {
+export const queueItemsForScreening = async (itemIds: string[]) => {
+  if (!itemIds.length) {
+    return;
+  }
+
+  const currentItemsById = new Map<string, AssessmentItem>();
+  getAllItems().forEach((item) => {
+    currentItemsById.set(item.id, item);
+  });
+
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
   const nowIso = now.toISOString();
 
+  const analysisById = new Map<string, ItemAnalysisResult>();
+
+  await Promise.all(
+    itemIds.map(async (itemId) => {
+      const item = currentItemsById.get(itemId);
+      if (!item) {
+        return;
+      }
+
+      const analysis = await runAnalysisForItem(item);
+      analysisById.set(itemId, analysis);
+    }),
+  );
+
   upsertItemOverrides(itemIds, (item, existingPatch) => {
-    const fixture = getScreeningFixture(item.id);
-    const allPassed = SCREENING_DIMENSIONS.every((dimension) => fixture.screening[dimension] === 'Pass');
+    const analysis = analysisById.get(item.id);
+    const mappedScreening = analysis?.responseMapped?.screening;
+    const fallbackFixture = getScreeningFixture(item.id);
+    const screeningBase = analysis?.status === 'completed'
+      ? toCompleteScreeningResults(mappedScreening)
+      : fallbackFixture.screening ?? defaultScreeningFromAnalysisFailure();
+    const screening: ScreeningResults = item.itemType === 'Essay'
+      ? {
+          ...screeningBase,
+          distractorStrength: 'Pass',
+        }
+      : screeningBase;
+    const allPassed = SCREENING_DIMENSIONS.every((dimension) => screening[dimension] === 'Pass');
+    const confidence = computeConfidenceFromScreening(screening);
+    const mappedFeedback = buildFailureFeedback(screening, analysis?.responseMapped?.feedback);
+    const apiFeedback = analysis?.status === 'completed'
+      ? allPassed
+        ? 'Reviewer feedback: Analysis API completed successfully. All screening dimensions passed.'
+        : `Reviewer feedback: ${mappedFeedback ?? 'Analysis API completed. One or more screening dimensions require review.'}`
+      : `Reviewer feedback: Analysis API failed after ${analysis?.attempts ?? 0} attempt(s). ${analysis?.error ?? 'Unknown error'}`;
 
     const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
     const nextHistory = [
@@ -476,20 +930,134 @@ export const queueItemsForScreening = (itemIds: string[]) => {
         reviewer: 'Screening Queue',
         action: allPassed ? 'Screening Auto-Completed (Pass)' : 'Screening Auto-Completed (Needs Review)',
         state: 'PENDING_SCREENING_REVIEW',
-        notes: fixture.feedback,
+        notes: apiFeedback,
       },
     ];
 
     return {
       workflowState: 'PENDING_SCREENING_REVIEW',
       flaggedForReview: !allPassed,
-      flagReason: allPassed ? undefined : fixture.feedback,
-      screening: fixture.screening,
+      flagReason: allPassed ? undefined : apiFeedback,
+      screening,
+      confidence,
+      difficulty: analysis?.responseMapped?.difficultyBand ?? item.difficulty,
+      discrimination: analysis?.responseMapped?.discriminationBand ?? item.discrimination,
+      analysis: {
+        ...(existingPatch?.analysis ?? item.analysis),
+        ...(analysis ?? {
+          status: 'failed',
+          attempts: 0,
+          error: 'Analysis result not available',
+          lastAttemptAt: nowIso,
+        }),
+      },
+      irtParameters: analysis?.responseMapped?.numericDifficulty !== undefined
+        ? {
+            ...item.irtParameters,
+            b: analysis.responseMapped.numericDifficulty,
+            a: analysis.responseMapped.discriminationPower ?? item.irtParameters?.a ?? 1,
+            c: item.irtParameters?.c ?? 0.2,
+            predictedByAI: true,
+            calibratedFromFieldTest: false,
+            modelVersion: 'analysis-api-v1',
+            predictionDate: nowIso,
+          }
+        : item.irtParameters,
+      aiModelVersion: analysis?.status === 'completed' ? 'analysis-api-v1' : item.aiModelVersion,
+      aiPredictionDate: analysis?.status === 'completed' ? nowIso : item.aiPredictionDate,
       reviewHistory: nextHistory,
       lastEditedDate: nowIso,
       lastEditedBy: 'Screening Queue',
     };
   });
+};
+
+const getStoredAnalysisDifficultyPrediction = (item: AssessmentItem): DifficultyPredictionResult | undefined => {
+  const mapped = item.analysis?.responseMapped;
+  if (!mapped || mapped.numericDifficulty === undefined) {
+    return undefined;
+  }
+
+  const b = Number(mapped.numericDifficulty.toFixed(2));
+  const difficulty = mapped.difficultyBand ?? getDifficultyLabelFromB(b);
+  const screening = toCompleteScreeningResults(mapped.screening);
+  const confidence = screening ? computeConfidenceFromScreening(screening) : (item.confidence ?? 80);
+  const discrimination = mapped.discriminationBand ?? toDiscriminationBand(mapped.discriminationPower);
+
+  return {
+    id: item.id,
+    b,
+    confidence,
+    difficulty,
+    discrimination,
+  };
+};
+
+export const getDifficultyPredictionResultForItem = (id: string): DifficultyPredictionResult => {
+  const item = getAllItems().find((entry) => entry.id === id);
+  if (item) {
+    const fromStoredAnalysis = getStoredAnalysisDifficultyPrediction(item);
+    if (fromStoredAnalysis) {
+      return fromStoredAnalysis;
+    }
+  }
+
+  return getMockDifficultyPredictionResult(id);
+};
+
+export const getDifficultyPredictionResultForItemAsync = async (id: string): Promise<DifficultyPredictionResult> => {
+  const item = getAllItems().find((entry) => entry.id === id);
+  if (!item) {
+    return getMockDifficultyPredictionResult(id);
+  }
+
+  const fromStoredAnalysis = getStoredAnalysisDifficultyPrediction(item);
+  if (fromStoredAnalysis) {
+    return fromStoredAnalysis;
+  }
+
+  const nowIso = new Date().toISOString();
+  const analysis = await runAnalysisForItem(item);
+
+  upsertItemOverrides([id], (existingItem, existingPatch) => ({
+    analysis: {
+      ...(existingPatch?.analysis ?? existingItem.analysis),
+      ...(analysis ?? {
+        status: 'failed',
+        attempts: 0,
+        error: 'Analysis result not available',
+        lastAttemptAt: nowIso,
+      }),
+    },
+    difficulty: analysis?.responseMapped?.difficultyBand ?? existingItem.difficulty,
+    discrimination: analysis?.responseMapped?.discriminationBand ?? existingItem.discrimination,
+    irtParameters: analysis?.responseMapped?.numericDifficulty !== undefined
+      ? {
+          ...existingItem.irtParameters,
+          b: analysis.responseMapped.numericDifficulty,
+          a: analysis.responseMapped.discriminationPower ?? existingItem.irtParameters?.a ?? 1,
+          c: existingItem.irtParameters?.c ?? 0.2,
+          predictedByAI: true,
+          calibratedFromFieldTest: false,
+          modelVersion: 'analysis-api-v1',
+          predictionDate: nowIso,
+        }
+      : existingItem.irtParameters,
+    aiModelVersion: analysis?.status === 'completed' ? 'analysis-api-v1' : existingItem.aiModelVersion,
+    aiPredictionDate: analysis?.status === 'completed' ? nowIso : existingItem.aiPredictionDate,
+    lastEditedDate: nowIso,
+    lastEditedBy: 'Prediction Engine',
+  }));
+
+  const refreshedItem = getAllItems().find((entry) => entry.id === id);
+  if (refreshedItem) {
+    const refreshedFromAnalysis = getStoredAnalysisDifficultyPrediction(refreshedItem);
+    if (refreshedFromAnalysis) {
+      return refreshedFromAnalysis;
+    }
+  }
+
+  return getMockDifficultyPredictionResult(id);
 };
 
 export const approveScreenedItems = (itemIds: string[]) => {

@@ -41,6 +41,54 @@ export interface ReviewHistoryEntry {
   notes?: string;
 }
 
+export interface AnalysisApiPayload {
+  id: string;
+  article: string;
+  questions: string[];
+  options: string[][];
+  answers: number[];
+}
+
+export interface ItemAnalysisLogEntry {
+  timestamp: string;
+  attempt: number;
+  status: 'success' | 'failed';
+  message: string;
+  httpStatus?: number;
+}
+
+export interface ItemAnalysisResult {
+  status: 'pending' | 'completed' | 'failed';
+  attempts: number;
+  requestPayload?: AnalysisApiPayload;
+  responseRaw?: unknown;
+  responseMapped?: {
+    screening: {
+      cefrFit: 'Pass' | 'Review' | 'Fail';
+      distractorStrength: 'Pass' | 'Review' | 'Fail';
+      clarity: 'Pass' | 'Review' | 'Fail';
+      fairness: 'Pass' | 'Review' | 'Fail';
+      similarity: 'Pass' | 'Review' | 'Fail';
+    };
+    feedback?: {
+      cefrFit?: string;
+      distractorStrength?: string;
+      clarity?: string;
+      fairness?: string;
+      discrimination?: string;
+      combined?: string;
+    };
+    numericDifficulty?: number;
+    discriminationPower?: number;
+    difficultyBand?: Difficulty;
+    discriminationBand?: string;
+  };
+  lastAttemptAt?: string;
+  completedAt?: string;
+  error?: string;
+  logs?: ItemAnalysisLogEntry[];
+}
+
 export interface AssessmentItem {
   id: string;
   title: string;
@@ -110,6 +158,7 @@ export interface AssessmentItem {
   aiPredictionDate?: string;
   manualOverride?: boolean;
   manualOverrideReason?: string;
+  analysis?: ItemAnalysisResult;
 }
 
 export interface BankCapacity {
