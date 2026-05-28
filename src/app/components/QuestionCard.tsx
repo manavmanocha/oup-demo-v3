@@ -110,28 +110,22 @@ export function QuestionCard({ item }: QuestionCardProps) {
           <div className="mt-auto pt-3 border-t border-gray-100 space-y-2.5">
             {/* Primary Metadata */}
             <div className="flex flex-wrap gap-1">
-              {item.subSkill && (
-                <Badge variant="outline" className="text-[9px] sm:text-xxs px-2 py-0.5 font-normal bg-white max-w-full inline-flex items-center gap-1 overflow-hidden">
-                  <span className="font-medium shrink-0">Sub-skill:</span>
-                  <span className="truncate max-w-[8rem] sm:max-w-[9.5rem]">{item.subSkill}</span>
-                </Badge>
-              )}
               {item.cognitiveLevel && (
                 <Badge variant="outline" className="text-[9px] sm:text-xxs px-2 py-0.5 font-normal bg-white max-w-full inline-flex items-center gap-1 overflow-hidden">
-                  <span className="font-medium shrink-0">Cognitive:</span>
+                  <span className="font-medium shrink-0">Cognitive Level:</span>
                   <span className="truncate max-w-[8rem] sm:max-w-[9.5rem]">{item.cognitiveLevel}</span>
                 </Badge>
               )}
               {item.contentDomain && (
                 <Badge variant="outline" className="text-[9px] sm:text-xxs px-2 py-0.5 font-normal bg-white max-w-full inline-flex items-center gap-1 overflow-hidden">
-                  <span className="font-medium shrink-0">Content:</span>
+                  <span className="font-medium shrink-0">Content Domain:</span>
                   <span className="truncate max-w-[8rem] sm:max-w-[9.5rem]">{item.contentDomain}</span>
                 </Badge>
               )}
             
               {item.languageVariety && (
                 <Badge variant="outline" className="text-[9px] sm:text-xxs px-2 py-0.5 font-normal bg-white max-w-full inline-flex items-center gap-1 overflow-hidden">
-                  <span className="font-medium shrink-0">Variety:</span>
+                  <span className="font-medium shrink-0">Language Variety:</span>
                   <span className="truncate max-w-[8rem] sm:max-w-[9.5rem]">{item.languageVariety}</span>
                 </Badge>
               )}

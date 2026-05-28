@@ -1078,7 +1078,7 @@ export function Library() {
                         variant="secondary"
                         className="text-sm pl-3 pr-2 py-1 bg-white border border-gray-300"
                       >
-                        Cognitive: {cognitiveLevel}
+                        Cognitive Level: {cognitiveLevel}
                         <button
                           onClick={() => toggleCognitiveLevel(cognitiveLevel)}
                           className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
@@ -1093,7 +1093,7 @@ export function Library() {
                         variant="secondary"
                         className="text-sm pl-3 pr-2 py-1 bg-white border border-gray-300"
                       >
-                        Content: {contentDomain}
+                        Content Domain: {contentDomain}
                         <button
                           onClick={() => toggleContentDomain(contentDomain)}
                           className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
@@ -1108,7 +1108,7 @@ export function Library() {
                         variant="secondary"
                         className="text-sm pl-3 pr-2 py-1 bg-white border border-gray-300"
                       >
-                        Variety: {languageVariety}
+                        Language Variety: {languageVariety}
                         <button
                           onClick={() => toggleLanguageVariety(languageVariety)}
                           className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
@@ -1138,7 +1138,7 @@ export function Library() {
                         variant="secondary"
                         className="text-sm pl-3 pr-2 py-1 bg-white border border-gray-300"
                       >
-                        Grammar: {grammarFocus}
+                        Grammar Focus: {grammarFocus}
                         <button
                           onClick={() => toggleGrammarFocus(grammarFocus)}
                           className="ml-2 hover:bg-gray-200 rounded-full p-0.5 cursor-pointer"
@@ -1256,12 +1256,11 @@ export function Library() {
                         ) : (
                           paginatedItems.map((item) => {
                             const taxonomyBadges = [
-                              item.subSkill ? `Sub-skill: ${item.subSkill}` : null,
-                              item.cognitiveLevel ? `Cognitive: ${item.cognitiveLevel}` : null,
-                              item.contentDomain ? `Content: ${item.contentDomain}` : null,
-                              item.languageVariety ? `Variety: ${item.languageVariety}` : null,
+                              item.cognitiveLevel ? `Cognitive Level: ${item.cognitiveLevel}` : null,
+                              item.contentDomain ? `Content Domain: ${item.contentDomain}` : null,
+                              item.languageVariety ? `Language Variety: ${item.languageVariety}` : null,
                               item.topic ? `Topic: ${item.topic}` : null,
-                              item.grammarFocus ? `Grammar: ${item.grammarFocus}` : null,
+                              item.grammarFocus ? `Grammar Focus: ${item.grammarFocus}` : null,
                             ].filter((value): value is string => Boolean(value));
 
                             let statusVariant: "secondary" | "destructive" | "outline" = "outline";
