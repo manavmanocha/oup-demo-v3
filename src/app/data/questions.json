@@ -82,8 +82,8 @@
       "id": "ITMBK-WRT-B2-013",
       "skill": "Writing",
       "questionNumber": 13,
-      "questionType": "Essay",
-      "prompt": "Write a short report summarising the survey findings and recommending one action for the company.",
+      "questionType": "Report writing",
+      "prompt": "Write a short internal report for the HR manager summarising the main findings from the employee learning survey and recommending one practical action the company should take to improve staff participation in training..",
       "correctAnswer": "Open response (rubric-based scoring)",
       "difficulty": "Medium",
       "level": "B2",
@@ -94,12 +94,12 @@
       "skillDetails": {
         "writing": {
           "task": 1,
-          "promptContext": "You are preparing a short internal report for a company manager based on the survey results.",
+          "promptContext": "You are preparing a short internal report for the HR manager based on the employee learning survey results.",
           "imageTitle": "Report on Employee Learning Survey",
           "imageAsset": "/assets/wrt_b2_013_image.png",
           "imageAltText": "Staff survey results: 62% prefer short weekly training sessions, 21% prefer full-day workshops, 17% prefer self-study modules. Main barriers to learning: lack of time 48%, unclear relevance 29%, technical problems 15%, other 8%.",
-          "instructions": "Write 170 to 220 words in a neutral professional style.",
-          "rubric": "Assess how accurately the candidate summarises data, organises the report, uses clear register, and supports recommendations with evidence from the survey.",
+          "instructions": "Write 160 to 250 words in a clear, neutral professional style using information from the survey to support your summary and recommendation.",
+          "rubric": "Your response will be assessed on how effectively you summarise and interpret the survey findings, organise ideas logically, maintain an appropriate professional style, and support your recommendation with relevant evidence from the survey.",
           "wordCount": 200,
           "timeAllocation": 25
         }
