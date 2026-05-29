@@ -1,0 +1,885 @@
+{
+  "generatedAt": "2026-05-29T05:28:09.028Z",
+  "startedAt": "2026-05-29T05:25:29.290Z",
+  "model": "gemini-2.5-pro",
+  "scoringScheme": {
+    "name": "Oxford Test of English (OTE)",
+    "scale": "0-180",
+    "cefrBands": {
+      "A1": "<21",
+      "A2": "21-50",
+      "B1": "51-80",
+      "B2": "81-110",
+      "C1": "111-140",
+      "C2": "141-170"
+    }
+  },
+  "totals": {
+    "processed": 20,
+    "succeeded": 20,
+    "failed": 0
+  },
+  "failures": [],
+  "results": [
+    {
+      "id": "ITMBK-RDG-A2-001",
+      "title": "Airport Shuttle Timetable",
+      "skill": "Reading",
+      "itemType": "Multiple Choice",
+      "declaredLevel": "A2",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The item requires integrating multiple pieces of information and performing simple time-based calculations, which is appropriate for the A2 level."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "The distractors are plausible, with option C being a strong choice for test-takers who make a small calculation error."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The instructions, passage, and stem are unambiguous, leading to a single correct answer based on a standard interpretation of the task."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The topic of airport travel and reading a timetable is universally accessible and free from any discernible cultural or other bias."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "The task of reading a simple timetable is a highly generic and common format for language tests, increasing the likelihood of overlap with public materials."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 45,
+        "cefrLevel": "A2",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": -0.5,
+          "a": 1.4,
+          "c": 0.25
+        },
+        "confidence": 95,
+        "rationale": "The item requires integrating three pieces of information and performing a multi-step calculation, making it a solid A2-level task.",
+        "derivedCEFRFromOxfordScore": "A2",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-RDG-B1-002",
+      "title": "Campus Recycling Facts",
+      "skill": "Reading",
+      "itemType": "Sentence Completion",
+      "declaredLevel": "B1",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The text complexity and cognitive demand of locating and applying specific information are appropriate for the B1 level."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "The expected response is well-constrained to a single correct answer from the text."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The instructions and stem are clear and lead to a single defensible interpretation."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The content about university recycling is neutral and globally accessible, posing no fairness concerns."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "The topic of recycling initiatives is very common in educational materials, creating a moderate risk of overlap with publicly available content."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 68,
+        "cefrLevel": "B1",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 0,
+          "a": 1.3,
+          "c": 0
+        },
+        "confidence": 95,
+        "rationale": "The item requires test-takers to synthesize information from two different parts of the text to identify the specific outcome.",
+        "derivedCEFRFromOxfordScore": "B1",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-RDG-B2-003",
+      "title": "Startup Roles and Responsibilities",
+      "skill": "Reading",
+      "itemType": "Matching",
+      "declaredLevel": "B2",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The item requires understanding specific job roles described using vocabulary and sentence structures appropriate for the B2 level within a professional context."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "The task is a matching exercise where each person's role is described distinctly, making the set of possible responses well-constrained and functional."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The instructions, stem, and passage are unambiguous, leading to a single correct set of matches based on the provided text."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The content is centered on a neutral business topic with diverse names, showing no evidence of bias that could disadvantage any group of test-takers."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "The task format of matching employees to job descriptions is a common and generic trope in business English test preparation materials."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 90,
+        "cefrLevel": "B2",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 0.8,
+          "a": 1.4,
+          "c": 0
+        },
+        "confidence": 95,
+        "rationale": "The item's difficulty stems from the cognitive load of matching four distinct roles and the use of moderately specific business vocabulary.",
+        "derivedCEFRFromOxfordScore": "B2",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-RDG-B2-004",
+      "title": "Social Media and Sleep",
+      "skill": "Reading",
+      "itemType": "True/False/Not Given",
+      "declaredLevel": "B2",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The item requires careful reading to distinguish correlation from causation and to identify specific details not present in the text, which is a skill appropriate for the B2 level."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "The implicit options of 'True' and 'False' are plausible distractors, as 'True' appeals to a superficial reading and 'False' requires a subtle distinction from the correct 'Not Given' answer."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The passage, instructions, and statement are all clearly worded, leading to a single, defensible interpretation of the task."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The content about students, social media, and academic habits is globally relevant and free from any discernible bias."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "The topic of social media's impact on student sleep and performance is very common, increasing the risk of overlap with publicly available materials or reliance on prior knowledge."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 95,
+        "cefrLevel": "B2",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 1,
+          "a": 1.4,
+          "c": 0.33
+        },
+        "confidence": 95,
+        "rationale": "The item's difficulty stems from the B2-level skill of distinguishing correlation from causation and identifying claims that are not explicitly supported by the text.",
+        "derivedCEFRFromOxfordScore": "B2",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-RDG-C1-005",
+      "title": "Urban Health Pilot",
+      "skill": "Reading",
+      "itemType": "Short Answer",
+      "declaredLevel": "C1",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The item requires synthesizing explicitly stated reasons from a text with appropriate lexical and syntactic complexity for the target C1 level."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "This is not an MCQ item; the short-answer format is well-constrained by a specific question and a clear word limit."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The stem, passage, and instructions are all unambiguous and present a single, clearly defined task."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The content about public health and urban planning is universally accessible and free from any discernible bias."
+        },
+        "similarity": {
+          "result": "Pass",
+          "rationale": "While the topic is common, the specific text and question combination does not appear to be a direct copy of high-exposure public materials."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 112,
+        "cefrLevel": "C1",
+        "difficulty": "Easy",
+        "irtParameters": {
+          "b": 1.1,
+          "a": 1.3,
+          "c": 0
+        },
+        "confidence": 90,
+        "rationale": "The required information is explicitly stated in the text, requiring synthesis but minimal complex inference.",
+        "derivedCEFRFromOxfordScore": "C1",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-LIS-A2-006",
+      "title": "Clinic Appointment Form",
+      "skill": "Listening",
+      "itemType": "Note Completion",
+      "declaredLevel": "A2",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The task of identifying a day of the week in a transactional dialogue aligns perfectly with A2 descriptors for listening for specific information."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "As a note completion item, the expected response set is well-constrained to days of the week, which is appropriate for this format."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The instructions and stem are clear and unambiguous, directing the test-taker to listen for a specific piece of information."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The topic of making a clinic appointment and the required vocabulary (days of the week) are universally accessible and free from bias."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "The 'booking an appointment' scenario is a very common and high-exposure trope in language learning materials, increasing the risk of overlap with publicly available practice items."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 35,
+        "cefrLevel": "A2",
+        "difficulty": "Easy",
+        "irtParameters": {
+          "b": -1.2,
+          "a": 1.4,
+          "c": 0
+        },
+        "confidence": 95,
+        "rationale": "The item requires identifying a single, high-frequency word (a day of the week) within a highly predictable and common transactional context.",
+        "derivedCEFRFromOxfordScore": "A2",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-LIS-B1-007",
+      "title": "Coworking Space Membership",
+      "skill": "Listening",
+      "itemType": "Multiple Choice",
+      "declaredLevel": "B1",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The item tests understanding of specific details in a common transactional context using vocabulary and a task structure appropriate for the B1 level."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "The distractors are plausible features of a coworking space membership, likely representing higher-tier options or misinterpretations of the standard offer."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The stem is a direct and unambiguous question, and the options are phrased clearly, leading to a single correct interpretation."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The topic of a coworking space is globally relevant and the content is free from any discernible cultural, gender, or other forms of bias."
+        },
+        "similarity": {
+          "result": "Pass",
+          "rationale": "While the task type is common, the specific context of a coworking space membership is contemporary and not overly generic, reducing the likelihood of direct overlap with public materials."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 65,
+        "cefrLevel": "B1",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 0.5,
+          "a": 1.25,
+          "c": 0.22
+        },
+        "confidence": 95,
+        "rationale": "The item requires test-takers to distinguish between several related details about a service, which is a characteristic mid-B1 listening task.",
+        "derivedCEFRFromOxfordScore": "B1",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-LIS-B2-008",
+      "title": "Lecture Notes on Urban Farming",
+      "skill": "Listening",
+      "itemType": "Sentence Completion",
+      "declaredLevel": "B2",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The academic context and the task of extracting specific detail from a lecture are well-aligned with the B2 level."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "The gapped sentence strongly constrains the possible answers to a narrow semantic field related to heat or cost, making it a well-defined task."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The instructions and the gapped sentence are clear, unambiguous, and present a single, well-defined task."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The topic of urban farming is globally relevant and does not contain any content that would bias against a particular group of test-takers."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "The topic of urban farming and its benefits is a very common theme in B-level language learning materials, increasing the risk of overlap with publicly available content."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 90,
+        "cefrLevel": "B2",
+        "difficulty": "Easy",
+        "irtParameters": {
+          "b": 0.2,
+          "a": 1.4,
+          "c": 0
+        },
+        "confidence": 85,
+        "rationale": "The item requires listening for a specific detail in an academic context, but the required vocabulary is common and the information is likely stated explicitly.",
+        "derivedCEFRFromOxfordScore": "B2",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-LIS-B2-009",
+      "title": "Travel App User Feedback",
+      "skill": "Listening",
+      "itemType": "Matching",
+      "declaredLevel": "B2",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The task of identifying specific problems from four different speakers in a familiar context aligns well with B2 listening competencies."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "The set of potential problems is well-constrained and plausible, creating a functional matching task assuming a well-scripted audio passage."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The instructions and stem are unambiguous and clearly state the required task of matching speakers to problems."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The topic of using a travel app is globally relevant and free of cultural, gender, or other forms of bias."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "The theme of user feedback on a technology product is a very common trope in language testing materials, increasing the risk of over-exposure."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 95,
+        "cefrLevel": "B2",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 1,
+          "a": 1.4,
+          "c": 0
+        },
+        "confidence": 90,
+        "rationale": "The difficulty stems from the cognitive load of tracking four different speakers and identifying their main complaint amidst potentially distracting details.",
+        "derivedCEFRFromOxfordScore": "B2",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-LIS-C1-010",
+      "title": "Education Policy Interview",
+      "skill": "Listening",
+      "itemType": "Short Answer",
+      "declaredLevel": "C1",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The task requires understanding a specific recommendation within an extended, potentially complex discussion on a professional topic, which is characteristic of C1 listening skills."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "As a short-answer item, the stem is specific enough to constrain the possible correct responses to a manageable set of paraphrases centered on the key idea."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The stem and instructions are direct and unambiguous, clearly stating the required information and the response format constraints."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The topic of educational technology is globally relevant and does not contain any content that would unfairly advantage or disadvantage a particular demographic group."
+        },
+        "similarity": {
+          "result": "Pass",
+          "rationale": "The specific focus on a recommendation within an education policy interview is sufficiently unique to make direct overlap with public practice materials unlikely."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 125,
+        "cefrLevel": "C1",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 1.8,
+          "a": 1.7,
+          "c": 0
+        },
+        "confidence": 85,
+        "rationale": "The item's difficulty is driven by the need to extract a specific recommendation from an extended, professional discourse, a core C1 listening comprehension skill.",
+        "derivedCEFRFromOxfordScore": "C1",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-WRT-A2-011",
+      "title": "Request for Updated Travel Booking",
+      "skill": "Writing",
+      "itemType": "Essay",
+      "declaredLevel": "A2",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The task requires writing a short, simple email on a familiar topic, which aligns perfectly with A2 writing descriptors."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "This is a constructed-response item, so distractor strength is not applicable; the prompt is well-constrained."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The stem and instructions are unambiguous, providing a clear context, purpose, and specific content requirements for the email."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The topic of arranging travel for a language school is globally relevant and free from cultural, gender, or other biases."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "The prompt is a very common, high-exposure scenario for A2 functional writing, potentially overlapping with widely available practice materials."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 38,
+        "cefrLevel": "A2",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": -1,
+          "a": 1.3,
+          "c": 0
+        },
+        "confidence": 95,
+        "rationale": "The task requires producing a standard, formulaic email with three specific content points, which is a central and moderately challenging skill at the A2 level.",
+        "derivedCEFRFromOxfordScore": "A2",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-WRT-B1-012",
+      "title": "Opinion Paragraph on Phone-Free Meals",
+      "skill": "Writing",
+      "itemType": "Essay",
+      "declaredLevel": "B1",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The task requires expressing and supporting an opinion on a familiar daily life topic, which is a core competency for B1 writing."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "This is a constructed-response item, so this dimension is not applicable."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The prompt and instructions are clear, specific, and unambiguous, leaving no room for misinterpretation of the task requirements."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The topic of mobile phone use during meals is globally relevant and does not rely on specific cultural knowledge or background, making it fair for all test-takers."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "The topic of phone use and its impact on social interaction is a very common and generic prompt in language teaching and testing materials."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 65,
+        "cefrLevel": "B1",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 0.1,
+          "a": 1.5,
+          "c": 0
+        },
+        "confidence": 95,
+        "rationale": "The difficulty is driven by the need to produce a structured paragraph with supporting reasons, a core B1 skill, on a very familiar and accessible topic.",
+        "derivedCEFRFromOxfordScore": "B1",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-WRT-B2-013",
+      "title": "Report on Employee Learning Survey",
+      "skill": "Writing",
+      "itemType": "Essay",
+      "declaredLevel": "B2",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The task requires synthesising data, structuring a report, and making an evidence-based recommendation, all of which are core competencies at the B2 level."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "This is not an MCQ item; the prompt is well-constrained, focusing on specific data and a clear task, which facilitates reliable scoring."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The instructions, data, and prompt are unambiguous and clearly define the required content, format, and style of the response."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The business context of employee training is globally relevant and does not contain any cultural, gender, or regional bias."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "The task format of writing a report based on simple survey data is a highly generic and common prompt type in public exam preparation materials."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 95,
+        "cefrLevel": "B2",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 1,
+          "a": 1.8,
+          "c": 0
+        },
+        "confidence": 95,
+        "rationale": "The item requires synthesis of simple data and a structured, evidence-based recommendation, which are core skills for a mid-B2 level learner.",
+        "derivedCEFRFromOxfordScore": "B2",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-WRT-B2-014",
+      "title": "Essay on Screen Time for Younger Learners",
+      "skill": "Writing",
+      "itemType": "Essay",
+      "declaredLevel": "B2",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The task requires developing a balanced argument on an abstract topic, which aligns well with the discursive writing competencies expected at the B2 level."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "This is a constructed-response item, so this dimension is not applicable in the traditional sense; the prompt is well-defined and constrains the response appropriately."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The prompt and instructions are clear, specific, and unambiguous, leaving no room for misinterpretation of the task requirements."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The topic of screen time in schools is globally relevant and does not require specific cultural knowledge, ensuring it is accessible to all test-takers."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "The topic of screen time and technology in education is a very common and generic prompt in language testing, increasing the likelihood of overlap with publicly available materials."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 95,
+        "cefrLevel": "B2",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 1,
+          "a": 1.4,
+          "c": 0
+        },
+        "confidence": 95,
+        "rationale": "The task requires a well-structured, balanced argument on a familiar topic, which is a standard challenge for a B2-level writer.",
+        "derivedCEFRFromOxfordScore": "B2",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-WRT-C1-015",
+      "title": "Formal Proposal on Greener Commuting",
+      "skill": "Writing",
+      "itemType": "Essay",
+      "declaredLevel": "C1",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The task demands synthesis of information, development of persuasive arguments, and consistent use of a formal register, all of which are core competencies at the C1 level."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "This is not an MCQ item; the prompt is well-constrained by the background notes, guiding candidates towards a relevant and focused response."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The instructions, stem, and background notes are clear, specific, and work together to present an unambiguous task with a single defensible interpretation."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The topic of workplace commuting and environmental sustainability is globally relevant and does not rely on specific cultural, regional, or gender-based knowledge."
+        },
+        "similarity": {
+          "result": "Pass",
+          "rationale": "While the task genre of a workplace proposal is common in exam preparation, the specific data provided makes it unlikely to directly overlap with existing public materials."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 120,
+        "cefrLevel": "C1",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 1.6,
+          "a": 1.8,
+          "c": 0
+        },
+        "confidence": 95,
+        "rationale": "The difficulty is driven by the need to synthesize data and produce a well-structured, persuasive proposal using a consistently formal register, which are core C1-level writing skills.",
+        "derivedCEFRFromOxfordScore": "C1",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-SPK-A2-016",
+      "title": "Read Aloud: Weekend Market Notice",
+      "skill": "Speaking",
+      "itemType": "Speaking",
+      "declaredLevel": "A2",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The vocabulary, sentence structure, and length of the text are all appropriate for the A2 target level."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "This is not an MCQ item; the expected response of reading the text aloud is well-constrained."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The instructions are clear, unambiguous, and direct the test-taker to perform the intended task."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The topic of a local market is universally accessible and free from any discernible bias."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "The prompt about a market's opening times is highly generic and likely to overlap with common A2 textbook materials."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 35,
+        "cefrLevel": "A2",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": -1.2,
+          "a": 1.4,
+          "c": 0
+        },
+        "confidence": 95,
+        "rationale": "The item's difficulty is determined by the need for accurate pronunciation of common polysyllabic words and natural pacing in short, simple sentences.",
+        "derivedCEFRFromOxfordScore": "A2",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-SPK-B1-017",
+      "title": "Repeat Sentence: Public Announcement",
+      "skill": "Speaking",
+      "itemType": "Speaking",
+      "declaredLevel": "B1",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The sentence length, vocabulary (e.g., 'passengers', 'departure'), and grammatical structure are all appropriate for the B1 level."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "This is not an MCQ item; the expected response is a single, exact repetition, which is a well-constrained task."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The instructions to listen once and repeat the sentence exactly are unambiguous and standard for this item type."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The context of a public transport announcement is globally recognized and free from cultural, gender, or regional bias."
+        },
+        "similarity": {
+          "result": "Pass",
+          "rationale": "While the sentence is a generic example of a public announcement, its specific wording is unlikely to be an exact match for widely available practice materials."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 65,
+        "cefrLevel": "B1",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 0.25,
+          "a": 1.3,
+          "c": 0
+        },
+        "confidence": 95,
+        "rationale": "The item's difficulty is driven by its 15-word length, which challenges short-term memory, and the need to accurately produce multiple B1-level information chunks.",
+        "derivedCEFRFromOxfordScore": "B1",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-SPK-B2-018",
+      "title": "Describe Image: Fitness App Dashboard",
+      "skill": "Speaking",
+      "itemType": "Speaking",
+      "declaredLevel": "B2",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The task of describing and explaining trends in a simple dataset aligns well with the analytical and descriptive speaking skills expected at the B2 level."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "This is a non-MCQ item; the open-ended prompt is well-constrained and clear."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The instructions and stem are unambiguous, clearly outlining the task of describing the visual and explaining its main trends."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The topic of a fitness app is globally familiar and culturally neutral, presenting no known bias."
+        },
+        "similarity": {
+          "result": "Pass",
+          "rationale": "While the task type is common in language testing, the specific data is unique, posing a low risk of over-exposure."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 95,
+        "cefrLevel": "B2",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 1,
+          "a": 1.6,
+          "c": 0
+        },
+        "confidence": 95,
+        "rationale": "The item requires synthesizing straightforward data and using specific comparative language under time pressure, which is a core B2-level skill.",
+        "derivedCEFRFromOxfordScore": "B2",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-SPK-B2-019",
+      "title": "Opinion Response: Remote Learning",
+      "skill": "Speaking",
+      "itemType": "Speaking",
+      "declaredLevel": "B2",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The prompt requires the test-taker to develop a clear argument with supporting reasons on an abstract topic, which aligns well with B2 speaking descriptors."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "This is an open-response speaking task, so this dimension is not applicable."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The prompt is clearly phrased and presents a straightforward task with a single, defensible interpretation."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The topic of remote versus classroom learning is globally relevant and accessible, with no inherent bias towards any specific demographic group."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "The topic of remote learning is a highly common and generic prompt in language assessments and practice materials, increasing the risk of rehearsed responses."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 95,
+        "cefrLevel": "B2",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 0.8,
+          "a": 1.6,
+          "c": 0
+        },
+        "confidence": 95,
+        "rationale": "The item requires sustained discourse and argumentation on an abstract topic, which is a core B2 skill, while the familiar subject matter prevents it from being overly difficult.",
+        "derivedCEFRFromOxfordScore": "B2",
+        "cefrConsistent": true
+      }
+    },
+    {
+      "id": "ITMBK-SPK-C1-020",
+      "title": "Role Play: Handling a Client Complaint",
+      "skill": "Speaking",
+      "itemType": "Speaking",
+      "declaredLevel": "C1",
+      "screening": {
+        "cefrFit": {
+          "result": "Pass",
+          "rationale": "The task requires interaction management, negotiation, and register control under pressure, which are all appropriate challenges for the C1 level."
+        },
+        "distractorStrength": {
+          "result": "Pass",
+          "rationale": "This is not an MCQ item; the open-ended response is appropriately constrained by the clear role-play scenario."
+        },
+        "clarity": {
+          "result": "Pass",
+          "rationale": "The instructions, roles, and context of the complaint are clearly and unambiguously defined for the test-taker."
+        },
+        "fairness": {
+          "result": "Pass",
+          "rationale": "The business scenario of a customer complaint is globally relevant and does not rely on specific cultural or regional knowledge."
+        },
+        "similarity": {
+          "result": "Review",
+          "rationale": "Handling a client complaint is a very common business English trope, potentially leading to the use of rehearsed or formulaic responses."
+        }
+      },
+      "difficultyPrediction": {
+        "oxfordTestOfEnglishScore": 125,
+        "cefrLevel": "C1",
+        "difficulty": "Medium",
+        "irtParameters": {
+          "b": 2,
+          "a": 1.6,
+          "c": 0
+        },
+        "confidence": 95,
+        "rationale": "The task requires managing a high-stakes professional interaction, demanding strategic competence, register control, and persuasive language, which are core C1 skills.",
+        "derivedCEFRFromOxfordScore": "C1",
+        "cefrConsistent": true
+      }
+    }
+  ]
+}
