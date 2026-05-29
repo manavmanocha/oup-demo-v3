@@ -85,9 +85,7 @@ export function Seeding() {
   const recommendedItems = useMemo(
     () =>
       sortNewestFirst(
-        allItems.filter(
-          (item) => item.status === 'In Review' && isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING'),
-        ),
+        allItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')),
       ),
     [allItems],
   );

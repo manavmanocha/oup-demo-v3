@@ -121,6 +121,18 @@ type ParsedUploadItem = {
   type: string;
   answerKey: string;
   distractors: string;
+  screeningStatus?: string;
+  screeningCEFRFit?: string;
+  screeningCEFRFitReason?: string;
+  screeningDistractorStrength?: string;
+  screeningDistractorStrengthReason?: string;
+  screeningClarity?: string;
+  screeningClarityReason?: string;
+  screeningFairness?: string;
+  screeningFairnessReason?: string;
+  screeningSimilarity?: string;
+  screeningSimilarityReason?: string;
+  screeningReason?: string;
   irtB?: number;
   irtA?: number;
   irtC?: number;
@@ -256,6 +268,14 @@ const resolveLevel = (levelText: string): CEFRLevel | null => {
   return allowedLevels.find((level) => level === normalized) ?? null;
 };
 
+const resolveScreeningDimension = (value: string): 'Pass' | 'Review' | 'Fail' | undefined => {
+  const normalized = (value ?? '').trim().toLowerCase();
+  if (normalized === 'pass') return 'Pass';
+  if (normalized === 'review') return 'Review';
+  if (normalized === 'fail') return 'Fail';
+  return undefined;
+};
+
 const resolveSkill = (skillText: string): Skill | null => {
   const normalized = skillText.trim().toLowerCase();
   const mappedSkillByAlias: Record<string, Skill> = {
@@ -350,6 +370,29 @@ const normalizeSavedSelection = (value: unknown): string[] => {
 const hashFromId = (id: string) =>
   id.split('').reduce((sum, char) => sum + (char.codePointAt(0) ?? 0), 0);
 
+const buildScreeningFromParsed = (item: ParsedUploadItem): AssessmentItem['screening'] | undefined => {
+  const cefrFit = resolveScreeningDimension(item.screeningCEFRFit ?? '');
+  const distractorStrength = resolveScreeningDimension(item.screeningDistractorStrength ?? '');
+  const clarity = resolveScreeningDimension(item.screeningClarity ?? '');
+  const fairness = resolveScreeningDimension(item.screeningFairness ?? '');
+  const similarity = resolveScreeningDimension(item.screeningSimilarity ?? '');
+  const hasAny = cefrFit !== undefined || distractorStrength !== undefined || clarity !== undefined || fairness !== undefined || similarity !== undefined;
+  if (!hasAny) return undefined;
+  return { cefrFit, distractorStrength, clarity, fairness, similarity };
+};
+
+const buildScreeningReasonsFromParsed = (item: ParsedUploadItem): AssessmentItem['screeningReasons'] | undefined => {
+  const reasons: NonNullable<AssessmentItem['screeningReasons']> = {};
+
+  if (item.screeningCEFRFitReason?.trim()) reasons.cefrFit = item.screeningCEFRFitReason.trim();
+  if (item.screeningDistractorStrengthReason?.trim()) reasons.distractorStrength = item.screeningDistractorStrengthReason.trim();
+  if (item.screeningClarityReason?.trim()) reasons.clarity = item.screeningClarityReason.trim();
+  if (item.screeningFairnessReason?.trim()) reasons.fairness = item.screeningFairnessReason.trim();
+  if (item.screeningSimilarityReason?.trim()) reasons.similarity = item.screeningSimilarityReason.trim();
+
+  return Object.keys(reasons).length > 0 ? reasons : undefined;
+};
+
 const buildPreviewItem = (
   item: ParsedUploadItem,
   fileName: string,
@@ -401,6 +444,9 @@ const buildPreviewItem = (
     passageTitle: item.passageTitle || undefined,
     instructions: item.instructions || undefined,
     rubric: item.rubric || undefined,
+    screening: buildScreeningFromParsed(item),
+    screeningReasons: buildScreeningReasonsFromParsed(item),
+    flagReason: item.screeningReason?.trim() || undefined,
     subSkill: item.skill,
     cognitiveLevel: defaultCognitiveLevelLabel || 'L2 Understand',
     contentDomain: defaultContentDomainLabel || 'General',
@@ -624,6 +670,18 @@ export function IngestItems() {
     const passageTitleIndex = headers.findIndex((h) => h === 'passagetitle' || h === 'readingpassagetitle');
     const instructionsIndex = headers.findIndex((h) => h === 'instructions' || h === 'taskinstructions');
     const rubricIndex = headers.findIndex((h) => h === 'rubric' || h === 'scoringguide' || h === 'markscheme');
+    const screeningStatusIndex = headers.findIndex((h) => h === 'screeningstatus');
+    const screeningCEFRFitIndex = headers.findIndex((h) => h === 'screeningcefrfit');
+    const screeningCEFRFitReasonIndex = headers.findIndex((h) => h === 'screeningcefrfitreason');
+    const screeningDistractorStrengthIndex = headers.findIndex((h) => h === 'screeningdistractorstrength');
+    const screeningDistractorStrengthReasonIndex = headers.findIndex((h) => h === 'screeningdistractorstrengthreason');
+    const screeningClarityIndex = headers.findIndex((h) => h === 'screeningclarity');
+    const screeningClarityReasonIndex = headers.findIndex((h) => h === 'screeningclarityreason');
+    const screeningFairnessIndex = headers.findIndex((h) => h === 'screeningfairness');
+    const screeningFairnessReasonIndex = headers.findIndex((h) => h === 'screeningfairnessreason');
+    const screeningSimilarityIndex = headers.findIndex((h) => h === 'screeningsimilarity');
+    const screeningSimilarityReasonIndex = headers.findIndex((h) => h === 'screeningsimilarityreason');
+    const screeningReasonIndex = headers.findIndex((h) => h === 'screeningreason');
 
     if (contentIndex < 0 || levelIndex < 0 || skillIndex < 0 || typeIndex < 0) {
       setUploadError('CSV is missing one or more required columns: content, cefrLevel, skill, itemType/type.');
@@ -651,6 +709,18 @@ export function IngestItems() {
       const passageTitle = passageTitleIndex >= 0 ? (row[passageTitleIndex] ?? '').trim() : '';
       const instructions = instructionsIndex >= 0 ? (row[instructionsIndex] ?? '').trim() : '';
       const rubric = rubricIndex >= 0 ? (row[rubricIndex] ?? '').trim() : '';
+      const screeningStatus = screeningStatusIndex >= 0 ? (row[screeningStatusIndex] ?? '').trim() : '';
+      const screeningCEFRFit = screeningCEFRFitIndex >= 0 ? (row[screeningCEFRFitIndex] ?? '').trim() : '';
+      const screeningCEFRFitReason = screeningCEFRFitReasonIndex >= 0 ? (row[screeningCEFRFitReasonIndex] ?? '').trim() : '';
+      const screeningDistractorStrength = screeningDistractorStrengthIndex >= 0 ? (row[screeningDistractorStrengthIndex] ?? '').trim() : '';
+      const screeningDistractorStrengthReason = screeningDistractorStrengthReasonIndex >= 0 ? (row[screeningDistractorStrengthReasonIndex] ?? '').trim() : '';
+      const screeningClarity = screeningClarityIndex >= 0 ? (row[screeningClarityIndex] ?? '').trim() : '';
+      const screeningClarityReason = screeningClarityReasonIndex >= 0 ? (row[screeningClarityReasonIndex] ?? '').trim() : '';
+      const screeningFairness = screeningFairnessIndex >= 0 ? (row[screeningFairnessIndex] ?? '').trim() : '';
+      const screeningFairnessReason = screeningFairnessReasonIndex >= 0 ? (row[screeningFairnessReasonIndex] ?? '').trim() : '';
+      const screeningSimilarity = screeningSimilarityIndex >= 0 ? (row[screeningSimilarityIndex] ?? '').trim() : '';
+      const screeningSimilarityReason = screeningSimilarityReasonIndex >= 0 ? (row[screeningSimilarityReasonIndex] ?? '').trim() : '';
+      const screeningReason = screeningReasonIndex >= 0 ? (row[screeningReasonIndex] ?? '').trim() : '';
 
       const issues: string[] = [];
       if (!content) issues.push('Missing content');
@@ -696,6 +766,18 @@ export function IngestItems() {
         passageTitle: passageTitle || undefined,
         instructions: instructions || undefined,
         rubric: rubric || undefined,
+        screeningStatus: screeningStatus || undefined,
+        screeningCEFRFit: screeningCEFRFit || undefined,
+        screeningCEFRFitReason: screeningCEFRFitReason || undefined,
+        screeningDistractorStrength: screeningDistractorStrength || undefined,
+        screeningDistractorStrengthReason: screeningDistractorStrengthReason || undefined,
+        screeningClarity: screeningClarity || undefined,
+        screeningClarityReason: screeningClarityReason || undefined,
+        screeningFairness: screeningFairness || undefined,
+        screeningFairnessReason: screeningFairnessReason || undefined,
+        screeningSimilarity: screeningSimilarity || undefined,
+        screeningSimilarityReason: screeningSimilarityReason || undefined,
+        screeningReason: screeningReason || undefined,
         issues,
       };
     });
@@ -795,6 +877,9 @@ export function IngestItems() {
           passageTitle: item.passageTitle || undefined,
           instructions: item.instructions || undefined,
           rubric: item.rubric || undefined,
+          screening: buildScreeningFromParsed(item),
+          screeningReasons: buildScreeningReasonsFromParsed(item),
+          flagReason: item.screeningReason || undefined,
           subSkill: item.skill,
           cognitiveLevel: defaultCognitiveLevelLabel || 'L2 Understand',
           contentDomain: defaultContentDomainLabel || 'General',

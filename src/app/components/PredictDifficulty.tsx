@@ -382,8 +382,17 @@ export function PredictDifficulty() {
                     Estimation results · {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'}
                   </h3>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[640px]">
+                <div>
+                  <table className="w-full table-fixed">
+                    <colgroup>
+                      <col className="w-[18%]" />
+                      <col className="w-[27%]" />
+                      <col className="w-[18%]" />
+                      <col className="w-[7%]" />
+                      <col className="w-[9%]" />
+                      <col className="w-[10%]" />
+                      <col className="w-[11%]" />
+                    </colgroup>
                     <thead className="bg-gray-50 border-b">
                       <tr>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
@@ -400,8 +409,12 @@ export function PredictDifficulty() {
                         const needsReview = item.confidence < CONFIDENCE_THRESHOLD;
                         return (
                         <tr key={item.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm font-medium text-blue-600 whitespace-nowrap">{item.id}</td>
-                          <td className="px-4 py-3 text-sm text-gray-700 max-w-md truncate" title={item.title}>{item.title}</td>
+                          <td className="px-4 py-3 text-sm font-medium text-blue-600">
+                            <div className="truncate" title={item.id}>{item.id}</div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-700" title={item.title}>
+                            <div className="truncate">{item.title}</div>
+                          </td>
                           <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
                             {item.skill === item.itemType ? item.skill : `${item.skill} · ${item.itemType}`}
                           </td>
@@ -435,7 +448,7 @@ export function PredictDifficulty() {
               </Button>
               {reviewCount > 0 ? (
                 <Button onClick={handleFinish}>
-                  Review needs-review items
+                  Review flagged items
                 </Button>
               ) : (
                 <Button onClick={handleFinish}>

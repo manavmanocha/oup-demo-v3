@@ -25,7 +25,7 @@ import {
   Image,
 } from 'lucide-react';
 import { getItemById } from '../data/mockData';
-import { AssessmentItem, CEFRLevel } from '../data/types';
+import { AssessmentItem, CEFRLevel, ItemOption, ItemType } from '../data/types';
 import {
   Collapsible,
   CollapsibleContent,
@@ -38,6 +38,158 @@ import {
   TooltipTrigger,
 } from './ui/tooltip';
 import { getWorkflowStateLabel } from '../data/workflowState';
+
+type AnswerRow = {
+  label: string;
+  value: string;
+};
+
+type PromptPart =
+  | { kind: 'text'; value: string }
+  | { kind: 'blank'; index: number };
+
+const COMPLETION_ITEM_TYPES: ItemType[] = [
+  'Form Completion',
+  'Note Completion',
+  'Table Completion',
+  'Flow Chart',
+  'Map Labeling',
+  'Sentence Completion',
+  'Summary Completion',
+];
+
+const JUDGEMENT_OPTIONS: Partial<Record<ItemType, string[]>> = {
+  'True/False/Not Given': ['True', 'False', 'Not Given'],
+  'Yes/No/Not Given': ['Yes', 'No', 'Not Given'],
+};
+
+const splitExpectedAnswers = (rawValue?: string) => {
+  if (!rawValue) {
+    return [];
+  }
+
+  return rawValue
+    .split(/;|\||,/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+};
+
+const parseExpectedAnswerRows = (rawValue?: string): AnswerRow[] => {
+  if (!rawValue?.trim()) {
+    return [];
+  }
+
+  const numberedRows = Array.from(
+    rawValue.matchAll(/(?:^|[,;\n]\s*|\s+)(\d+)[.)]\s*(.*?)(?=(?:[,;\n]\s*|\s+)\d+[.)]\s*|$)/g),
+  )
+    .map((match) => ({
+      label: match[1],
+      value: match[2].trim().replace(/[.;,\s]+$/, ''),
+    }))
+    .filter((row) => row.value);
+
+  if (numberedRows.length > 0) {
+    return numberedRows;
+  }
+
+  const compactRows = Array.from(rawValue.matchAll(/(?:^|[,;\n]\s*)(\d+)\s*[-:]?\s*([A-Z])(?=,|;|\n|$)/gi))
+    .map((match) => ({
+      label: match[1],
+      value: match[2].toUpperCase(),
+    }));
+
+  if (compactRows.length > 0) {
+    return compactRows;
+  }
+
+  return splitExpectedAnswers(rawValue).map((value, index) => ({
+    label: String(index + 1),
+    value,
+  }));
+};
+
+const getOptionAnswerText = (options: ItemOption[], answerKey?: string) => {
+  const correctOption = options.find((option) => option.correct);
+  if (correctOption) {
+    return `${correctOption.label}. ${correctOption.text}`;
+  }
+
+  const normalizedAnswer = answerKey?.trim().toUpperCase();
+  if (!normalizedAnswer) {
+    return undefined;
+  }
+
+  const matchedOption = options.find((option) => option.label.toUpperCase() === normalizedAnswer);
+  return matchedOption ? `${matchedOption.label}. ${matchedOption.text}` : answerKey;
+};
+
+const cleanPromptLine = (line: string) => line
+  .replace(/\*\*(.*?)\*\*/g, '$1')
+  .replace(/^\*\s+/, '')
+  .replace(/^[-•]\s+/, '')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const splitMarkdownTableCells = (line: string) => line
+  .replace(/^\|/, '')
+  .replace(/\|$/, '')
+  .split('|')
+  .map((cell) => cleanPromptLine(cell));
+
+const isMarkdownSeparatorRow = (line: string) => (
+  /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(line)
+);
+
+const buildBlankParts = (value: string, startIndex: number) => {
+  const parts: PromptPart[] = [];
+  const blankPattern = /_{2,}|\[\s*\]|\(\s*\)/g;
+  let blankCounter = startIndex;
+  let cursor = 0;
+  let match: RegExpExecArray | null = blankPattern.exec(value);
+
+  while (match) {
+    if (match.index > cursor) {
+      const textBeforeBlank = value
+        .slice(cursor, match.index)
+        .replace(/\s*\(\d+\)\s*([$£€]?)\s*$/, '$1');
+
+      if (textBeforeBlank.trim()) {
+        parts.push({ kind: 'text', value: textBeforeBlank });
+      }
+    }
+
+    blankCounter += 1;
+    parts.push({ kind: 'blank', index: blankCounter });
+    cursor = match.index + match[0].length;
+    match = blankPattern.exec(value);
+  }
+
+  if (cursor < value.length) {
+    parts.push({ kind: 'text', value: value.slice(cursor) });
+  }
+
+  if (parts.length === 0 && value.trim()) {
+    parts.push({ kind: 'text', value });
+  }
+
+  return { parts, nextIndex: blankCounter };
+};
+
+const getSyntheticAudioScript = (item: AssessmentItem) => {
+  const source = item.passage || item.content || item.title;
+
+  return source
+    .split(/\r?\n/)
+    .map(cleanPromptLine)
+    .filter(Boolean)
+    .join('. ')
+    .replace(/\|/g, ' ')
+    .replace(/_{2,}|\[\s*\]|\(\s*\)/g, ' blank ')
+    .replace(/\(\d+\)/g, ' ')
+    .replace(/-{3,}/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
 
 export function ItemDetailRedesign() {
   const { itemId } = useParams<{ level: CEFRLevel; itemId: string }>();
@@ -63,6 +215,7 @@ export function ItemDetailRedesign() {
   const previewItem = previewItems.find((candidate) => candidate.id === itemId);
   const item = getItemById(itemId ?? '') ?? previewItem;
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const speechUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [audioCurrentTime, setAudioCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
@@ -72,6 +225,11 @@ export function ItemDetailRedesign() {
   const [expandedScreeningReasons, setExpandedScreeningReasons] = useState<Record<string, boolean>>({});
 
   const isListening = item?.skill === 'Listening';
+  const isSpeakingSkill = item?.skill === 'Speaking';
+  const syntheticAudioScript = useMemo(() => (
+    item && isListening && !item.audioAsset ? getSyntheticAudioScript(item) : ''
+  ), [isListening, item]);
+  const hasPlayableAudio = Boolean((isListening || isSpeakingSkill) && (item?.audioAsset || syntheticAudioScript));
   const locationState = location.state as { fromWorkflow?: boolean; backTo?: string } | null;
   const fromWorkflowState = locationState?.fromWorkflow;
   const fromWorkflowQuery = new URLSearchParams(location.search).get('from') === 'workflow';
@@ -83,13 +241,30 @@ export function ItemDetailRedesign() {
     : isFromWorkflow
       ? '/workflows/pre-testing-pipeline/stages'
       : '/library';
-  const hasOptionAnswers = Boolean(item?.options && item.options.length > 0);
+  const judgementOptionLabels = item?.itemType ? JUDGEMENT_OPTIONS[item.itemType] : undefined;
+  const displayOptions = item?.options?.length
+    ? item.options
+    : judgementOptionLabels?.map((optionText, index) => {
+        const label = String.fromCodePoint(65 + index);
+        return {
+          label,
+          text: optionText,
+          correct: item.answerKey?.trim().toUpperCase() === label || item.answerKey?.trim().toLowerCase() === optionText.toLowerCase(),
+        };
+      }) ?? [];
+  const hasOptionAnswers = displayOptions.length > 0;
   const hasMatchingAnswerKey = Boolean(item?.itemType === 'Matching' && item?.answerKey,
   );
   const isNoteCompletion = item?.itemType === 'Note Completion';
   const hasNoteCompletionAnswer = Boolean(isNoteCompletion && item?.answerKey);
+  const isTableCompletion = item?.itemType === 'Table Completion';
+  const isStructuredCompletion = Boolean(
+    item?.itemType
+    && ['Note Completion', 'Form Completion', 'Summary Completion', 'Table Completion'].includes(item.itemType),
+  );
   const isSentenceCompletion = item?.itemType === 'Sentence Completion';
   const hasSentenceCompletionAnswer = Boolean(isSentenceCompletion && item?.answerKey);
+  const isCompletionItem = Boolean(item?.itemType && COMPLETION_ITEM_TYPES.includes(item.itemType));
   const isTrueFalseNotGiven = item?.itemType === 'True/False/Not Given';
   const hasTrueFalseNotGivenAnswer = Boolean(isTrueFalseNotGiven && item?.answerKey);
   const isShortAnswer = item?.itemType === 'Short Answer';
@@ -97,21 +272,20 @@ export function ItemDetailRedesign() {
   const isEssay = item?.itemType === 'Essay';
   const hasEssaySample = Boolean(isEssay && (item?.answerKey || item?.rubric));
   const isSpeakingQuestion = item?.itemType === 'Speaking';
-  const hasSpeakingSample = Boolean(isSpeakingQuestion && (item?.answerKey || item?.rubric));
-
-  const splitExpectedAnswers = (rawValue?: string) => {
-    if (!rawValue) {
-      return [];
-    }
-
-    return rawValue
-      .split(/;|\||,/)
-      .map((value) => value.trim())
-      .filter(Boolean);
-  };
+  const hasSpeakingSample = Boolean(isSpeakingSkill && (item?.answerKey || item?.rubric));
+  const expectedAnswerRows = useMemo(() => parseExpectedAnswerRows(item?.answerKey), [item?.answerKey]);
+  const optionAnswerText = getOptionAnswerText(displayOptions, item?.answerKey);
+  const shouldShowPromptBody = Boolean(
+    item?.content
+    && item.content !== item.title
+    && !isSentenceCompletion
+    && !isStructuredCompletion
+    && !isEssay
+    && !isSpeakingQuestion,
+  );
 
   const speakingPrompts = useMemo(() => {
-    if (!isSpeakingQuestion || !item) {
+    if (!isSpeakingSkill || !item) {
       return [];
     }
 
@@ -120,10 +294,10 @@ export function ItemDetailRedesign() {
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter(Boolean);
-  }, [isSpeakingQuestion, item]);
+  }, [isSpeakingSkill, item]);
 
   const speakingFollowUpQuestions = useMemo(() => {
-    if (!isSpeakingQuestion || !item) {
+    if (!isSpeakingSkill || !item) {
       return [];
     }
 
@@ -140,10 +314,10 @@ export function ItemDetailRedesign() {
       .split(/\r?\n/)
       .map((question) => question.replace(/^\d+[.)-]\s*/, '').trim())
       .filter(Boolean);
-  }, [isSpeakingQuestion, item]);
+  }, [isSpeakingSkill, item]);
 
-  const noteCompletionData = useMemo(() => {
-    if (!isNoteCompletion || !item) {
+  const structuredCompletionData = useMemo(() => {
+    if (!isStructuredCompletion || !item) {
       return null;
     }
 
@@ -157,43 +331,42 @@ export function ItemDetailRedesign() {
       .map((line) => line.trim())
       .filter(Boolean);
 
-    const fallbackLines = lines.length > 0 ? lines : [rawNoteText.trim()];
+    const hasBlank = (line: string) => /_{2,}|\[\s*\]|\(\s*\)/.test(line);
+
+    const structuredStartIndex = lines.findIndex((line, index) => (
+      index === 0
+        ? /^\*\s+/.test(line) || /^\*\*.+\*\*$/.test(line) || hasBlank(line)
+        : /^\*\s+/.test(line) || /^\*\*.+\*\*$/.test(line) || hasBlank(line)
+    ));
+    const firstNoteLineIndex = structuredStartIndex >= 0 ? structuredStartIndex : 0;
+    const introLines = lines
+      .slice(0, firstNoteLineIndex)
+      .map(cleanPromptLine)
+      .filter(Boolean);
+    const noteLines = lines.slice(firstNoteLineIndex);
+    const fallbackLines = noteLines.length > 0 ? noteLines : [rawNoteText.trim()];
 
     const blankPattern = /_{2,}|\[\s*\]|\(\s*\)/g;
     let blankCounter = 0;
 
     const renderedLines = fallbackLines.map((line) => {
-      const parts: Array<
-        | { kind: 'text'; value: string }
-        | { kind: 'blank'; index: number }
-      > = [];
+      const parts: PromptPart[] = [];
+      const lineKind = /^\*\*.+\*\*$/.test(line) ? 'heading' : 'line';
+      const displayLine = cleanPromptLine(line);
 
-      let cursor = 0;
-      let match: RegExpExecArray | null = blankPattern.exec(line);
-      while (match) {
-        if (match.index > cursor) {
-          parts.push({ kind: 'text', value: line.slice(cursor, match.index) });
-        }
-
-        blankCounter += 1;
-        parts.push({ kind: 'blank', index: blankCounter });
-        cursor = match.index + match[0].length;
-        match = blankPattern.exec(line);
+      if (!displayLine) {
+        return null;
       }
 
-      if (cursor < line.length) {
-        parts.push({ kind: 'text', value: line.slice(cursor) });
-      }
+      const blankParts = buildBlankParts(displayLine, blankCounter);
+      blankCounter = blankParts.nextIndex;
+      parts.push(...blankParts.parts);
 
-      if (!parts.some((part) => part.kind === 'blank')) {
-        blankCounter += 1;
-        parts.push({ kind: 'text', value: line });
-        parts.push({ kind: 'text', value: ' ' });
-        parts.push({ kind: 'blank', index: blankCounter });
-      }
-
-      return parts;
-    });
+      return { kind: lineKind, parts };
+    }).filter((line): line is {
+      kind: 'heading' | 'line';
+      parts: PromptPart[];
+    } => Boolean(line));
 
     const parsedAnswers = (item.answerKey ?? '')
       .split(/;|\||,/)
@@ -201,11 +374,67 @@ export function ItemDetailRedesign() {
       .filter(Boolean);
 
     return {
+      introLines,
       renderedLines,
       parsedAnswers,
       blankCount: blankCounter,
     };
-  }, [isNoteCompletion, item]);
+  }, [isStructuredCompletion, item]);
+
+  const tableCompletionData = useMemo(() => {
+    if (!isTableCompletion || !item) {
+      return null;
+    }
+
+    const rawTableText = item.content || item.title || '';
+    if (!rawTableText.trim()) {
+      return null;
+    }
+
+    const lines = rawTableText
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const firstTableLineIndex = lines.findIndex((line) => line.startsWith('|') && line.includes('|'));
+
+    if (firstTableLineIndex < 0) {
+      return null;
+    }
+
+    const introLines = lines
+      .slice(0, firstTableLineIndex)
+      .map(cleanPromptLine)
+      .filter(Boolean);
+    let blankCounter = 0;
+
+    const rows = lines
+      .slice(firstTableLineIndex)
+      .filter((line) => line.startsWith('|') && !isMarkdownSeparatorRow(line))
+      .map((line, rowIndex) => {
+        const cells = splitMarkdownTableCells(line).map((cell) => {
+          const blankParts = buildBlankParts(cell, blankCounter);
+          blankCounter = blankParts.nextIndex;
+          return blankParts.parts;
+        });
+
+        return {
+          kind: rowIndex === 0 ? 'header' as const : 'body' as const,
+          cells,
+        };
+      })
+      .filter((row) => row.cells.some((cell) => cell.length > 0));
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return {
+      introLines,
+      rows,
+      blankCount: blankCounter,
+    };
+  }, [isTableCompletion, item]);
+
   const sentenceCompletionData = useMemo(() => {
     if (!isSentenceCompletion || !item) {
       return null;
@@ -277,8 +506,8 @@ export function ItemDetailRedesign() {
       return null;
     }
 
-    const pairs = item.answerKey
-      .split(';')
+    const explicitPairs = item.answerKey
+      .split(/;|\n/)
       .map((rawPair) => {
         const pair = rawPair.trim();
         if (!pair) {
@@ -301,6 +530,13 @@ export function ItemDetailRedesign() {
       })
       .filter((pair): pair is { left: string; right: string } => Boolean(pair));
 
+    const pairs = explicitPairs.length > 0
+      ? explicitPairs
+      : parseExpectedAnswerRows(item.answerKey).map((row) => ({
+          left: `Item ${row.label}`,
+          right: /^[A-Z]$/i.test(row.value) ? `Choice ${row.value.toUpperCase()}` : row.value,
+        }));
+
     if (pairs.length === 0) {
       return null;
     }
@@ -319,7 +555,8 @@ export function ItemDetailRedesign() {
 
     const choiceLabelByValue = new Map<string, string>();
     choices.forEach((choice, index) => {
-      choiceLabelByValue.set(choice, String.fromCodePoint(65 + index));
+      const letterChoiceMatch = /^Choice ([A-Z])$/i.exec(choice);
+      choiceLabelByValue.set(choice, letterChoiceMatch?.[1].toUpperCase() ?? String.fromCodePoint(65 + index));
     });
 
     const mappings = pairs.map((pair, index) => ({
@@ -336,17 +573,17 @@ export function ItemDetailRedesign() {
     };
   }, [hasMatchingAnswerKey, item?.answerKey, item?.id]);
   const noteAnswerRows = useMemo(() => {
-    if (!hasNoteCompletionAnswer || !noteCompletionData) {
+    if (!hasNoteCompletionAnswer || !structuredCompletionData) {
       return [];
     }
 
-    const maxCount = Math.max(noteCompletionData.blankCount, noteCompletionData.parsedAnswers.length);
+    const maxCount = Math.max(structuredCompletionData.blankCount, structuredCompletionData.parsedAnswers.length);
     return Array.from({ length: maxCount }).map((_, index) => {
       const blankIndex = index + 1;
-      const expected = noteCompletionData.parsedAnswers[index] ?? '';
+      const expected = structuredCompletionData.parsedAnswers[index] ?? '';
       return { blankIndex, expected };
     });
-  }, [hasNoteCompletionAnswer, noteCompletionData]);
+  }, [hasNoteCompletionAnswer, structuredCompletionData]);
 
   const sentenceAnswerRows = useMemo(() => {
     if (!hasSentenceCompletionAnswer || !sentenceCompletionData) {
@@ -363,7 +600,9 @@ export function ItemDetailRedesign() {
 
   const trueFalseExpectedAnswer = splitExpectedAnswers(item?.answerKey)[0] ?? '';
 
-  const shortAnswerExpectedValues = splitExpectedAnswers(item?.answerKey);
+  const shortAnswerExpectedValues = isShortAnswer && (isSpeakingSkill || item?.skill === 'Writing')
+    ? (item?.answerKey ? [item.answerKey] : [])
+    : splitExpectedAnswers(item?.answerKey);
   const screeningEntries = item?.screening
     ? [
         { key: 'cefrFit', label: 'CEFR Fit', value: item.screening.cefrFit },
@@ -379,13 +618,6 @@ export function ItemDetailRedesign() {
       return new Map<string, string>();
     }
 
-    const sharedReviewerReason = item.flagReason
-      ?? [...(item.reviewHistory ?? [])]
-        .reverse()
-        .find((entry) => entry.state === 'PENDING_SCREENING_REVIEW' && entry.notes)
-        ?.notes
-      ?? '';
-
     const defaultReasons: Record<string, string> = {
       cefrFit: 'The prompt appears misaligned with the targeted CEFR level and needs level calibration.',
       distractorStrength: 'The distractors are too weak or predictable and need stronger competing alternatives.',
@@ -395,12 +627,10 @@ export function ItemDetailRedesign() {
     };
 
     return new Map(
-      failedScreeningDimensions.map((entry) => [
-        entry.key,
-        failedScreeningDimensions.length === 1 && sharedReviewerReason
-          ? sharedReviewerReason
-          : defaultReasons[entry.key],
-      ]),
+      failedScreeningDimensions.map((entry) => {
+        const dimensionReason = item.screeningReasons?.[entry.key as keyof NonNullable<AssessmentItem['screeningReasons']>];
+        return [entry.key, dimensionReason?.trim() || defaultReasons[entry.key]];
+      }),
     );
   }, [item, failedScreeningDimensions]);
 
@@ -409,6 +639,26 @@ export function ItemDetailRedesign() {
       ...prev,
       [dimensionKey]: !prev[dimensionKey],
     }));
+  };
+
+  const renderPromptPart = (part: PromptPart, key: string) => {
+    if (part.kind === 'text') {
+      return <span key={key}>{part.value}</span>;
+    }
+
+    return (
+      <span key={key} className="inline-flex items-center gap-2">
+        <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold flex items-center justify-center">
+          {part.index}
+        </span>
+        <span
+          className="h-9 w-40 max-w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-500 shadow-sm inline-flex items-center"
+          aria-label={`Blank ${part.index}`}
+        >
+          Blank
+        </span>
+      </span>
+    );
   };
 
   const formatAudioTime = (seconds: number) => {
@@ -422,6 +672,35 @@ export function ItemDetailRedesign() {
   };
 
   const toggleAudioPlayback = async () => {
+    if (!item?.audioAsset && syntheticAudioScript) {
+      if (typeof window === 'undefined' || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
+        setAudioError('Audio playback is not available in this browser.');
+        return;
+      }
+
+      if (audioPlaying) {
+        window.speechSynthesis.cancel();
+        setAudioPlaying(false);
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(syntheticAudioScript);
+      utterance.lang = 'en-GB';
+      utterance.rate = 0.95;
+      utterance.onend = () => setAudioPlaying(false);
+      utterance.onerror = () => {
+        setAudioError('Unable to play this audio preview.');
+        setAudioPlaying(false);
+      };
+
+      speechUtteranceRef.current = utterance;
+      setAudioError(null);
+      setAudioPlaying(true);
+      window.speechSynthesis.speak(utterance);
+      return;
+    }
+
     if (!audioRef.current) {
       return;
     }
@@ -464,7 +743,7 @@ export function ItemDetailRedesign() {
   };
 
   useEffect(() => {
-    if (!audioRef.current || (!isListening && !isSpeakingQuestion) || !item?.audioAsset) {
+    if (!audioRef.current || (!isListening && !isSpeakingSkill) || !item?.audioAsset) {
       return;
     }
 
@@ -503,7 +782,22 @@ export function ItemDetailRedesign() {
       audioEl.removeEventListener('pause', handlePause);
       audioEl.removeEventListener('error', handleError);
     };
-  }, [isListening, isSpeakingQuestion, item?.audioAsset]);
+  }, [isListening, isSpeakingSkill, item?.audioAsset]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    setAudioPlaying(false);
+    speechUtteranceRef.current = null;
+
+    return () => {
+      window.speechSynthesis.cancel();
+      speechUtteranceRef.current = null;
+    };
+  }, [item?.id, syntheticAudioScript]);
 
   if (!item) {
     return (
@@ -549,6 +843,9 @@ export function ItemDetailRedesign() {
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal">
                     {item.skill}
+                  </Badge>
+                  <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal">
+                    {item.itemType}
                   </Badge>
                   <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal">
                     {item.level}
@@ -615,16 +912,16 @@ export function ItemDetailRedesign() {
             )}
 
             {/* Audio Player for Listening Items */}
-            {(isListening || isSpeakingQuestion) && item.audioAsset && (
+            {hasPlayableAudio && (
               <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
                 <CardContent className="p-6">
-                  <audio ref={audioRef} src={item.audioAsset} preload="metadata" />
+                  {item.audioAsset && <audio ref={audioRef} src={item.audioAsset} preload="metadata" />}
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                       <Headphones className="w-8 h-8 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-4">{item.audioTitle}</h3>
+                      <h3 className="font-semibold text-gray-900 mb-4">{item.audioTitle || item.title}</h3>
                       <div className="flex items-center gap-3">
                         <Button
                           size="sm"
@@ -634,7 +931,7 @@ export function ItemDetailRedesign() {
                           {audioPlaying ? (
                             <>
                               <Pause className="w-4 h-4 mr-2" />
-                              Pause
+                              {item.audioAsset ? 'Pause' : 'Stop'}
                             </>
                           ) : (
                             <>
@@ -643,23 +940,29 @@ export function ItemDetailRedesign() {
                             </>
                           )}
                         </Button>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Volume2 className="w-4 h-4" />
-                          <input
-                            type="range"
-                            min={0}
-                            max={audioDuration || 0}
-                            step={0.1}
-                            value={Math.min(audioCurrentTime, audioDuration || 0)}
-                            onChange={(event) => handleAudioSeek(Number(event.target.value))}
-                            className="w-40 accent-blue-600 cursor-pointer"
-                            disabled={!audioDuration}
-                            aria-label="Seek audio"
-                          />
-                        </div>
-                        <span className="text-sm text-gray-600">
-                          {formatAudioTime(audioCurrentTime)} / {formatAudioTime(audioDuration)}
-                        </span>
+                        {item.audioAsset ? (
+                          <>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Volume2 className="w-4 h-4" />
+                              <input
+                                type="range"
+                                min={0}
+                                max={audioDuration || 0}
+                                step={0.1}
+                                value={Math.min(audioCurrentTime, audioDuration || 0)}
+                                onChange={(event) => handleAudioSeek(Number(event.target.value))}
+                                className="w-40 accent-blue-600 cursor-pointer"
+                                disabled={!audioDuration}
+                                aria-label="Seek audio"
+                              />
+                            </div>
+                            <span className="text-sm text-gray-600">
+                              {formatAudioTime(audioCurrentTime)} / {formatAudioTime(audioDuration)}
+                            </span>
+                          </>
+                        ) : (
+                          <Volume2 className="w-4 h-4 text-gray-500" />
+                        )}
                       </div>
                       {audioError && (
                         <p className="text-sm text-red-600 mt-2">{audioError}</p>
@@ -708,7 +1011,7 @@ export function ItemDetailRedesign() {
                       <div className="flex items-center justify-between gap-3 min-w-0">
                         <div className="min-w-0">
                           <div className="text-xs uppercase tracking-wide text-gray-500">
-                            {(isListening || item?.audioAsset) ? 'Transcript' : isSpeakingQuestion ? 'Speaking Prompt' : 'Reading Passage'}
+                            {(isListening || item?.audioAsset) ? 'Transcript' : isSpeakingSkill ? 'Speaking Prompt' : 'Reading Passage'}
                           </div>
                           {item.passageTitle && (
                             <CardTitle className="text-base mt-1 truncate">{item.passageTitle}</CardTitle>
@@ -745,6 +1048,11 @@ export function ItemDetailRedesign() {
                       {item.title}
                     </p>
                   )}
+                  {shouldShowPromptBody && (
+                    <p className="mt-3 text-base text-gray-800 leading-relaxed whitespace-pre-line">
+                      {item.content}
+                    </p>
+                  )}
                   {isSentenceCompletion && sentenceCompletionData && (
                     <p className="text-lg text-gray-900 leading-relaxed">
                       {sentenceCompletionData.taskLabel}
@@ -757,7 +1065,7 @@ export function ItemDetailRedesign() {
                         {item.content}
                   </div>
                 )}
-                  {(item.instructions || true) && (
+                  {!isStructuredCompletion && (item.instructions || true) && (
                     <p className="mt-3 text-sm italic text-gray-500">
                       {item.instructions || 'Review the question and use the answer explanation panel for reference.'}
                     </p>
@@ -765,9 +1073,9 @@ export function ItemDetailRedesign() {
                 </div>
 
                 {/* Answer Options */}
-                {(hasOptionAnswers || isTrueFalseNotGiven) && (
+                {hasOptionAnswers && (
                   <div className="space-y-3">
-                    {(item.options ?? []).map((option) => (
+                    {displayOptions.map((option) => (
                       <div
                         key={option.label}
                         className={`p-3 rounded-xl border-2 transition-all ${
@@ -837,45 +1145,93 @@ export function ItemDetailRedesign() {
                   </div>
                 )}
 
-                {/* Note Completion Layout */}
-                {isNoteCompletion && noteCompletionData && (
-                  <div className="mt-6">                   
-
-                      <div className="space-y-3">
-                        {noteCompletionData.renderedLines.map((lineParts, lineIndex) => (
-                          <div
-                            key={`note-line-${lineIndex}`}
-                            className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-3"
-                          >
-                            <p className="text-gray-800 leading-relaxed flex flex-wrap items-center gap-2">
-                              {lineParts.map((part, partIndex) => {
-                                if (part.kind === 'text') {
-                                  return (
-                                    <span key={`text-${lineIndex}-${partIndex}`}>{part.value}</span>
-                                  );
-                                }
-
-                                return (
-                                  <span
-                                    key={`blank-${lineIndex}-${partIndex}`}
-                                    className="inline-flex items-center gap-2"
-                                  >
-                                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold flex items-center justify-center">
-                                      {part.index}
-                                    </span>
-                                    <span
-                                      className="h-9 w-40 max-w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-500 shadow-sm inline-flex items-center"
-                                      aria-label={`Blank ${part.index}`}
-                                    >
-                                      Blank
-                                    </span>
-                                  </span>
-                                );
-                              })}
-                            </p>
-                          </div>
+                {/* Structured Completion Layout */}
+                {isStructuredCompletion && structuredCompletionData && !(isTableCompletion && tableCompletionData) && (
+                  <div className="mt-6 space-y-4">
+                    {structuredCompletionData.introLines.length > 0 && (
+                      <div className="space-y-2">
+                        {structuredCompletionData.introLines.map((line, lineIndex) => (
+                          <p key={`structured-intro-${lineIndex}`} className="text-base text-gray-800 leading-relaxed">
+                            {line}
+                          </p>
                         ))}
                       </div>
+                    )}
+
+                    <div className="rounded-lg border border-gray-100 bg-gray-50 px-4 py-4">
+                      <div className="space-y-3">
+                        {structuredCompletionData.renderedLines.map((line, lineIndex) => (
+                          line.kind === 'heading' ? (
+                            <h3 key={`structured-line-${lineIndex}`} className="font-semibold text-gray-900">
+                              {line.parts.map((part) => part.kind === 'text' ? part.value : '').join('')}
+                            </h3>
+                          ) : (
+                            <p
+                              key={`structured-line-${lineIndex}`}
+                              className="text-gray-800 leading-relaxed flex flex-wrap items-center gap-2"
+                            >
+                              {line.parts.map((part, partIndex) => renderPromptPart(part, `structured-${lineIndex}-${partIndex}`))}
+                            </p>
+                          )
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm italic text-gray-500">
+                      {item.instructions || 'Review the question and use the answer explanation panel for reference.'}
+                    </p>
+                  </div>
+                )}
+
+                {/* Table Completion Layout */}
+                {isTableCompletion && tableCompletionData && (
+                  <div className="mt-6 space-y-4">
+                    {tableCompletionData.introLines.length > 0 && (
+                      <div className="space-y-2">
+                        {tableCompletionData.introLines.map((line, lineIndex) => (
+                          <p key={`table-intro-${lineIndex}`} className="text-base text-gray-800 leading-relaxed">
+                            {line}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+                      <table className="min-w-full border-collapse text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            {tableCompletionData.rows[0].cells.map((cell, cellIndex) => (
+                              <th
+                                key={`table-head-${cellIndex}`}
+                                className="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200"
+                              >
+                                <span className="flex flex-wrap items-center gap-2">
+                                  {cell.map((part, partIndex) => renderPromptPart(part, `table-head-${cellIndex}-${partIndex}`))}
+                                </span>
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {tableCompletionData.rows.slice(1).map((row, rowIndex) => (
+                            <tr key={`table-row-${rowIndex}`}>
+                              {row.cells.map((cell, cellIndex) => (
+                                <td
+                                  key={`table-cell-${rowIndex}-${cellIndex}`}
+                                  className="px-4 py-3 text-gray-800 align-top border-t border-gray-100"
+                                >
+                                  <span className="flex flex-wrap items-center gap-2">
+                                    {cell.map((part, partIndex) => renderPromptPart(part, `table-cell-${rowIndex}-${cellIndex}-${partIndex}`))}
+                                  </span>
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="text-sm italic text-gray-500">
+                      {item.instructions || 'Review the question and use the answer explanation panel for reference.'}
+                    </p>
                   </div>
                 )}
 
@@ -909,7 +1265,7 @@ export function ItemDetailRedesign() {
                                           ? 'border-green-300 bg-green-50 text-green-800'
                                           : 'border-gray-300 bg-white text-gray-500'
                                       }`}
-                                      aria-label={`Sentence blank ${part.index}`}
+                                      aria-label={`Blank ${part.index}`}
                                     >
                                       {showExplanation
                                         ? sentenceCompletionData.parsedAnswers[part.index - 1] ?? '—'
@@ -926,7 +1282,7 @@ export function ItemDetailRedesign() {
                 )}
 
                 {/* Speaking Layout */}
-                {isSpeakingQuestion && speakingFollowUpQuestions.length > 0 && (
+                {isSpeakingSkill && speakingFollowUpQuestions.length > 0 && (
                   <div className="mt-6">
                     <h3 className="font-semibold text-gray-900 mb-3">Follow-up Questions</h3>
                       {speakingFollowUpQuestions.length > 0 && (
@@ -991,7 +1347,7 @@ export function ItemDetailRedesign() {
                 <CardContent className="space-y-4">
                   <div className="bg-white rounded-lg p-4 border border-green-200">
                     <h4 className="font-semibold text-green-900 mb-2">Correct Answer</h4>
-                    {hasMatchingAnswerKey ? (
+                    {hasMatchingAnswerKey && matchingData ? (
                       <div className="rounded-xl border border-green-100 bg-green-50/50 p-3">
 
                         <div className="space-y-2">
@@ -1057,9 +1413,27 @@ export function ItemDetailRedesign() {
                         </div>
                       </div>
                     ) : hasTrueFalseNotGivenAnswer ? (
-                            <p className="text-gray-700">{trueFalseExpectedAnswer || '—'}</p>
+                            <p className="text-gray-700">{optionAnswerText || trueFalseExpectedAnswer || '—'}</p>
                     ) : hasShortAnswerAnswer ? (
                               <p className="text-gray-700">{shortAnswerExpectedValues.join(' / ') || '—'}</p>
+                    ) : hasOptionAnswers && optionAnswerText ? (
+                      <p className="text-gray-700">{optionAnswerText}</p>
+                    ) : isCompletionItem && expectedAnswerRows.length > 0 ? (
+                      <div className="rounded-xl border border-green-100 bg-green-50/50 p-3">
+                        <div className="space-y-2">
+                          {expectedAnswerRows.map((row) => (
+                            <div
+                              key={`answer-${row.label}-${row.value}`}
+                              className="flex items-center gap-3 rounded-lg border border-green-100 bg-white px-3 py-2"
+                            >
+                              <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold flex items-center justify-center">
+                                {row.label}
+                              </span>
+                              <p className="text-sm text-gray-800">{row.value || '—'}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     ) : hasEssaySample ? (
                       <div className="space-y-3">
                           <p className="text-sm text-gray-800 whitespace-pre-wrap">{item.answerKey || 'Answer is not available for this item.'}</p>
@@ -1068,6 +1442,8 @@ export function ItemDetailRedesign() {
                       <div className="space-y-3">
                           <p className="text-sm text-gray-800 whitespace-pre-wrap">{item.answerKey || 'Answer is not available for this item.'}</p>
                       </div>
+                    ) : item.answerKey ? (
+                      <p className="text-gray-700 whitespace-pre-wrap">{item.answerKey}</p>
                     ) : (
                       <p className="text-gray-700">
                         {item.options?.find(o => o.correct)?.text || 'Answer explanation not available'}
@@ -1119,7 +1495,7 @@ export function ItemDetailRedesign() {
                           Model-predicted parameters describing how this item behaves when administered to candidates.
                           <br />• <strong>Difficulty</strong>: predicted position on the ability scale — higher means harder
                           <br />• <strong>Discrimination</strong>: how sharply the item separates stronger from weaker candidates
-                          <br />• <strong>Guessing</strong>: estimated probability of a correct response by chance
+                          <br />• <strong>Probability of Correct Guess</strong>: estimated probability of a correct response by chance
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -1152,7 +1528,7 @@ export function ItemDetailRedesign() {
                       </div>
 
                       <div>
-                        <div className="text-sm text-gray-600 mb-1">Guessing</div>
+                        <div className="text-sm text-gray-600 mb-1">Probability of Correct Guess</div>
                         <div className="text-2xl font-semibold text-gray-900">
                           {item.irtParameters.c.toFixed(2)}
                         </div>
@@ -1167,23 +1543,10 @@ export function ItemDetailRedesign() {
                     </div>
 
                     {/* Run metadata strip */}
-                    {(item.irtParameters.sampleSize || item.irtParameters.modelVersion || item.irtParameters.predictionDate) && (
-                      <div className="pt-3 border-t border-gray-100 flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-500">
-                        {item.irtParameters.sampleSize && (
-                          <div>
-                            <span>Sample size </span>
-                            <span className="text-gray-700 font-medium">{item.irtParameters.sampleSize.toLocaleString()}</span>
-                          </div>
-                        )}
-                        {item.irtParameters.modelVersion && (
-                          <div>
-                            <span>Model </span>
-                            <span className="text-gray-700 font-medium font-mono">{item.irtParameters.modelVersion}</span>
-                          </div>
-                        )}
+                    {item.irtParameters.predictionDate && (
+                      <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-gray-500">
                         {item.irtParameters.predictionDate && (
-                          <div>
-                            <span>{item.irtParameters.calibratedFromFieldTest ? 'Calibrated' : 'Estimated'} </span>
+                          <div className="ml-auto text-right whitespace-nowrap">
                             <span className="text-gray-700 font-medium">
                               {new Date(item.irtParameters.predictionDate).toLocaleDateString('en-US', {
                                 month: 'short',
@@ -1224,6 +1587,11 @@ export function ItemDetailRedesign() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-6">
+                  <div>
+                    <div className="text-sm text-gray-600 mb-1">Item Type</div>
+                    <div className="font-medium text-gray-900">{item.itemType}</div>
+                  </div>
+
                   <div>
                     <div className="text-sm text-gray-600 mb-1">Sub-Skill</div>
                     <div className="font-medium text-gray-900">{item.subSkill || 'N/A'}</div>
@@ -1484,5 +1852,3 @@ export function ItemDetailRedesign() {
     </div>
   );
 }
-
-

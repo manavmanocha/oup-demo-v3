@@ -91,6 +91,13 @@ export interface AssessmentItem {
     fairness?: 'Pass' | 'Review' | 'Fail';
     similarity?: 'Pass' | 'Review' | 'Fail';
   };
+  screeningReasons?: {
+    cefrFit?: string;
+    distractorStrength?: string;
+    clarity?: string;
+    fairness?: string;
+    similarity?: string;
+  };
   
   // Workflow tracking
   workflowState?: WorkflowState;

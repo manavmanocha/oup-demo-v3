@@ -23,7 +23,7 @@ export function PreTestingPipeline() {
     isWorkflowState(item.workflowState, 'IN_DIFFICULTY_ESTIMATION') ||
     isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW'),
   ).length;
-  const seedingQueueCount = inReviewItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')).length;
+  const seedingQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')).length;
   const lastRunByStage = getLastRunDateByStage();
 
   const stageCards = [

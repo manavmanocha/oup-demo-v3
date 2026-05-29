@@ -95,7 +95,7 @@ const getScreeningFeedback = (item: AssessmentItem): string | null => {
         }
       }
     });
-    if (notes.length > 0) return notes.join(' ');
+    if (notes.length > 0) return notes.join('\n');
   }
 
   if (item.flagReason) {
@@ -219,7 +219,7 @@ const ScreeningQueueSection = ({
 
               {(() => {
                 const feedback = getScreeningFeedback(item);
-                return feedback ? <div className={feedbackClassName}>{feedback}</div> : null;
+                return feedback ? <div className={`${feedbackClassName} whitespace-pre-line`}>{feedback}</div> : null;
               })()}
 
               <div className="flex items-center gap-2 mt-4">

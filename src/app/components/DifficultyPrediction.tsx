@@ -67,6 +67,7 @@ export function DifficultyPrediction() {
   const [showAllNeedsReview, setShowAllNeedsReview] = useState(false);
   const [showAllReadyToAccept, setShowAllReadyToAccept] = useState(false);
   const [selectedReadyIds, setSelectedReadyIds] = useState<string[]>([]);
+
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
 
   const waitingForPrediction = useMemo(
