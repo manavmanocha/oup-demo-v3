@@ -15,7 +15,6 @@ import {
   RotateCcw,
   CheckCircle2,
   XCircle,
-  BookOpen,
   Lightbulb,
   AlertTriangle,
   AlertCircle,
@@ -518,42 +517,59 @@ export function ItemDetailRedesign() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation Bar - Fixed positioning for all zoom levels */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-        <div className="w-full px-8 py-4">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex items-center justify-between gap-4">
-              {/* Left section - Back button with proper alignment */}
-              <div className="flex items-center gap-4 min-w-0 flex-shrink-0">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleBack}
-                  className="flex-shrink-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-                <Separator orientation="vertical" className="h-6 flex-shrink-0" />
-                {/* Item metadata badges - highlighted */}
-                <div className="flex items-center gap-2 flex-wrap">
+      {/* Top Navigation Bar */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="w-full px-8 pt-3 pb-4">
+          <div className="max-w-5xl mx-auto space-y-3">
+            {/* Breadcrumb row */}
+            <div className="flex items-center justify-between gap-3">
+              <nav className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
+                <Link to="/item-bank" className="hover:text-gray-700">Item Bank</Link>
+                <span className="text-gray-300">/</span>
+                <Link to={`/item-bank/${item.level}`} className="hover:text-gray-700">{item.level}</Link>
+                <span className="text-gray-300">/</span>
+                <span className="font-mono text-gray-700 truncate">{item.id}</span>
+              </nav>
+              {isPreviewMode && <Badge variant="secondary">Preview Mode</Badge>}
+            </div>
+
+            {/* Title row */}
+            <div className="flex items-start gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="-ml-2 flex-shrink-0 text-gray-600 hover:text-gray-900"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1.5" />
+                Back
+              </Button>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl font-semibold text-gray-900 font-mono truncate">{item.id}</h1>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal">
+                    {item.skill}
+                  </Badge>
+                  <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal">
+                    {item.level}
+                  </Badge>
+                  {item.workflowState && (
+                    <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal">
+                      {getWorkflowStateLabel(item.workflowState)}
+                    </Badge>
+                  )}
                   {item.status === 'Compromised' && (
-                    <Badge variant="destructive" className="font-semibold">
+                    <Badge variant="outline" className="border-red-200 bg-red-50 text-red-700 font-normal">
                       Compromised
                     </Badge>
                   )}
-                  <Badge variant="outline" className="font-semibold text-blue-700 border-blue-300 bg-blue-50">
-                    {item.skill}
-                  </Badge>
-                  <Badge variant="outline" className="font-semibold text-gray-700 border-gray-300">
-                    {item.level}
-                  </Badge>
-                  <span className="text-sm font-mono text-gray-500">{item.id}</span>
+                  {item.passageTitle && (
+                    <>
+                      <span className="text-gray-300">·</span>
+                      <span className="text-sm text-gray-600 truncate">{item.passageTitle}</span>
+                    </>
+                  )}
                 </div>
-              </div>
-
-              <div className="flex-shrink-0">
-                {isPreviewMode && <Badge variant="secondary">Preview Mode</Badge>}
               </div>
             </div>
           </div>
