@@ -14,7 +14,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { getAllItems, getIngestedItems, queueItemsForScreening } from "../data/mockData";
-import { AssessmentItem } from '../data/types';
 import { isWorkflowState } from '../data/workflowState';
 
 const prioritizeIngestedFirst = <T extends { id: string }>(items: T[], ingestedIds: Set<string>): T[] => {
@@ -31,42 +30,6 @@ const prioritizeIngestedFirst = <T extends { id: string }>(items: T[], ingestedI
   });
 
   return [...ingested, ...nonIngested];
-};
-
-const SKILL_CODE_BY_SKILL: Record<AssessmentItem['skill'], string> = {
-  Reading: 'RDG',
-  Writing: 'WRT',
-  Listening: 'LIS',
-  Speaking: 'SPK',
-};
-
-const SCREENING_START_TITLE_OVERRIDES: Record<string, string> = {
-  'ITM-WRITE-C1-0221': 'Discuss the impact of social media on adolescent wellbeing. Refer to specific examples.',
-  'ITM-WRITE-C1-0229': 'Some argue public libraries are no longer necessary in the digital age. To what extent do you agree?',
-  'ITM-WRITE-C1-0233': 'Analyse the changing role of small businesses in your local economy.',
-};
-
-const getNormalizedItemIdForDisplay = (item: AssessmentItem): string => {
-  if (item.id.startsWith('ITMBK-')) {
-    return item.id.slice('ITMBK-'.length);
-  }
-
-  const writeMatch = item.id.match(/^ITM-WRITE-(A1|A2|B1|B2|C1|C2)-(\d{3,4})$/);
-  if (writeMatch) {
-    const [, level, sequence] = writeMatch;
-    return `WRT-${level}-${String(Number(sequence)).padStart(3, '0')}`;
-  }
-
-  if (/^LQ-\d{3}$/.test(item.id)) {
-    const sequence = item.id.slice('LQ-'.length);
-    return `${SKILL_CODE_BY_SKILL[item.skill]}-${item.level}-${sequence}`;
-  }
-
-  return item.id;
-};
-
-const getItemTitleForDisplay = (item: AssessmentItem): string => {
-  return SCREENING_START_TITLE_OVERRIDES[item.id] ?? item.title ?? item.content ?? 'Untitled item';
 };
 
 export function ScreenItems() {
@@ -102,10 +65,10 @@ export function ScreenItems() {
   const filteredItems = useMemo(() => {
     return availableItems.filter(
       (item) =>
-        getNormalizedItemIdForDisplay(item)
+        item.id
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
-        getItemTitleForDisplay(item)
+        (item.title ?? item.content ?? '')
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
         item.topic
@@ -305,10 +268,10 @@ export function ScreenItems() {
                               />
                             </td>
                             <td className="px-4 py-3 text-sm font-medium text-blue-600">
-                              {getNormalizedItemIdForDisplay(item)}
+                              {item.id}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-900 max-w-md truncate" title={getItemTitleForDisplay(item)}>
-                              {getItemTitleForDisplay(item)}
+                            <td className="px-4 py-3 text-sm text-gray-900 max-w-md truncate" title={item.title ?? item.content ?? 'Untitled item'}>
+                              {item.title ?? item.content ?? 'Untitled item'}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-700 hidden sm:table-cell">
                               {item.itemType}
@@ -375,10 +338,10 @@ export function ScreenItems() {
                       className="hover:bg-gray-50"
                     >
                       <td className="px-4 py-3 text-sm font-medium text-blue-600 whitespace-nowrap">
-                        {getNormalizedItemIdForDisplay(item)}
+                        {item.id}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900">
-                        {getItemTitleForDisplay(item)}
+                        {item.title ?? item.content ?? 'Untitled item'}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
                         {item.itemType}

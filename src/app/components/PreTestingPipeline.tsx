@@ -7,20 +7,6 @@ import { isWorkflowState } from '../data/workflowState';
 
 const RECENT_RUNS_LIMIT = 6;
 
-const RECENT_RUN_ACTION_OVERRIDES: Record<string, number> = {
-  'EST-260529-01': 0,
-  'SCR-260529-02': 0,
-  'SEED-260529-03': 6,
-  'EST-260528-01': 9,
-  'EST-260527-01': 4,
-  'SCR-260526-01': 12,
-};
-
-const RECENT_RUN_STATUS_OVERRIDES: Record<string, 'Complete' | 'Running' | 'Needs review'> = {
-  'EST-260529-01': 'Complete',
-  'SCR-260529-02': 'Complete',
-};
-
 const formatRunDate = (iso?: string): string => {
   if (!iso) return '—';
   const parsed = new Date(iso);
@@ -75,15 +61,10 @@ export function PreTestingPipeline() {
 
   const recentRuns = getPipelineRuns(RECENT_RUNS_LIMIT).map((run) => {
     const isSeedingRun = run.stage === 'Seeding';
-    const fallbackActionCount = isSeedingRun
-      ? 0
-      : Math.min(run.flagged, Math.floor(run.items * 0.3));
-    const actionCount = RECENT_RUN_ACTION_OVERRIDES[run.id] ?? fallbackActionCount;
-    const status = RECENT_RUN_STATUS_OVERRIDES[run.id] ?? run.status;
+    const actionCount = run.flagged;
 
     return {
       ...run,
-      status,
       displayDate: formatRunDate(run.date),
       actionSummary: isSeedingRun
         ? (actionCount > 0 ? `${actionCount} deferred` : '—')
