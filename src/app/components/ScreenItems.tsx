@@ -119,17 +119,17 @@ export function ScreenItems() {
     <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
-          <Link to="/workflows" className="hover:underline">Workflows</Link>
-          <span className="text-gray-400">/</span>
-          <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
-          <span className="text-gray-400">/</span>
-          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
-          <span className="text-gray-400">/</span>
-          <Link to="/workflows/pre-testing-pipeline/screening" className="hover:underline">Screening</Link>
-          <span className="text-gray-400">/</span>
-          <span className="text-gray-900">Screen Items</span>
-        </div>
+        {step !== "success" && (
+          <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
+            <Link to="/workflows" className="hover:underline">Workflows</Link>
+            <span className="text-gray-400">/</span>
+            <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
+            <span className="text-gray-400">/</span>
+            <Link to="/workflows/pre-testing-pipeline/screening" className="hover:underline">Screening</Link>
+            <span className="text-gray-400">/</span>
+            <span className="text-gray-900">Select Items</span>
+          </div>
+        )}
 
         {step === "select" && (
           <div className="space-y-6">
@@ -139,9 +139,7 @@ export function ScreenItems() {
                 Select Items for Screening
               </h1>
               <p className="text-gray-600">
-                Choose items from the library to add to the
-                screening queue. Only items in Draft or In
-                Screening Review state are available.
+                Select draft items from the library to queue for AI screening. Items currently in another pipeline stage are not shown.
               </p>
             </div>
 
@@ -171,17 +169,25 @@ export function ScreenItems() {
             {/* Selection Summary */}
             <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-blue-50 rounded-lg">
               <span className="text-sm font-medium text-gray-900">
-                {selectedItemIds.length} item(s) selected
+                {selectedItemIds.length === 0
+                  ? 'No items selected'
+                  : `${selectedItemIds.length} item${selectedItemIds.length === 1 ? '' : 's'} selected`}
               </span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleAll}
               >
-                {selectedItemIds.length === filteredItems.length
-                  ? "Deselect All"
-                  : "Select All"}
+                {selectedItemIds.length === filteredItems.length && filteredItems.length > 0
+                  ? 'Deselect all'
+                  : `Select all (${filteredItems.length})`}
               </Button>
+            </div>
+
+            {/* Count indicator */}
+            <div className="text-sm text-gray-600">
+              Showing {filteredItems.length} of {availableItems.length} draft item{availableItems.length === 1 ? '' : 's'}
+              {searchQuery && availableItems.length !== filteredItems.length ? ' (filtered)' : ''}
             </div>
 
             {/* Items Table */}
@@ -247,7 +253,7 @@ export function ScreenItems() {
                             <td className="px-4 py-3 text-sm font-medium text-blue-600">
                               {item.id}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-900 max-w-md truncate">
+                            <td className="px-4 py-3 text-sm text-gray-900 max-w-md truncate" title={item.title}>
                               {item.title}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-700 hidden sm:table-cell">
@@ -279,74 +285,60 @@ export function ScreenItems() {
             {/* Header */}
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Items Selected for Screening Queue
+                Confirm screening queue
               </h1>
               <p className="text-gray-600">
-                {selectedItems.length} items are selected.
-                Please review before continuing.
+                {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'} will be picked up by the next screening run — typically within a few minutes.
               </p>
             </div>
 
             {/* Items Table */}
-            <Card>
-              <CardContent className="p-0">
-                <div className="border rounded-lg overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Item ID
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Title
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Type
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          CEFR
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Skill
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {selectedItems.map((item) => (
-                        <tr
-                          key={item.id}
-                          className="hover:bg-gray-50"
-                        >
-                          <td className="px-4 py-3 text-sm font-medium text-blue-600">
-                            {item.id}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {item.title}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-700">
-                            {item.itemType}
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge variant="outline">
-                              {item.level}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-700">
-                            {item.skill}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="pt-4">
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                Would you like to add these items to the
-                screening queue?
-              </p>
+            <div className="border rounded-lg overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Item ID
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Title
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Type
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      CEFR
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Skill
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {selectedItems.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-gray-50"
+                    >
+                      <td className="px-4 py-3 text-sm font-medium text-blue-600 whitespace-nowrap">
+                        {item.id}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {item.title}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                        {item.itemType}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
+                        {item.level}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                        {item.skill}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             {/* Actions */}
@@ -357,52 +349,38 @@ export function ScreenItems() {
               >
                 Back
               </Button>
-              <div className="flex gap-3">
-                <Link to="/workflows/pre-testing-pipeline/screening">
-                  <Button variant="outline">Cancel</Button>
-                </Link>
-                <Button onClick={handleStartScreening}>
-                  Add to Queue
-                </Button>
-              </div>
+              <Button onClick={handleStartScreening}>
+                Send {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'} to screening
+              </Button>
             </div>
           </div>
         )}
 
         {step === "success" && (
-          <div className="space-y-6 text-center py-12">
-            <div className="flex justify-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-10 h-10 text-green-600" />
-              </div>
-            </div>
+          <div className="flex justify-center py-12">
+            <Card className="w-full max-w-md">
+              <CardContent className="p-8 text-center space-y-6">
+                <div className="flex justify-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                    <CheckCircle2 className="w-10 h-10 text-green-600" />
+                  </div>
+                </div>
 
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Items Added to Screening Queue
-              </h1>
-              <p className="text-gray-600">
-                {queuedCount} items have been added
-                successfully.
-              </p>
-            </div>
+                <p className="text-base text-gray-900">
+                  {queuedCount} item{queuedCount === 1 ? '' : 's'} added to the screening queue. The next run typically completes within a few minutes; results will appear in the screening dashboard.
+                </p>
 
-            <div className="pt-4">
-              <p className="text-sm text-gray-700 mb-4">
-                Would you like to add more items to the
-                screening queue?
-              </p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center justify-center gap-3 pt-4">
-              <Button variant="outline" onClick={handleFinish}>
-                No
-              </Button>
-              <Button onClick={handleAddMore}>
-                Add More Items
-              </Button>
-            </div>
+                {/* Actions */}
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <Button variant="outline" onClick={handleAddMore}>
+                    Queue more items
+                  </Button>
+                  <Button onClick={handleFinish}>
+                    Return to screening dashboard
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
       </div>
