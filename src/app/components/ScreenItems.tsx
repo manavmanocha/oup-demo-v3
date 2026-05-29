@@ -79,6 +79,11 @@ export function ScreenItems() {
   >([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [queuedCount, setQueuedCount] = useState(0);
+  const stepLabel: Record<typeof step, string> = {
+    select: 'Select Items',
+    confirm: 'Confirm Queue',
+    success: 'Queue confirmed',
+  };
 
   // Get all items from library - filter to draft or screening-review items
   const allItems = getAllItems();
@@ -159,17 +164,15 @@ export function ScreenItems() {
     <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
-        {step !== "success" && (
-          <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
-            <Link to="/workflows" className="hover:underline">Workflows</Link>
-            <span className="text-gray-400">/</span>
-            <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
-            <span className="text-gray-400">/</span>
-            <Link to="/workflows/pre-testing-pipeline/screening" className="hover:underline">Screening</Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-900">Select Items</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
+          <Link to="/workflows" className="hover:underline">Workflows</Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline/screening" className="hover:underline">Screening</Link>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-900">{stepLabel[step]}</span>
+        </div>
 
         {step === "select" && (
           <div className="space-y-6">
@@ -408,30 +411,37 @@ export function ScreenItems() {
         )}
 
         {step === "success" && (
-          <div className="flex justify-center py-12">
-            <Card className="w-full max-w-md">
-              <CardContent className="p-8 text-center space-y-6">
-                <div className="flex justify-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircle2 className="w-10 h-10 text-green-600" />
+          <div className="space-y-6 py-2">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Items queued</h1>
+              <p className="text-gray-600">Your selected items are now in the screening queue.</p>
+            </div>
+
+            <div className="flex justify-center py-4">
+              <Card className="w-full max-w-md">
+                <CardContent className="p-8 text-center space-y-6">
+                  <div className="flex justify-center">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle2 className="w-10 h-10 text-green-600" />
+                    </div>
                   </div>
-                </div>
 
-                <p className="text-base text-gray-900">
-                  {queuedCount} item{queuedCount === 1 ? '' : 's'} added to the screening queue. The next run typically completes within a few minutes; results will appear in the screening dashboard.
-                </p>
+                  <p className="text-base text-gray-900">
+                    {queuedCount} item{queuedCount === 1 ? '' : 's'} added to the screening queue. The next run typically completes within a few minutes. Results will appear in the screening dashboard.
+                  </p>
 
-                {/* Actions */}
-                <div className="flex items-center justify-center gap-3 pt-2">
-                  <Button variant="outline" onClick={handleAddMore}>
-                    Queue more items
-                  </Button>
-                  <Button onClick={handleFinish}>
-                    Return to screening dashboard
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  {/* Actions */}
+                  <div className="flex items-center justify-center gap-3 pt-2">
+                    <Button variant="outline" onClick={handleAddMore}>
+                      Queue more items
+                    </Button>
+                    <Button onClick={handleFinish}>
+                      Return to screening dashboard
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
       </div>
