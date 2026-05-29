@@ -28,10 +28,11 @@ const toTimestamp = (value?: string): number => {
 
 export function SeedingDashboard() {
   const allItems = useMemo(() => getAllItems(), []);
+  const inReviewItems = useMemo(() => allItems.filter((item) => item.status === 'In Review'), [allItems]);
 
   const readyToSeedItems = useMemo(
-    () => allItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')),
-    [allItems],
+    () => inReviewItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')),
+    [inReviewItems],
   );
 
   const currentlySeededItems = useMemo(
@@ -46,11 +47,11 @@ export function SeedingDashboard() {
 
   const waitingForPrioritisationCount = useMemo(
     () =>
-      allItems.filter(
+      inReviewItems.filter(
         (item) =>
           isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW') && (item.confidence ?? 0) < 60,
       ).length,
-    [allItems],
+    [inReviewItems],
   );
 
   const readyToSeed = readyToSeedItems.length;

@@ -16,9 +16,14 @@ const formatRunDate = (iso?: string): string => {
 
 export function PreTestingPipeline() {
   const allItems = getAllItems();
-  const screeningQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'NOT_STARTED')).length;
-  const predictionQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED')).length;
-  const seedingQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')).length;
+  const inReviewItems = allItems.filter((item) => item.status === 'In Review');
+  const screeningQueueCount = inReviewItems.filter((item) => isWorkflowState(item.workflowState, 'PENDING_SCREENING_REVIEW')).length;
+  const predictionQueueCount = inReviewItems.filter((item) =>
+    isWorkflowState(item.workflowState, 'SCREENING_APPROVED') ||
+    isWorkflowState(item.workflowState, 'IN_DIFFICULTY_ESTIMATION') ||
+    isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW'),
+  ).length;
+  const seedingQueueCount = inReviewItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')).length;
   const lastRunByStage = getLastRunDateByStage();
 
   const stageCards = [
@@ -29,7 +34,7 @@ export function PreTestingPipeline() {
       description:
         'Automated quality checks on new and revised items, covering rubric alignment, clarity, key accuracy, bias and CEFR fit.',
       queueCount: screeningQueueCount,
-      queueLabel: 'Draft items awaiting screening',
+      queueLabel: 'Items awaiting screening review',
       to: '/workflows/pre-testing-pipeline/screening',
     },
     {

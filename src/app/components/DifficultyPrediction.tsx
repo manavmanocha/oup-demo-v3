@@ -68,10 +68,11 @@ export function DifficultyPrediction() {
   const [showAllReadyToAccept, setShowAllReadyToAccept] = useState(false);
   const [selectedReadyIds, setSelectedReadyIds] = useState<string[]>([]);
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
-  const waitingForPrediction = allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED'));
+  const inReviewItems = useMemo(() => allItems.filter((item) => item.status === 'In Review'), [allItems]);
+  const waitingForPrediction = inReviewItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED'));
 
   const calibratedItems = useMemo(
-    () => allItems
+    () => inReviewItems
       .filter((item) => isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW'))
       .map((item) => ({
         id: item.id,
@@ -97,7 +98,7 @@ export function DifficultyPrediction() {
 
         return b.id.localeCompare(a.id);
       }),
-    [allItems],
+    [inReviewItems],
   );
 
   const needsReview = calibratedItems.filter((item) => item.confidence < 85);
@@ -164,7 +165,16 @@ export function DifficultyPrediction() {
         </div>
 
         {/* Summary Cards — ordered upstream → current work */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-500 uppercase">In Estimation</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="text-3xl font-bold text-gray-900">{waitingForPrediction.length + needsReview.length + readyToAccept.length}</div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-500 uppercase">Waiting for Estimation</CardTitle>

@@ -215,7 +215,12 @@ export function Screening() {
   const allItems = useMemo(() => getAllItems(), [refreshKey]);
 
   const screeningQueue = useMemo(
-    () => sortNewestFirst(allItems.filter((item) => isWorkflowState(item.workflowState, 'PENDING_SCREENING_REVIEW'))),
+    () =>
+      sortNewestFirst(
+        allItems.filter(
+          (item) => item.status === 'In Review' && isWorkflowState(item.workflowState, 'PENDING_SCREENING_REVIEW'),
+        ),
+      ),
     [allItems],
   );
 
@@ -229,7 +234,7 @@ export function Screening() {
     [screeningQueue],
   );
 
-  const awaitingScreening = allItems.filter((item) => isWorkflowState(item.workflowState, 'NOT_STARTED')).length;
+  const awaitingScreening = screeningQueue.length;
   const flaggedCount = failedItems.length;
   const passedCount = passedPendingItems.length;
 
@@ -273,7 +278,7 @@ export function Screening() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-500 uppercase">Awaiting Screening</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-500 uppercase">In Review</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-900">{awaitingScreening}</div>
