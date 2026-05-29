@@ -9,6 +9,31 @@ import { isWorkflowState } from '../data/workflowState';
 const DEFAULT_VISIBLE_RECOMMENDED_ITEMS = 4;
 const DEFAULT_VISIBLE_SEEDED_ITEMS = 5;
 
+const SEEDING_RATIONALE_TAGS: Record<string, string> = {
+  'EAS-DEM-WRT-C1-104': 'Bank gap at C1 Writing — underrepresented skill domain',
+  'EAS-DEM-SPK-B2-103': 'High-exposure slot needs replacement — B2 Speaking',
+  'EAS-DEM-SPK-C1-105': 'Low model confidence — field evidence required before bank entry',
+};
+
+const sumHash = (s: string) => s.split('').reduce((n, c) => n + (c.codePointAt(0) ?? 0), 0);
+
+const RATIONALE_POOL = [
+  'Bank gap at A2 Listening — coverage below target',
+  'Skill-domain underrepresented: B1 Reading inference',
+  'High-exposure item needs replacement — B2 Grammar',
+  'Low model confidence — field evidence required before bank entry',
+  'Bank gap at C1 Writing — underrepresented skill domain',
+  'Item replaces recently retired C2 vocabulary item',
+  'A1 Speaking coverage below 60 % of target — critical gap',
+  'Distractor revision approved — ready for live calibration',
+];
+
+const getSeedingRationale = (itemId: string, level: string, skill: string): string => {
+  if (SEEDING_RATIONALE_TAGS[itemId]) return SEEDING_RATIONALE_TAGS[itemId];
+  const idx = sumHash(itemId) % RATIONALE_POOL.length;
+  return RATIONALE_POOL[idx] ?? `Bank gap at ${level} ${skill}`;
+};
+
 const toTimestamp = (value?: string): number => {
   if (!value) return 0;
   const parsed = Date.parse(value);
@@ -98,76 +123,22 @@ export function Seeding() {
           <span className="text-gray-400">/</span>
           <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-900">Seeding</span>
+          <Link to="/workflows/pre-testing-pipeline/seeding" className="hover:underline">Seeding</Link>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-900">Recommended Items</span>
         </div>
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <div className="text-sm font-medium text-gray-500 uppercase mb-1">Step 3</div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Seeding</h1>
-            <p className="text-gray-600">
-              Choose which items to include in live tests next – prioritised by where the bank needs items most.
+            <div className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Step 3 · Seeding</div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Recommended Items</h1>
+            <p className="text-gray-600 max-w-xl">
+              Items ranked for inclusion in the next live test batch, ordered by bank gap and model confidence.
+              Select the items you want to allocate, then confirm the batch.
             </p>
           </div>
         </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-500 uppercase">Ready to Seed</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{recommendedItems.length}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-500 uppercase">Currently Seeded</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{currentlySeeded.length}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Bank Gaps */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-500 uppercase">Bank Gaps by Level</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-end justify-between gap-4 mb-6">
-              {[
-                { level: 'C1', gap: 36, needed: 'critical' },
-                { level: 'B1', gap: 28, needed: 'high' },
-                { level: 'A2', gap: 23, needed: 'medium' },
-                { level: 'B2', gap: 23, needed: 'medium' },
-                { level: 'C2', gap: 4, needed: 'low' },
-                { level: 'A1', gap: 3, needed: 'low' },
-              ].map((item) => (
-                <div key={item.level} className="flex-1 text-center">
-                  <div
-                    className={`rounded-t mx-auto ${
-                      item.needed === 'critical' ? 'bg-red-400' :
-                      item.needed === 'high' ? 'bg-orange-400' :
-                      item.needed === 'medium' ? 'bg-yellow-400' :
-                      'bg-gray-300'
-                    }`}
-                    style={{ 
-                      width: '100%',
-                      height: `${Math.max(item.gap * 2, 20)}px`,
-                    }}
-                  />
-                  <div className="text-sm font-bold text-gray-900 mt-2">{item.level}</div>
-                  <div className="text-xs text-gray-500">{item.gap} needed</div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Recommended for Seeding */}
         <Card className="mb-8">
@@ -178,12 +149,12 @@ export function Seeding() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-6">
-              Select items to include in the next live test batch.
+              Ranked by bank gap and model confidence. Select the items to include in this batch, then confirm.
             </p>
 
             {recommendedItems.length === 0 ? (
               <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-600">
-                No items are currently recommended for seeding.
+                No items are currently queued for seeding. Run a difficulty estimation to generate candidates.
               </div>
             ) : (
               <div className="space-y-4">
@@ -215,15 +186,18 @@ export function Seeding() {
                         <div className="flex flex-wrap gap-2 text-xs">
                           {item.difficulty && (
                             <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                              Difficulty: {item.difficulty}
+                              {item.difficulty}
                             </Badge>
                           )}
                           {item.confidence !== undefined && (
-                            <Badge variant="secondary">Confidence: {item.confidence}%</Badge>
+                            <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                              Confidence: {item.confidence}%
+                            </Badge>
                           )}
+                          <Badge variant="secondary" className="bg-amber-50 text-amber-800 border border-amber-200">
+                            {getSeedingRationale(item.id, item.level, item.skill)}
+                          </Badge>
                         </div>
-
-                        <div className="mt-3 text-xs text-green-600">Passed all screening checks and ready for seeding</div>
                       </div>
                     </div>
                   </div>
@@ -238,11 +212,13 @@ export function Seeding() {
             )}
 
             <div className="mt-6 p-3 bg-gray-50 border rounded text-sm text-gray-600">
-              {selectedItemIds.length} item{selectedItemIds.length === 1 ? '' : 's'} selected for seeding
+              {selectedItemIds.length} item{selectedItemIds.length === 1 ? '' : 's'} selected
             </div>
 
             <div className="mt-4 flex items-center gap-2">
-              <Button onClick={handleConfirmBatch} disabled={selectedItemIds.length === 0}>Confirm Batch</Button>
+              <Button onClick={handleConfirmBatch} disabled={selectedItemIds.length === 0}>
+                Confirm Seeding Batch
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -256,7 +232,7 @@ export function Seeding() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-6">
-              These items are already in live testing.
+              These items are embedded in live test forms and accruing response data.
             </p>
 
             <div className="border rounded-lg overflow-hidden">
