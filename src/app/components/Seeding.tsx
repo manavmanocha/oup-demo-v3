@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { getAllItems, getBankCapacity, moveItemsToSeeded } from '../data/mockData';
+import { SEEDED_RESPONSE_TARGET, getAllItems, getBankCapacity, getSeededResponsesAccrued, moveItemsToSeeded } from '../data/mockData';
 import { AssessmentItem } from '../data/types';
 import { isWorkflowState } from '../data/workflowState';
 
@@ -11,6 +11,23 @@ const DEFAULT_VISIBLE_RECOMMENDED_ITEMS = 4;
 const DEFAULT_VISIBLE_SEEDED_ITEMS = 5;
 
 const LOW_CONFIDENCE_THRESHOLD = 75;
+
+const formatSeededDate = (iso?: string): string => {
+  if (!iso) return 'N/A';
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return iso;
+  return parsed.toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const formatItemIdForDisplay = (id: string): string => {
+  return id.startsWith('ITMBK-') ? id.slice('ITMBK-'.length) : id;
+};
 
 const buildSeedingRationale = (
   item: Pick<AssessmentItem, 'id' | 'level' | 'skill' | 'confidence'>,
@@ -66,26 +83,12 @@ export function Seeding() {
   );
 
   const recommendedItems = useMemo(
-    () => {
-      const explicitRecommendations = sortNewestFirst(
+    () =>
+      sortNewestFirst(
         allItems.filter(
-          (item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING') && (item.confidence ?? 0) < 60,
+          (item) => item.status === 'In Review' && isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING'),
         ),
-      );
-
-      if (explicitRecommendations.length > 0) {
-        return explicitRecommendations;
-      }
-
-      return sortNewestFirst(
-        allItems.filter(
-          (item) =>
-            isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW') &&
-            (item.confidence ?? 0) < 60 &&
-            !item.flaggedForReview,
-        ),
-      ).slice(0, DEFAULT_VISIBLE_RECOMMENDED_ITEMS);
-    },
+      ),
     [allItems],
   );
 
@@ -135,11 +138,10 @@ export function Seeding() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <div className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Step 3 · Seeding</div>
+            <div className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Stage 3 · Seeding</div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Recommended Items</h1>
             <p className="text-gray-600 max-w-xl">
-              Items ranked for inclusion in the next live test batch, ordered by bank gap and model confidence.
-              Select the items you want to allocate, then confirm the batch.
+              Items ranked by bank gap and model confidence. Select and confirm to allocate to the next live test batch.
             </p>
           </div>
         </div>
@@ -178,7 +180,7 @@ export function Seeding() {
                             to={`/item-bank/${item.level}/${item.id}`}
                             className="text-sm font-medium text-blue-600 hover:underline"
                           >
-                            {item.id}
+                            {formatItemIdForDisplay(item.id)}
                           </Link>
                           <Badge variant="outline">{item.level}</Badge>
                           <Badge variant="outline">{item.skill}</Badge>
@@ -259,14 +261,14 @@ export function Seeding() {
                           to={`/item-bank/${item.level}/${item.id}`}
                           className="text-sm font-medium text-blue-600 hover:underline"
                         >
-                          {item.id}
+                          {formatItemIdForDisplay(item.id)}
                         </Link>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 max-w-md truncate">{item.title}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{item.level}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{item.difficulty || 'N/A'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">0 / 200</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{item.lastEditedDate || 'N/A'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{getSeededResponsesAccrued(item)} / {SEEDED_RESPONSE_TARGET}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{formatSeededDate(item.lastEditedDate)}</td>
                     </tr>
                   ))}
                 </tbody>

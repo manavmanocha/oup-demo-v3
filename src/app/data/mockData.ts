@@ -1365,7 +1365,11 @@ export const getSeededResponsesAccrued = (item: AssessmentItem, referenceDate: D
   }
 
   const days = Math.max(0, Math.floor((referenceDate.getTime() - seededDate.getTime()) / 86_400_000));
-  return Math.min(RESPONSE_TARGET, days * RESPONSES_PER_DAY);
+  const baseline = days * RESPONSES_PER_DAY;
+  const idVariance = (sumHashString(item.id) % 41) - 20;
+  const adjusted = Math.max(0, baseline + idVariance);
+
+  return Math.min(RESPONSE_TARGET, adjusted);
 };
 
 export const SEEDED_RESPONSE_TARGET = RESPONSE_TARGET;

@@ -48,7 +48,7 @@ export function Workflows() {
     },
     {
       id: 'standard-tagging',
-      title: 'Standard Tagging',
+      title: 'Standards Tagging',
       description: 'Apply curriculum frameworks or standards tags systematically across content.',
     },
     {

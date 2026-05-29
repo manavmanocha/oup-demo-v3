@@ -16,9 +16,9 @@ import { isWorkflowState } from '../data/workflowState';
 const DEFAULT_VISIBLE_ITEMS = 5;
 
 const metricHelpText = {
-  confidence: 'The model\'s estimated reliability for this prediction, expressed as a percentage. Values below 85% are flagged for manual review before the item can proceed.',
-  difficulty: 'How difficult the item is predicted to be for candidates at the target level. Higher values mean harder items.',
-  discrimination: 'How sharply the item distinguishes between candidates of different ability levels. Higher discrimination means the item gives more diagnostic information.',
+  confidence: 'How sure the model is about this estimate, based on similarity to items in the training set.',
+  difficulty: 'Estimated b-parameter on the IRT scale, mapped to a five-point band.',
+  discrimination: 'How well this item separates stronger candidates from weaker ones.',
 };
 
 function MetricValueWithTooltip({
@@ -68,38 +68,40 @@ export function DifficultyPrediction() {
   const [showAllReadyToAccept, setShowAllReadyToAccept] = useState(false);
   const [selectedReadyIds, setSelectedReadyIds] = useState<string[]>([]);
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
+
   const waitingForPrediction = useMemo(
     () => allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED')),
     [allItems],
   );
 
   const calibratedItems = useMemo(
-    () => allItems
-      .filter((item) => isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW'))
-      .map((item) => ({
-        id: item.id,
-        item: item.title,
-        level: item.level,
-        skill: item.skill,
-        itemType: item.itemType,
-        content: item.content,
-        confidence: item.confidence ?? 0,
-        difficulty: item.difficulty ?? 'Medium',
-        discrimination: item.discrimination ?? 'Moderate',
-        recencyTimestamp: Math.max(
-          toTimestamp(item.aiPredictionDate),
-          toTimestamp(item.irtParameters?.predictionDate),
-          toTimestamp(item.lastEditedDate),
-          toTimestamp(item.createdDate),
-        ),
-      }))
-      .sort((a, b) => {
-        if (b.recencyTimestamp !== a.recencyTimestamp) {
-          return b.recencyTimestamp - a.recencyTimestamp;
-        }
+    () =>
+      allItems
+        .filter((item) => isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW'))
+        .map((item) => ({
+          id: item.id,
+          item: item.title,
+          level: item.level,
+          skill: item.skill,
+          itemType: item.itemType,
+          content: item.content,
+          confidence: item.confidence ?? 0,
+          difficulty: item.difficulty ?? 'Medium',
+          discrimination: item.discrimination ?? 'Moderate',
+          recencyTimestamp: Math.max(
+            toTimestamp(item.aiPredictionDate),
+            toTimestamp(item.irtParameters?.predictionDate),
+            toTimestamp(item.lastEditedDate),
+            toTimestamp(item.createdDate),
+          ),
+        }))
+        .sort((a, b) => {
+          if (b.recencyTimestamp !== a.recencyTimestamp) {
+            return b.recencyTimestamp - a.recencyTimestamp;
+          }
 
-        return b.id.localeCompare(a.id);
-      }),
+          return b.id.localeCompare(a.id);
+        }),
     [allItems],
   );
 
@@ -112,7 +114,7 @@ export function DifficultyPrediction() {
 
   const toggleReadyItem = (itemId: string) => {
     setSelectedReadyIds((prev) =>
-      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]
+      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId],
     );
   };
 
@@ -143,22 +145,22 @@ export function DifficultyPrediction() {
   return (
     <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
-        {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
           <Link to="/workflows" className="hover:underline">Workflows</Link>
           <span className="text-gray-400">/</span>
           <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
           <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
+          <span className="text-gray-400">/</span>
           <span className="text-gray-900">Difficulty Estimation</span>
         </div>
 
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <div className="text-lg font-bold text-gray-800 uppercase tracking-wider mb-2">Stage 2</div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Difficulty Estimation</h1>
             <p className="text-gray-600">
-              Estimates item difficulty, CEFR alignment and discrimination from prior pre-test data, so items can be calibrated before live trialling.
+              Estimates item difficulty and CEFR level so items can be calibrated before live trialling.
             </p>
           </div>
           <Link to="/workflows/pre-testing-pipeline/difficulty-prediction/start">
@@ -166,14 +168,13 @@ export function DifficultyPrediction() {
           </Link>
         </div>
 
-        {/* Summary Cards — ordered upstream → current work */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-500 uppercase">In Estimation</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="text-3xl font-bold text-gray-900">{waitingForPrediction.length + needsReview.length + readyToAccept.length}</div>
+              <div className="text-3xl font-bold text-gray-900">{waitingForPrediction.length + needsReview.length + readyToAccept.length}</div>
             </CardContent>
           </Card>
 
@@ -182,7 +183,7 @@ export function DifficultyPrediction() {
               <CardTitle className="text-sm font-medium text-gray-500 uppercase">Waiting for Estimation</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="text-3xl font-bold text-gray-900">{waitingForPrediction.length}</div>
+              <div className="text-3xl font-bold text-gray-900">{waitingForPrediction.length}</div>
             </CardContent>
           </Card>
 
@@ -191,7 +192,7 @@ export function DifficultyPrediction() {
               <CardTitle className="text-sm font-medium text-gray-500 uppercase">Needs Your Review</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="text-3xl font-bold text-gray-900">{needsReview.length}</div>
+              <div className="text-3xl font-bold text-gray-900">{needsReview.length}</div>
             </CardContent>
           </Card>
 
@@ -200,12 +201,11 @@ export function DifficultyPrediction() {
               <CardTitle className="text-sm font-medium text-gray-500 uppercase">Ready to Accept</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="text-3xl font-bold text-gray-900">{readyToAccept.length}</div>
+              <div className="text-3xl font-bold text-gray-900">{readyToAccept.length}</div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Needs Your Review */}
         <Card className="mb-8">
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
@@ -269,7 +269,7 @@ export function DifficultyPrediction() {
 
               {needsReview.length === 0 && (
                 <div className="text-sm text-gray-600 border rounded-lg p-6 bg-gray-50">
-                  No items currently below the confidence threshold — all recent estimations passed automatically.
+                  No items currently below the confidence threshold. All recent estimations passed automatically.
                 </div>
               )}
 
@@ -284,7 +284,6 @@ export function DifficultyPrediction() {
           </CardContent>
         </Card>
 
-        {/* Ready to Accept */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-3">
@@ -293,11 +292,9 @@ export function DifficultyPrediction() {
               </CardTitle>
               <span className="text-xs text-gray-500">Confidence 85% or above</span>
             </div>
-            {selectedReadyIds.length > 0 && (
-              <Button size="sm" onClick={handleAcceptAll}>
-                Accept {selectedReadyIds.length} selected
-              </Button>
-            )}
+            <Button size="sm" onClick={handleAcceptAll} disabled={selectedReadyIds.length === 0}>
+              {selectedReadyIds.length > 0 ? `Accept ${selectedReadyIds.length} selected` : 'Accept selected'}
+            </Button>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-6">
@@ -387,7 +384,7 @@ export function DifficultyPrediction() {
                   {readyToAccept.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                        No items currently meet the confidence threshold — check back after the next estimation run.
+                        No items currently meet the confidence threshold. Check back after the next estimation run.
                       </td>
                     </tr>
                   )}
@@ -410,4 +407,3 @@ export function DifficultyPrediction() {
     </div>
   );
 }
-

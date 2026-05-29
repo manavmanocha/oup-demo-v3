@@ -8,7 +8,7 @@ import { Input } from './ui/input';
 import { Checkbox } from './ui/checkbox';
 import { Search, Filter, ChevronLeft, ChevronRight, ArrowRight, Info } from 'lucide-react';
 import { getAllItems, getBankCapacity, getCompromisedItems } from '../data/mockData';
-import { isWorkflowState, getWorkflowStateLabel } from '../data/workflowState';
+import { isWorkflowState } from '../data/workflowState';
 import {
   Tooltip,
   TooltipContent,
@@ -23,8 +23,64 @@ import {
   SelectValue,
 } from './ui/select';
 
+type ReviewQueueStatus = 'Screening Review' | 'Difficulty Estimation Review' | 'Awaiting Seeding';
+
+const REVIEW_QUEUE_STATUS_ORDER: ReviewQueueStatus[] = [
+  'Screening Review',
+  'Difficulty Estimation Review',
+  'Awaiting Seeding',
+];
+
+const getReviewQueueStatus = (workflowState: string | undefined): ReviewQueueStatus | undefined => {
+  if (isWorkflowState(workflowState, 'PENDING_SCREENING_REVIEW')) {
+    return 'Screening Review';
+  }
+
+  if (isWorkflowState(workflowState, 'PENDING_DP_REVIEW')) {
+    return 'Difficulty Estimation Review';
+  }
+
+  if (isWorkflowState(workflowState, 'RECOMMENDED_FOR_SEEDING')) {
+    return 'Awaiting Seeding';
+  }
+
+  return undefined;
+};
+
+const interleaveReviewQueueByStatus = <T extends { status: ReviewQueueStatus }>(items: T[]): T[] => {
+  const buckets: Record<ReviewQueueStatus, T[]> = {
+    'Screening Review': [],
+    'Difficulty Estimation Review': [],
+    'Awaiting Seeding': [],
+  };
+
+  items.forEach((item) => {
+    buckets[item.status].push(item);
+  });
+
+  const interleaved: T[] = [];
+  while (interleaved.length < items.length) {
+    REVIEW_QUEUE_STATUS_ORDER.forEach((status) => {
+      const next = buckets[status].shift();
+      if (next) {
+        interleaved.push(next);
+      }
+    });
+  }
+
+  return interleaved;
+};
+
 export function ItemBankOverview() {
   const bankCapacityData = getBankCapacity();
+  const formattedLastUpdated = new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date());
   const totalActive = bankCapacityData.reduce((sum, level) => sum + level.active, 0);
   const totalTarget = bankCapacityData.reduce((sum, level) => sum + level.target, 0);
   const totalGap = bankCapacityData.reduce((sum, level) => sum + level.gapToTarget, 0);
@@ -39,19 +95,22 @@ export function ItemBankOverview() {
   const itemsPerPage = 10;
 
   const reviewQueueItems = getAllItems()
-    .filter(
-      (item) =>
-        isWorkflowState(item.workflowState, 'PENDING_SCREENING_REVIEW') ||
-        isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW'),
-    )
-    .map((item) => ({
-      id: item.id,
-      name: item.title || item.content,
-      type: item.itemType,
-      submittedBy: item.author || 'System',
-      status: getWorkflowStateLabel(item.workflowState),
-      level: item.level,
-    }));
+    .map((item) => {
+      const status = getReviewQueueStatus(item.workflowState);
+      if (!status) {
+        return null;
+      }
+
+      return {
+        id: item.id,
+        name: item.title || item.content,
+        type: item.itemType,
+        submittedBy: item.author || 'System',
+        status,
+        level: item.level,
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
   const highestGapLevel = [...bankCapacityData].sort((a, b) => b.gapToTarget - a.gapToTarget)[0];
 
   const filteredReviewItems = reviewQueueItems.filter(item => {
@@ -61,8 +120,10 @@ export function ItemBankOverview() {
     return matchesSearch && matchesStatus;
   });
 
-  const totalPages = Math.ceil(filteredReviewItems.length / itemsPerPage);
-  const paginatedItems = filteredReviewItems.slice(
+  const orderedReviewItems = interleaveReviewQueueByStatus(filteredReviewItems);
+
+  const totalPages = Math.ceil(orderedReviewItems.length / itemsPerPage);
+  const paginatedItems = orderedReviewItems.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -89,13 +150,14 @@ export function ItemBankOverview() {
     switch (status) {
       case 'Screening Review': return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'Difficulty Estimation Review': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Awaiting Seeding': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
   return (
     <div className="p-4 sm:p-6 md:p-8">
-      <div className="mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-6">
           <Link to="/workflows" className="hover:text-gray-700">Workflows</Link>
@@ -108,15 +170,18 @@ export function ItemBankOverview() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Pre-Testing Pipeline Overview</h1>
             <p className="text-gray-600">
-              Monitor item-bank coverage and manage the pre-testing review queue across CEFR levels.
+              Monitor item-bank coverage across CEFR levels. Manage the pre-testing review queue.
             </p>
           </div>
-          <Link to="/workflows/pre-testing-pipeline/stages">
-            <Button>
-              View pipeline stages
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </Link>
+          <div className="flex flex-col items-end gap-2">
+            <div className="text-xs text-gray-500">Updated {formattedLastUpdated}</div>
+            <Link to="/workflows/pre-testing-pipeline/stages">
+              <Button>
+                Open pipeline
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -208,11 +273,9 @@ export function ItemBankOverview() {
                     </div>
                     <div className="text-sm font-semibold text-gray-900 mt-2">{level.level}</div>
                     <div className="text-xs text-gray-500">{level.active} / {level.target}</div>
-                    {level.compromised > 0 && (
-                      <div className="mt-1 text-[11px] text-red-500">
-                        {level.compromised} compromised
-                      </div>
-                    )}
+                    <div className="mt-1 text-[11px] text-red-500">
+                      {level.compromised} compromised
+                    </div>
                   </div>
                 </Link>
               ))}
@@ -235,8 +298,8 @@ export function ItemBankOverview() {
 
             <div className="mt-4 text-sm text-gray-600 text-center">
               {highestGapLevel && highestGapLevel.gapToTarget > 0
-                ? `${highestGapLevel.level} needs ${highestGapLevel.gapToTarget} more items to reach target · ${compromisedItems.length} compromised · ${reviewQueueItems.length} pending`
-                : `${compromisedItems.length} compromised · ${reviewQueueItems.length} pending`}
+                ? `${highestGapLevel.level} needs ${highestGapLevel.gapToTarget} more items to reach target · ${compromisedItems.length} compromised · ${reviewQueueItems.length} awaiting review`
+                : `${compromisedItems.length} compromised · ${reviewQueueItems.length} awaiting review`}
             </div>
           </CardContent>
         </Card>
@@ -270,6 +333,7 @@ export function ItemBankOverview() {
                   <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="Screening Review">Screening Review</SelectItem>
                   <SelectItem value="Difficulty Estimation Review">Difficulty Estimation Review</SelectItem>
+                  <SelectItem value="Awaiting Seeding">Awaiting Seeding</SelectItem>
                 </SelectContent>
               </Select>
             </div>

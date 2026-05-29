@@ -33,31 +33,50 @@ const hasScreeningFailure = (item: AssessmentItem) => {
   return Object.values(item.screening ?? {}).includes('Fail');
 };
 
+const hasScreeningReview = (item: AssessmentItem) => {
+  return Object.values(item.screening ?? {}).includes('Review');
+};
+
+const formatItemIdForDisplay = (id: string): string => {
+  return id.startsWith('ITMBK-') ? id.slice('ITMBK-'.length) : id;
+};
+
+const SIMILARITY_REVIEW_VARIANTS = [
+  'Similarity: moderate overlap with an existing item. Confirm it is sufficiently differentiated.',
+  'Similarity: vocabulary range is close to a recent item at the same level. Confirm intent differs.',
+  'Similarity: topic and stem structure are similar to an existing item. Confirm it tests a distinct sub-skill.',
+];
+
+const pickSimilarityReviewVariant = (itemId: string): string => {
+  const hash = itemId.split('').reduce((acc, char) => acc + (char.codePointAt(0) ?? 0), 0);
+  return SIMILARITY_REVIEW_VARIANTS[hash % SIMILARITY_REVIEW_VARIANTS.length];
+};
+
 const SCREENING_DIMENSION_NOTES: Record<keyof NonNullable<AssessmentItem['screening']>, { fail: string; review: string; label: string }> = {
   cefrFit: {
     label: 'CEFR fit',
     fail: 'CEFR fit: estimated level falls outside the target band.',
-    review: 'CEFR fit: borderline between the target level and an adjacent band — confirm before progression.',
+    review: 'CEFR fit: borderline between the target level and an adjacent band. Confirm before progression.',
   },
   distractorStrength: {
     label: 'Distractor strength',
     fail: 'Distractor analysis: one or more distractors are non-functional and unlikely to attract test-takers.',
-    review: 'Distractor analysis: distractor balance is weaker than the bank average — review for plausibility.',
+    review: 'Distractor analysis: distractor balance is weaker than the bank average. Review for plausibility.',
   },
   clarity: {
     label: 'Clarity',
     fail: 'Clarity: stem wording is ambiguous and likely to confuse test-takers.',
-    review: 'Clarity: stem wording may be ambiguous on re-read — confirm a single defensible interpretation.',
+    review: 'Clarity: stem wording may be ambiguous on re-read. Confirm a single defensible interpretation.',
   },
   fairness: {
     label: 'Fairness',
     fail: 'Fairness: contains content that may disadvantage a candidate group.',
-    review: 'Fairness: includes a culturally specific reference — review for accessibility across cohorts.',
+    review: 'Fairness: includes a culturally specific reference. Review for accessibility across cohorts.',
   },
   similarity: {
     label: 'Similarity',
-    fail: 'Similarity: high textual overlap with an existing live item — risk of item exposure.',
-    review: 'Similarity: moderate overlap with an existing item — confirm it is sufficiently differentiated.',
+    fail: 'Similarity: high textual overlap with an existing live item. Risk of item exposure.',
+    review: 'Similarity: moderate overlap with an existing item. Confirm it is sufficiently differentiated.',
   },
 };
 
@@ -68,7 +87,13 @@ const getScreeningFeedback = (item: AssessmentItem): string | null => {
     (Object.keys(SCREENING_DIMENSION_NOTES) as Array<keyof typeof SCREENING_DIMENSION_NOTES>).forEach((key) => {
       const result = screening[key];
       if (result === 'Fail') notes.push(SCREENING_DIMENSION_NOTES[key].fail);
-      else if (result === 'Review') notes.push(SCREENING_DIMENSION_NOTES[key].review);
+      else if (result === 'Review') {
+        if (key === 'similarity') {
+          notes.push(pickSimilarityReviewVariant(item.id));
+        } else {
+          notes.push(SCREENING_DIMENSION_NOTES[key].review);
+        }
+      }
     });
     if (notes.length > 0) return notes.join(' ');
   }
@@ -113,6 +138,18 @@ const renderScreeningBadges = (item: AssessmentItem) => {
         return <Badge key={key} variant="secondary">{label}: Review</Badge>;
       }
 
+      if (result === 'Pass') {
+        return (
+          <Badge
+            key={key}
+            variant="outline"
+            className="border-green-200 bg-green-50 text-green-700"
+          >
+            {label}: Pass
+          </Badge>
+        );
+      }
+
       return null;
     })
     .filter(Boolean);
@@ -121,11 +158,7 @@ const renderScreeningBadges = (item: AssessmentItem) => {
     return <div className="flex flex-wrap gap-2 mb-4">{badges}</div>;
   }
 
-  return (
-    <div className="flex flex-wrap gap-2 mb-4">
-      <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">All 5 Dimensions: Pass</Badge>
-    </div>
-  );
+  return null;
 };
 
 const ScreeningQueueSection = ({
@@ -158,6 +191,9 @@ const ScreeningQueueSection = ({
       </CardHeader>
       <CardContent>
         <p className="text-sm text-gray-600 mb-6">{description}</p>
+        {items.length > 0 && (
+          <p className="text-xs text-gray-500 mb-4">Showing {visibleItems.length} of {items.length} items</p>
+        )}
 
         <div className="space-y-6">
           {visibleItems.map((item) => (
@@ -169,7 +205,7 @@ const ScreeningQueueSection = ({
                     state={{ fromWorkflow: true }}
                     className="text-sm font-medium text-blue-600 hover:underline"
                   >
-                    {item.id}
+                    {formatItemIdForDisplay(item.id)}
                   </Link>
                   <Badge variant="outline">{item.level}</Badge>
                   <Badge variant="outline">{item.skill}</Badge>
@@ -226,12 +262,12 @@ export function Screening() {
   );
 
   const failedItems = useMemo(
-    () => screeningQueue.filter((item) => item.flaggedForReview || hasScreeningFailure(item)),
+    () => screeningQueue.filter((item) => item.flaggedForReview || hasScreeningFailure(item) || hasScreeningReview(item)),
     [screeningQueue],
   );
 
   const passedPendingItems = useMemo(
-    () => screeningQueue.filter((item) => !item.flaggedForReview && !hasScreeningFailure(item)),
+    () => screeningQueue.filter((item) => !item.flaggedForReview && !hasScreeningFailure(item) && !hasScreeningReview(item)),
     [screeningQueue],
   );
 
@@ -264,6 +300,8 @@ export function Screening() {
           <span className="text-gray-400">/</span>
           <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
           <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
+          <span className="text-gray-400">/</span>
           <span className="text-gray-900">Screening</span>
         </div>
 
@@ -273,7 +311,7 @@ export function Screening() {
             <div className="text-lg font-bold text-gray-800 uppercase tracking-wider mb-2">Stage 1</div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Screening</h1>
             <p className="text-gray-600">
-              Five automated checks — CEFR fit, distractor strength, clarity, fairness and similarity — applied to every new or revised item.
+              Five automated checks applied to every new or revised item: CEFR fit, distractor strength, clarity, fairness and similarity.
             </p>
           </div>
           <Link to="/workflows/pre-testing-pipeline/screening/start">
@@ -313,17 +351,17 @@ export function Screening() {
 
         <div className="space-y-6">
           <ScreeningQueueSection
-            title="Flagged — Needs Reviewer Decision"
+            title="Flagged: Needs Reviewer Decision"
             description="One or more screening dimensions failed for these items. Review the AI feedback and either approve the item for progression or reject it from the pipeline."
             items={failedItems}
             feedbackClassName="p-3 bg-orange-50 border border-orange-200 rounded text-sm text-gray-700"
-            emptyMessage="No items are currently flagged — all screened items either passed or have been actioned."
+            emptyMessage="No items are currently flagged. All screened items either passed or have been actioned."
             onApprove={handleApprove}
             onReject={handleReject}
           />
 
           <ScreeningQueueSection
-            title="Passed — Ready to Approve"
+            title="Passed: Ready to Approve"
             description="These items cleared all five screening dimensions. Approve to move them forward to difficulty estimation, or reject if a manual review finds an issue."
             items={passedPendingItems}
             feedbackClassName="p-3 bg-green-50 border border-green-200 rounded text-sm text-gray-700"

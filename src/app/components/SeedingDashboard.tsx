@@ -20,6 +20,23 @@ const formatSeedingRunDate = (iso?: string): string => {
   return parsed.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
+const formatSeededDate = (iso?: string): string => {
+  if (!iso) return 'N/A';
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return iso;
+  return parsed.toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const formatItemIdForDisplay = (id: string): string => {
+  return id.startsWith('ITMBK-') ? id.slice('ITMBK-'.length) : id;
+};
+
 const toTimestamp = (value?: string): number => {
   if (!value) return 0;
   const parsed = Date.parse(value);
@@ -64,7 +81,7 @@ export function SeedingDashboard() {
       getSeedingRuns(RECENT_SEEDING_RUN_LIMIT).map((run) => ({
         ...run,
         displayDate: formatSeedingRunDate(run.date),
-        confirmedBy: run.reviewer ?? 'Seeding Team',
+        confirmedBy: run.reviewer ?? 'Auto-confirmed',
       })),
     [],
   );
@@ -77,6 +94,8 @@ export function SeedingDashboard() {
           <Link to="/workflows" className="hover:underline">Workflows</Link>
           <span className="text-gray-400">/</span>
           <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
           <span className="text-gray-400">/</span>
           <span className="text-gray-900">Seeding</span>
         </div>
@@ -216,7 +235,7 @@ export function SeedingDashboard() {
                               to={`/item-bank/${item.level}/${item.id}`}
                               className="text-sm font-medium text-blue-600 hover:underline"
                             >
-                              {item.id}
+                              {formatItemIdForDisplay(item.id)}
                             </Link>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-700 max-w-md truncate" title={item.title}>
@@ -225,7 +244,7 @@ export function SeedingDashboard() {
                           <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">{item.level}</td>
                           <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{item.difficulty || 'N/A'}</td>
                           <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{getSeededResponsesAccrued(item)} / {SEEDED_RESPONSE_TARGET}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{item.lastEditedDate || 'N/A'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{formatSeededDate(item.lastEditedDate)}</td>
                         </tr>
                       ))}
                     </tbody>

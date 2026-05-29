@@ -33,9 +33,16 @@ export function PredictDifficulty() {
   const navigate = useNavigate();
   const [step, setStep] = useState<'select' | 'confirm' | 'processing' | 'success'>('select');
   const [progress, setProgress] = useState(0);
+  const [completedAt, setCompletedAt] = useState<Date | null>(null);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [predictionResults, setPredictionResults] = useState<Record<string, { b: number; confidence: number; difficulty: 'Easy' | 'Medium' | 'Hard' | 'Very Easy' | 'Very Hard'; discrimination: string }>>({});
+  const stepLabel: Record<typeof step, string> = {
+    select: 'Select Items',
+    confirm: 'Confirm',
+    processing: 'Running',
+    success: 'Results',
+  };
 
   // Get all items from library - filter to items in Screening Passed state
   const allItems = getAllItems();
@@ -53,9 +60,10 @@ export function PredictDifficulty() {
   }, [availableItems, searchQuery]);
 
   // Keep selected items resolvable after estimation changes state after estimation starts
-  const selectedItems = allItems
-    .filter(item => selectedItemIds.includes(item.id))
-    .map(item => ({
+  const selectedItems = selectedItemIds
+    .map((id) => allItems.find((item) => item.id === id))
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .map((item) => ({
       ...item,
       predictedDifficulty: predictionResults[item.id]?.b ?? 0,
       confidence: predictionResults[item.id]?.confidence ?? 0,
@@ -96,6 +104,7 @@ export function PredictDifficulty() {
         return acc;
       }, {}),
     );
+    setCompletedAt(new Date());
     setStep('success');
   };
 
@@ -125,6 +134,7 @@ export function PredictDifficulty() {
     setSelectedItemIds([]);
     setSearchQuery('');
     setProgress(0);
+    setCompletedAt(null);
     setPredictionResults({});
   };
 
@@ -136,17 +146,17 @@ export function PredictDifficulty() {
     <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
-        {step !== 'success' && (
-          <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
-            <Link to="/workflows" className="hover:underline">Workflows</Link>
-            <span className="text-gray-400">/</span>
-            <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
-            <span className="text-gray-400">/</span>
-            <Link to="/workflows/pre-testing-pipeline/difficulty-prediction" className="hover:underline">Difficulty Estimation</Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-900">Select Items</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
+          <Link to="/workflows" className="hover:underline">Workflows</Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline/difficulty-prediction" className="hover:underline">Difficulty Estimation</Link>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-900">{stepLabel[step]}</span>
+        </div>
 
         {step === 'select' && (
           <div className="space-y-6">
@@ -267,7 +277,7 @@ export function PredictDifficulty() {
                 Confirm difficulty estimation
               </h1>
               <p className="text-gray-600">
-                {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'} will be sent to the estimation model — the run typically completes within a minute.
+                {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'} will be sent to the estimation model, and the run typically completes within a minute.
               </p>
             </div>
 
@@ -319,7 +329,7 @@ export function PredictDifficulty() {
 
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Running estimation
+                {progress >= 100 ? 'Finalising estimates' : 'Running estimation'}
               </h1>
               <p className="text-gray-600 mb-6">
                 Estimating difficulty for {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'}. This typically takes under a minute.
@@ -356,6 +366,11 @@ export function PredictDifficulty() {
                   <span className="font-semibold text-gray-900">{readyCount}</span> ready to publish ·{' '}
                   <span className="font-semibold text-gray-900">{reviewCount}</span> need{reviewCount === 1 ? 's' : ''} manual review.
                 </p>
+                {completedAt && (
+                  <p className="text-xs text-gray-500">
+                    Completed at {completedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -371,7 +386,10 @@ export function PredictDifficulty() {
                   <table className="w-full min-w-[640px]">
                     <thead className="bg-gray-50 border-b">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skill / Type</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CEFR</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Difficulty</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Discrimination</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Confidence</th>
@@ -382,10 +400,12 @@ export function PredictDifficulty() {
                         const needsReview = item.confidence < CONFIDENCE_THRESHOLD;
                         return (
                         <tr key={item.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3">
-                            <div className="text-sm font-medium text-blue-600">{item.id}</div>
-                            <div className="text-xs text-gray-600 truncate max-w-md" title={item.title}>{item.title}</div>
+                          <td className="px-4 py-3 text-sm font-medium text-blue-600 whitespace-nowrap">{item.id}</td>
+                          <td className="px-4 py-3 text-sm text-gray-700 max-w-md truncate" title={item.title}>{item.title}</td>
+                          <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                            {item.skill === item.itemType ? item.skill : `${item.skill} · ${item.itemType}`}
                           </td>
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">{item.level}</td>
                           <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{predictionResults[item.id]?.difficulty ?? 'N/A'}</td>
                           <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{predictionResults[item.id]?.discrimination ?? 'N/A'}</td>
                           <td className="px-4 py-3 whitespace-nowrap">
@@ -413,9 +433,15 @@ export function PredictDifficulty() {
               <Button variant="outline" onClick={handleAddMore}>
                 Estimate more items
               </Button>
-              <Button onClick={handleFinish}>
-                Return to estimation dashboard
-              </Button>
+              {reviewCount > 0 ? (
+                <Button onClick={handleFinish}>
+                  Review needs-review items
+                </Button>
+              ) : (
+                <Button onClick={handleFinish}>
+                  Open Difficulty Estimation dashboard
+                </Button>
+              )}
             </div>
           </div>
           );
