@@ -7,7 +7,7 @@ import { Progress } from './ui/progress';
 import { Input } from './ui/input';
 import { Checkbox } from './ui/checkbox';
 import { Search, Filter, ChevronLeft, ChevronRight, ArrowRight, Info } from 'lucide-react';
-import { bankCapacityData, getAllItems, getCompromisedItems } from '../data/mockData';
+import { getAllItems, getBankCapacity, getCompromisedItems } from '../data/mockData';
 import { isWorkflowState, getWorkflowStateLabel } from '../data/workflowState';
 import {
   Tooltip,
@@ -24,6 +24,7 @@ import {
 } from './ui/select';
 
 export function ItemBankOverview() {
+  const bankCapacityData = getBankCapacity();
   const totalActive = bankCapacityData.reduce((sum, level) => sum + level.active, 0);
   const totalTarget = bankCapacityData.reduce((sum, level) => sum + level.target, 0);
   const totalGap = bankCapacityData.reduce((sum, level) => sum + level.gapToTarget, 0);

@@ -657,14 +657,51 @@ export const moveItemsToSeeded = (itemIds: string[]) => {
   });
 };
 
-export const bankCapacityData: BankCapacity[] = [
-  { level: 'A1', active: 84, compromised: 6, gapToTarget: 28, target: 118, percentage: 71 },
-  { level: 'A2', active: 67, compromised: 13, gapToTarget: 0, target: 80, percentage: 100 },
-  { level: 'B1', active: 80, compromised: 5, gapToTarget: 15, target: 100, percentage: 85 },
-  { level: 'B2', active: 55, compromised: 0, gapToTarget: 0, target: 55, percentage: 100 },
-  { level: 'C1', active: 14, compromised: 0, gapToTarget: 36, target: 50, percentage: 28 },
-  { level: 'C2', active: 67, compromised: 3, gapToTarget: 13, target: 83, percentage: 84 },
-];
+export const bankCapacityTargets: Record<CEFRLevel, number> = {
+  A1: 118,
+  A2: 80,
+  B1: 100,
+  B2: 55,
+  C1: 50,
+  C2: 83,
+};
+
+const BANK_CAPACITY_LEVELS: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+// Derived live from the same item set that powers the Library screen so
+// active/compromised counts always reflect questions.json + workflow overrides.
+// "Active" mirrors the Library Status definition: items live in the bank
+// (status === 'Published'). Draft / Retired items are not yet (or no longer)
+// in the bank, so they don't count toward bank fill.
+export const getBankCapacity = (): BankCapacity[] => {
+  const items = getAllItems();
+  const counts: Record<CEFRLevel, { active: number; compromised: number }> = {
+    A1: { active: 0, compromised: 0 },
+    A2: { active: 0, compromised: 0 },
+    B1: { active: 0, compromised: 0 },
+    B2: { active: 0, compromised: 0 },
+    C1: { active: 0, compromised: 0 },
+    C2: { active: 0, compromised: 0 },
+  };
+
+  items.forEach((item) => {
+    const bucket = counts[item.level];
+    if (!bucket) return;
+    if (item.status === 'Compromised') {
+      bucket.compromised += 1;
+    } else if (item.status === 'Published') {
+      bucket.active += 1;
+    }
+  });
+
+  return BANK_CAPACITY_LEVELS.map((level) => {
+    const target = bankCapacityTargets[level];
+    const { active, compromised } = counts[level];
+    const gapToTarget = Math.max(0, target - active);
+    const percentage = target > 0 ? Math.min(100, Math.round((active / target) * 100)) : 0;
+    return { level, active, compromised, gapToTarget, target, percentage };
+  });
+};
 
 type QuestionWithMetadata = UnifiedQuestion & {
   workflowState?: AssessmentItem['workflowState'];

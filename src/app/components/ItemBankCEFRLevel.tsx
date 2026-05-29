@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { AlertCircle } from 'lucide-react';
-import { getItemsByLevel, bankCapacityData } from '../data/mockData';
+import { getItemsByLevel, getBankCapacity } from '../data/mockData';
 import { CEFRLevel } from '../data/types';
 import { PIPELINE_WORKFLOW_STATES, getWorkflowStateLabel, isAnyWorkflowState } from '../data/workflowState';
 import {
@@ -18,7 +18,7 @@ export function ItemBankCEFRLevel() {
   const { level } = useParams<{ level: CEFRLevel }>();
 
   const items = getItemsByLevel(level as CEFRLevel);
-  const levelData = bankCapacityData.find(l => l.level === level);
+  const levelData = getBankCapacity().find(l => l.level === level);
   const levelTotal = Math.max(items.length, 1);
   const pendingCount = items.filter(item => isAnyWorkflowState(item.workflowState, PIPELINE_WORKFLOW_STATES)).length;
 
