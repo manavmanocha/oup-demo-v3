@@ -382,22 +382,13 @@ export function PredictDifficulty() {
                     Estimation results · {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'}
                   </h3>
                 </div>
-                <div>
-                  <table className="w-full table-fixed">
-                    <colgroup>
-                      <col className="w-[18%]" />
-                      <col className="w-[27%]" />
-                      <col className="w-[18%]" />
-                      <col className="w-[7%]" />
-                      <col className="w-[9%]" />
-                      <col className="w-[10%]" />
-                      <col className="w-[11%]" />
-                    </colgroup>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[880px]">
                     <thead className="bg-gray-50 border-b">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Item ID</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skill / Type</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Skill / Type</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CEFR</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Difficulty</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Discrimination</th>
@@ -409,10 +400,8 @@ export function PredictDifficulty() {
                         const needsReview = item.confidence < CONFIDENCE_THRESHOLD;
                         return (
                         <tr key={item.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm font-medium text-blue-600">
-                            <div className="truncate" title={item.id}>{item.id}</div>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-700" title={item.title}>
+                          <td className="px-4 py-3 text-sm font-medium text-blue-600 whitespace-nowrap">{item.id}</td>
+                          <td className="px-4 py-3 text-sm text-gray-700 max-w-xs" title={item.title}>
                             <div className="truncate">{item.title}</div>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
