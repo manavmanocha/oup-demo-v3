@@ -3,35 +3,31 @@ import { Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { getAllItems, moveItemsToSeeded } from '../data/mockData';
+import { getAllItems, getBankCapacity, moveItemsToSeeded } from '../data/mockData';
+import { AssessmentItem } from '../data/types';
 import { isWorkflowState } from '../data/workflowState';
 
 const DEFAULT_VISIBLE_RECOMMENDED_ITEMS = 4;
 const DEFAULT_VISIBLE_SEEDED_ITEMS = 5;
 
-const SEEDING_RATIONALE_TAGS: Record<string, string> = {
-  'EAS-DEM-WRT-C1-104': 'Bank gap at C1 Writing — underrepresented skill domain',
-  'EAS-DEM-SPK-B2-103': 'High-exposure slot needs replacement — B2 Speaking',
-  'EAS-DEM-SPK-C1-105': 'Low model confidence — field evidence required before bank entry',
-};
+const LOW_CONFIDENCE_THRESHOLD = 75;
 
-const sumHash = (s: string) => s.split('').reduce((n, c) => n + (c.codePointAt(0) ?? 0), 0);
+const buildSeedingRationale = (
+  item: Pick<AssessmentItem, 'id' | 'level' | 'skill' | 'confidence'>,
+  gapByLevel: Record<string, number>,
+): string => {
+  const confidence = item.confidence ?? 0;
+  const gap = gapByLevel[item.level] ?? 0;
 
-const RATIONALE_POOL = [
-  'Bank gap at A2 Listening — coverage below target',
-  'Skill-domain underrepresented: B1 Reading inference',
-  'High-exposure item needs replacement — B2 Grammar',
-  'Low model confidence — field evidence required before bank entry',
-  'Bank gap at C1 Writing — underrepresented skill domain',
-  'Item replaces recently retired C2 vocabulary item',
-  'A1 Speaking coverage below 60 % of target — critical gap',
-  'Distractor revision approved — ready for live calibration',
-];
+  if (confidence > 0 && confidence < LOW_CONFIDENCE_THRESHOLD) {
+    return `Low model confidence (${confidence}%) — field evidence required before bank entry`;
+  }
 
-const getSeedingRationale = (itemId: string, level: string, skill: string): string => {
-  if (SEEDING_RATIONALE_TAGS[itemId]) return SEEDING_RATIONALE_TAGS[itemId];
-  const idx = sumHash(itemId) % RATIONALE_POOL.length;
-  return RATIONALE_POOL[idx] ?? `Bank gap at ${level} ${skill}`;
+  if (gap > 0) {
+    return `Bank gap at ${item.level} ${item.skill} — ${gap} item${gap === 1 ? '' : 's'} below target`;
+  }
+
+  return `${item.level} ${item.skill} coverage on target — refresh exposure pool`;
 };
 
 const toTimestamp = (value?: string): number => {
@@ -60,6 +56,14 @@ export function Seeding() {
   const [showAllSeeded, setShowAllSeeded] = useState(false);
 
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
+
+  const gapByLevel = useMemo(
+    () => getBankCapacity().reduce<Record<string, number>>((acc, row) => {
+      acc[row.level] = row.gapToTarget;
+      return acc;
+    }, {}),
+    [refreshVersion],
+  );
 
   const recommendedItems = useMemo(
     () => {
@@ -195,7 +199,7 @@ export function Seeding() {
                             </Badge>
                           )}
                           <Badge variant="secondary" className="bg-amber-50 text-amber-800 border border-amber-200">
-                            {getSeedingRationale(item.id, item.level, item.skill)}
+                            {buildSeedingRationale(item, gapByLevel)}
                           </Badge>
                         </div>
                       </div>

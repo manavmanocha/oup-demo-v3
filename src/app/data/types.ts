@@ -1,7 +1,7 @@
 export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type Skill = 'Reading' | 'Writing' | 'Listening' | 'Speaking';
 export type ItemType = 'Multiple Choice' | 'Essay' | 'Speaking' | 'Form Completion' | 'Note Completion' | 'Table Completion' | 'Flow Chart' | 'Map Labeling' | 'Matching' | 'Short Answer' | 'Sentence Completion' | 'True/False/Not Given' | 'Yes/No/Not Given' | 'Matching Headings' | 'Summary Completion' | 'Matching Information';
-export type ItemStatus = 'Draft' | 'Retired' | 'Compromised' | 'Published';
+export type ItemStatus = 'Draft' | 'In Review' | 'Retired' | 'Compromised' | 'Published';
 export type WorkflowState =
   | 'NOT_STARTED'
   | 'IN_SCREENING'

@@ -366,6 +366,7 @@ export function Library() {
   // Calculate counts for filters
   const statusCounts = {
     Draft: allItems.filter((item) => item.status === "Draft").length,
+    "In Review": allItems.filter((item) => item.status === "In Review").length,
     Published: allItems.filter((item) => item.status === "Published").length,
     Retired: allItems.filter((item) => item.status === "Retired").length,
     Compromised: allItems.filter((item) => item.status === "Compromised").length,

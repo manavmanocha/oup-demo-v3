@@ -299,9 +299,8 @@ const normalizeItemStatus = (status: string | undefined): AssessmentItem['status
     case 'Draft':
     case 'Retired':
     case 'Compromised':
-      return status;
     case 'In Review':
-      return 'Draft';
+      return status;
     case 'Active':
     case 'Approved':
     case 'Calibrated':
@@ -658,14 +657,51 @@ export const moveItemsToSeeded = (itemIds: string[]) => {
   });
 };
 
-export const bankCapacityData: BankCapacity[] = [
-  { level: 'A1', active: 84, compromised: 6, gapToTarget: 28, target: 118, percentage: 71 },
-  { level: 'A2', active: 67, compromised: 13, gapToTarget: 0, target: 80, percentage: 100 },
-  { level: 'B1', active: 80, compromised: 5, gapToTarget: 15, target: 100, percentage: 85 },
-  { level: 'B2', active: 55, compromised: 0, gapToTarget: 0, target: 55, percentage: 100 },
-  { level: 'C1', active: 14, compromised: 0, gapToTarget: 36, target: 50, percentage: 28 },
-  { level: 'C2', active: 67, compromised: 3, gapToTarget: 13, target: 83, percentage: 84 },
-];
+export const bankCapacityTargets: Record<CEFRLevel, number> = {
+  A1: 118,
+  A2: 80,
+  B1: 100,
+  B2: 55,
+  C1: 50,
+  C2: 83,
+};
+
+const BANK_CAPACITY_LEVELS: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+// Derived live from the same item set that powers the Library screen so
+// active/compromised counts always reflect questions.json + workflow overrides.
+// "Active" mirrors the Library Status definition: items live in the bank
+// (status === 'Published'). Draft / Retired items are not yet (or no longer)
+// in the bank, so they don't count toward bank fill.
+export const getBankCapacity = (): BankCapacity[] => {
+  const items = getAllItems();
+  const counts: Record<CEFRLevel, { active: number; compromised: number }> = {
+    A1: { active: 0, compromised: 0 },
+    A2: { active: 0, compromised: 0 },
+    B1: { active: 0, compromised: 0 },
+    B2: { active: 0, compromised: 0 },
+    C1: { active: 0, compromised: 0 },
+    C2: { active: 0, compromised: 0 },
+  };
+
+  items.forEach((item) => {
+    const bucket = counts[item.level];
+    if (!bucket) return;
+    if (item.status === 'Compromised') {
+      bucket.compromised += 1;
+    } else if (item.status === 'Published') {
+      bucket.active += 1;
+    }
+  });
+
+  return BANK_CAPACITY_LEVELS.map((level) => {
+    const target = bankCapacityTargets[level];
+    const { active, compromised } = counts[level];
+    const gapToTarget = Math.max(0, target - active);
+    const percentage = target > 0 ? Math.min(100, Math.round((active / target) * 100)) : 0;
+    return { level, active, compromised, gapToTarget, target, percentage };
+  });
+};
 
 type QuestionWithMetadata = UnifiedQuestion & {
   workflowState?: AssessmentItem['workflowState'];
@@ -1127,4 +1163,207 @@ export const getAllItems = () => {
     return normalizeItemLifecycle(mergeItemWithPatch(item, patch));
   });
 };
+
+// -----------------------------------------------------------------------------
+// Pipeline run derivations
+//
+// The Pre-Testing Pipeline screens (Pre-Testing overview, Screening,
+// Difficulty Estimation, Seeding) need to surface "recent run" tables and
+// "last run" timestamps. Rather than hand-rolling these as local arrays in
+// each component, we derive them from the reviewHistory entries on the items
+// that originate from questions.json (the same data source that powers the
+// Library screen).
+// -----------------------------------------------------------------------------
+
+export type PipelineStage = 'Screening' | 'Difficulty Estimation' | 'Seeding';
+
+export type PipelineRun = {
+  id: string;
+  stage: PipelineStage;
+  date: string; // ISO date (YYYY-MM-DD)
+  items: number;
+  flagged: number;
+  status: 'Complete' | 'Running' | 'Needs review';
+  reviewer?: string;
+};
+
+const PIPELINE_STAGE_BY_HISTORY_STATE: Record<string, PipelineStage> = {
+  'In Screening': 'Screening',
+  'Screening Review': 'Screening',
+  PENDING_SCREENING_REVIEW: 'Screening',
+  SCREENING_APPROVED: 'Screening',
+  'In Difficulty Estimation': 'Difficulty Estimation',
+  'Difficulty Estimation Review': 'Difficulty Estimation',
+  PENDING_DP_REVIEW: 'Difficulty Estimation',
+  DP_APPROVED: 'Difficulty Estimation',
+  'Recommended for Seeding': 'Seeding',
+  RECOMMENDED_FOR_SEEDING: 'Seeding',
+  Seeded: 'Seeding',
+  SEEDED: 'Seeding',
+};
+
+const STAGE_RUN_PREFIX: Record<PipelineStage, string> = {
+  Screening: 'SCR',
+  'Difficulty Estimation': 'EST',
+  Seeding: 'SEED',
+};
+
+const toIsoDate = (value?: string): string | undefined => {
+  if (!value) return undefined;
+  // Some entries are full ISO timestamps; pull off the date portion only.
+  const datePortion = value.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(datePortion) ? datePortion : undefined;
+};
+
+const formatRunIdSuffix = (date: string, sequence: number): string => {
+  const compact = date.replace(/-/g, '').slice(2); // YYMMDD
+  return `${compact}-${String(sequence).padStart(2, '0')}`;
+};
+
+type StageRunBucket = {
+  stage: PipelineStage;
+  date: string;
+  itemIds: Set<string>;
+  flaggedIds: Set<string>;
+  reviewers: Map<string, number>;
+  hasOpenReview: boolean;
+};
+
+const collectStageRunBuckets = (): Map<string, StageRunBucket> => {
+  const buckets = new Map<string, StageRunBucket>();
+  const items = getAllItems();
+
+  items.forEach((item) => {
+    (item.reviewHistory ?? []).forEach((entry) => {
+      const stage = PIPELINE_STAGE_BY_HISTORY_STATE[entry.state] ?? PIPELINE_STAGE_BY_HISTORY_STATE[entry.action];
+      if (!stage) return;
+
+      const date = toIsoDate(entry.date);
+      if (!date) return;
+
+      const key = `${stage}|${date}`;
+      let bucket = buckets.get(key);
+      if (!bucket) {
+        bucket = {
+          stage,
+          date,
+          itemIds: new Set(),
+          flaggedIds: new Set(),
+          reviewers: new Map(),
+          hasOpenReview: false,
+        };
+        buckets.set(key, bucket);
+      }
+
+      bucket.itemIds.add(item.id);
+
+      const isFlagged =
+        item.flaggedForReview === true ||
+        Object.values(item.screening ?? {}).some((result) => result === 'Fail' || result === 'Review');
+      if (isFlagged) {
+        bucket.flaggedIds.add(item.id);
+      }
+
+      if (entry.reviewer) {
+        bucket.reviewers.set(entry.reviewer, (bucket.reviewers.get(entry.reviewer) ?? 0) + 1);
+      }
+
+      if (/Review$/.test(entry.state) || entry.state === 'PENDING_SCREENING_REVIEW' || entry.state === 'PENDING_DP_REVIEW') {
+        bucket.hasOpenReview = true;
+      }
+    });
+  });
+
+  return buckets;
+};
+
+const bucketToRun = (bucket: StageRunBucket, sequence: number): PipelineRun => {
+  const itemCount = bucket.itemIds.size;
+  const flagged = bucket.flaggedIds.size;
+  const topReviewer = [...bucket.reviewers.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+
+  let status: PipelineRun['status'] = 'Complete';
+  if (bucket.hasOpenReview) status = flagged > 0 ? 'Needs review' : 'Running';
+
+  return {
+    id: `${STAGE_RUN_PREFIX[bucket.stage]}-${formatRunIdSuffix(bucket.date, sequence)}`,
+    stage: bucket.stage,
+    date: bucket.date,
+    items: itemCount,
+    flagged,
+    status,
+    reviewer: topReviewer,
+  };
+};
+
+const sortBucketsNewestFirst = (buckets: StageRunBucket[]): StageRunBucket[] => {
+  return [...buckets].sort((a, b) => {
+    if (b.date !== a.date) return b.date.localeCompare(a.date);
+    return a.stage.localeCompare(b.stage);
+  });
+};
+
+export const getPipelineRuns = (limit?: number): PipelineRun[] => {
+  const buckets = sortBucketsNewestFirst(Array.from(collectStageRunBuckets().values()));
+  const perDateStageSequence = new Map<string, number>();
+
+  const runs = buckets.map((bucket) => {
+    const seqKey = bucket.date;
+    const next = (perDateStageSequence.get(seqKey) ?? 0) + 1;
+    perDateStageSequence.set(seqKey, next);
+    return bucketToRun(bucket, next);
+  });
+
+  return typeof limit === 'number' ? runs.slice(0, limit) : runs;
+};
+
+export const getLastRunDateByStage = (): Record<PipelineStage, string | undefined> => {
+  const buckets = collectStageRunBuckets();
+  const latest: Record<PipelineStage, string | undefined> = {
+    Screening: undefined,
+    'Difficulty Estimation': undefined,
+    Seeding: undefined,
+  };
+
+  buckets.forEach((bucket) => {
+    const current = latest[bucket.stage];
+    if (!current || bucket.date > current) {
+      latest[bucket.stage] = bucket.date;
+    }
+  });
+
+  return latest;
+};
+
+export const getSeedingRuns = (limit?: number): PipelineRun[] => {
+  const runs = getPipelineRuns().filter((run) => run.stage === 'Seeding');
+  return typeof limit === 'number' ? runs.slice(0, limit) : runs;
+};
+
+// Derive a deterministic "responses accrued so far" value for seeded items.
+// questions.json does not currently carry an exposureCount, so we approximate
+// it from how long the item has been seeded. The figure ramps up linearly
+// across the 200-response field-test target and stays stable across renders.
+const RESPONSE_TARGET = 200;
+const RESPONSES_PER_DAY = 8;
+
+export const getSeededResponsesAccrued = (item: AssessmentItem, referenceDate: Date = new Date()): number => {
+  if (typeof item.exposureCount === 'number') {
+    return Math.min(RESPONSE_TARGET, Math.max(0, item.exposureCount));
+  }
+
+  const seededEntry = [...(item.reviewHistory ?? [])]
+    .reverse()
+    .find((entry) => entry.state === 'Seeded' || entry.state === 'SEEDED' || entry.action === 'Seeded');
+  const seededDateRaw = seededEntry?.date ?? item.lastEditedDate;
+  const seededDate = seededDateRaw ? new Date(seededDateRaw) : null;
+  if (!seededDate || Number.isNaN(seededDate.getTime())) {
+    return 0;
+  }
+
+  const days = Math.max(0, Math.floor((referenceDate.getTime() - seededDate.getTime()) / 86_400_000));
+  return Math.min(RESPONSE_TARGET, days * RESPONSES_PER_DAY);
+};
+
+export const SEEDED_RESPONSE_TARGET = RESPONSE_TARGET;
 
