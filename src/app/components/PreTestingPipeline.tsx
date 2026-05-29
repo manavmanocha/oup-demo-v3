@@ -13,39 +13,44 @@ export function PreTestingPipeline() {
 
   const stageCards = [
     {
-      step: 'Step 1',
-      status: '• Complete',
+      step: 'Stage 1',
+      lastRun: '29 May 2026',
       title: 'Screening',
-      description: 'AI quality checks for new and modified items across 5 dimensions.',
+      description:
+        'Automated quality checks on new and revised items, covering rubric alignment, clarity, key accuracy, bias and CEFR fit.',
       queueCount: screeningQueueCount,
-      queueLabel: 'Draft items waiting for screening',
+      queueLabel: 'Draft items awaiting screening',
       to: '/workflows/pre-testing-pipeline/screening',
     },
     {
-      step: 'Step 2',
-      status: '• Complete',
+      step: 'Stage 2',
+      lastRun: '28 May 2026',
       title: 'Difficulty Estimation',
-      description: 'ML model predicts IRT difficulty and CEFR alignment before live testing.',
+      description:
+        'Estimates item difficulty and CEFR level so items can be calibrated before live trialling.',
       queueCount: predictionQueueCount,
-      queueLabel: 'Screening approved items waiting for estimation',
+      queueLabel: 'Screened items awaiting difficulty estimation',
       to: '/workflows/pre-testing-pipeline/difficulty-prediction',
     },
     {
-      step: 'Step 3',
-      status: '• Idle',
+      step: 'Stage 3',
+      lastRun: '26 May 2026',
       title: 'Seeding',
-      description: 'Prioritise items for live test exposure based on bank gaps and confidence.',
+      description:
+        'Assigns calibrated items to live forms, prioritised by item-bank coverage and estimate confidence.',
       queueCount: seedingQueueCount,
-      queueLabel: 'Calibrated items ready for seeding',
+      queueLabel: 'Calibrated items awaiting seeding',
       to: '/workflows/pre-testing-pipeline/seeding',
     },
   ];
 
   const recentRuns = [
-    { id: 'RUN-0051', stage: 'Screening', items: 21, flagged: 5, status: 'Success', date: '11 Mar 2025' },
-    { id: 'RUN-0050', stage: 'Difficulty Estimation', items: 16, flagged: 0, status: 'Success', date: '10 Mar 2025' },
-    { id: 'RUN-0049', stage: 'Seeding', items: 5, flagged: 0, status: 'Success', date: '9 Mar 2025' },
-    { id: 'RUN-0048', stage: 'Screening', items: 14, flagged: 2, status: 'Success', date: '7 Mar 2025' },
+    { id: 'SCR-0142', stage: 'Screening', items: 22, flagged: 4, status: 'Running', date: '29 May 2026' },
+    { id: 'EST-0087', stage: 'Difficulty Estimation', items: 16, flagged: 0, status: 'Complete', date: '28 May 2026' },
+    { id: 'SCR-0141', stage: 'Screening', items: 31, flagged: 7, status: 'Complete', date: '27 May 2026' },
+    { id: 'SEED-0031', stage: 'Seeding', items: 12, flagged: 0, status: 'Complete', date: '26 May 2026' },
+    { id: 'EST-0086', stage: 'Difficulty Estimation', items: 19, flagged: 2, status: 'Needs review', date: '25 May 2026' },
+    { id: 'SCR-0140', stage: 'Screening', items: 18, flagged: 3, status: 'Complete', date: '24 May 2026' },
   ];
 
   return (
@@ -55,16 +60,14 @@ export function PreTestingPipeline() {
         <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
           <Link to="/workflows" className="hover:underline">Workflows</Link>
           <span className="text-gray-400">/</span>
-          <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
-          <span className="text-gray-400">/</span>
-          <span className="text-gray-900">Pipeline Stages</span>
+          <span className="text-gray-900">Pre-Testing Pipeline</span>
         </div>
 
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Pre-Testing Pipeline</h1>
           <p className="text-gray-600">
-            Items flow through three stages before entering the live item bank.
+            A three-stage quality pipeline that moves authored items from draft to live-bank readiness.
           </p>
         </div>
 
@@ -75,12 +78,19 @@ export function PreTestingPipeline() {
               <Card className="h-full transition-all hover:shadow-md hover:border-blue-300 cursor-pointer">
                 <CardHeader>
                   <div className="flex items-start justify-between mb-2 gap-3">
-                    <CardTitle className="text-3xl font-bold text-gray-900">
-                      {stage.step}
-                    </CardTitle>
-                    <Badge variant="outline">{stage.status}</Badge>
+                    <div>
+                      <div className="text-lg font-bold text-gray-800 uppercase tracking-wider mb-2">
+                        {stage.step}
+                      </div>
+                      <CardTitle className="text-2xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors">
+                        {stage.title}
+                      </CardTitle>
+                    </div>
+                    <div className="shrink-0 text-xs text-gray-500 text-right">
+                      <div className="uppercase tracking-wide">Last run</div>
+                      <div className="text-gray-700">{stage.lastRun}</div>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">{stage.title}</h3>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm text-gray-600">
@@ -93,9 +103,9 @@ export function PreTestingPipeline() {
                     <div className="text-xs text-gray-500">{stage.queueLabel}</div>
                   </div>
 
-                  <div className="flex items-center justify-end text-sm font-medium text-blue-600 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                  <div className="flex items-center justify-end text-sm font-medium text-blue-600">
                     Open stage
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-0.5" />
                   </div>
                 </CardContent>
               </Card>
@@ -131,7 +141,9 @@ export function PreTestingPipeline() {
                       <td className="px-4 py-3 text-sm text-gray-700">{run.items}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{run.flagged}</td>
                       <td className="px-4 py-3">
-                        <Badge variant="default" className="bg-green-600">• {run.status}</Badge>
+                        <Badge variant="outline" className="text-gray-700 font-normal">
+                          {run.status}
+                        </Badge>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">{run.date}</td>
                     </tr>
