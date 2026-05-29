@@ -149,6 +149,8 @@ export function DifficultyPrediction() {
           <span className="text-gray-400">/</span>
           <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
           <span className="text-gray-400">/</span>
+          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
+          <span className="text-gray-400">/</span>
           <span className="text-gray-900">Difficulty Estimation</span>
         </div>
 
