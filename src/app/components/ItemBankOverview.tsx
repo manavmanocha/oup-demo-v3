@@ -23,6 +23,12 @@ import {
   SelectValue,
 } from './ui/select';
 
+const toTimestamp = (value?: string): number => {
+  if (!value) return 0;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
 export function ItemBankOverview() {
   const totalActive = bankCapacityData.reduce((sum, level) => sum + level.active, 0);
   const totalTarget = bankCapacityData.reduce((sum, level) => sum + level.target, 0);
@@ -45,12 +51,24 @@ export function ItemBankOverview() {
     )
     .map((item) => ({
       id: item.id,
-      name: item.title || item.content,
+      name: item.title || item.content || item.id,
       type: item.itemType,
       submittedBy: item.author || 'System',
       status: isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW') ? 'DP Review' : 'Screening Review',
       level: item.level,
-    }));
+      recencyTimestamp: Math.max(
+        toTimestamp(item.lastEditedDate),
+        toTimestamp(item.aiPredictionDate),
+        toTimestamp(item.createdDate),
+      ),
+    }))
+    .sort((a, b) => {
+      if (b.recencyTimestamp !== a.recencyTimestamp) {
+        return b.recencyTimestamp - a.recencyTimestamp;
+      }
+
+      return b.id.localeCompare(a.id);
+    });
   const highestGapLevel = [...bankCapacityData].sort((a, b) => b.gapToTarget - a.gapToTarget)[0];
 
   const filteredReviewItems = reviewQueueItems.filter(item => {
