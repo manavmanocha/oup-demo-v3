@@ -7,6 +7,20 @@ import { isWorkflowState } from '../data/workflowState';
 
 const RECENT_RUNS_LIMIT = 6;
 
+const RECENT_RUN_ACTION_OVERRIDES: Record<string, number> = {
+  'EST-260529-01': 0,
+  'SCR-260529-02': 0,
+  'SEED-260529-03': 6,
+  'EST-260528-01': 9,
+  'EST-260527-01': 4,
+  'SCR-260526-01': 12,
+};
+
+const RECENT_RUN_STATUS_OVERRIDES: Record<string, 'Complete' | 'Running' | 'Needs review'> = {
+  'EST-260529-01': 'Complete',
+  'SCR-260529-02': 'Complete',
+};
+
 const formatRunDate = (iso?: string): string => {
   if (!iso) return '—';
   const parsed = new Date(iso);
@@ -32,9 +46,9 @@ export function PreTestingPipeline() {
       lastRun: formatRunDate(lastRunByStage.Screening),
       title: 'Screening',
       description:
-        'Automated quality checks on new and revised items, covering rubric alignment, clarity, key accuracy, bias and CEFR fit.',
+        'Automated quality checks on new and revised items, covering CEFR fit, distractor strength, clarity, fairness, and similarity.',
       queueCount: screeningQueueCount,
-      queueLabel: 'Items awaiting screening review',
+      queueLabel: 'Draft items awaiting screening',
       to: '/workflows/pre-testing-pipeline/screening',
     },
     {
@@ -52,17 +66,30 @@ export function PreTestingPipeline() {
       lastRun: formatRunDate(lastRunByStage.Seeding),
       title: 'Seeding',
       description:
-        'Assigns calibrated items to live forms, prioritised by item-bank coverage and estimate confidence.',
+        'Assigns calibrated items to live test forms, prioritised by item-bank coverage and estimate confidence.',
       queueCount: seedingQueueCount,
       queueLabel: 'Calibrated items awaiting seeding',
       to: '/workflows/pre-testing-pipeline/seeding',
     },
   ];
 
-  const recentRuns = getPipelineRuns(RECENT_RUNS_LIMIT).map((run) => ({
-    ...run,
-    displayDate: formatRunDate(run.date),
-  }));
+  const recentRuns = getPipelineRuns(RECENT_RUNS_LIMIT).map((run) => {
+    const isSeedingRun = run.stage === 'Seeding';
+    const fallbackActionCount = isSeedingRun
+      ? 0
+      : Math.min(run.flagged, Math.floor(run.items * 0.3));
+    const actionCount = RECENT_RUN_ACTION_OVERRIDES[run.id] ?? fallbackActionCount;
+    const status = RECENT_RUN_STATUS_OVERRIDES[run.id] ?? run.status;
+
+    return {
+      ...run,
+      status,
+      displayDate: formatRunDate(run.date),
+      actionSummary: isSeedingRun
+        ? (actionCount > 0 ? `${actionCount} deferred` : '—')
+        : `${actionCount} flagged`,
+    };
+  });
 
   return (
     <div className="p-4 sm:p-6 md:p-8">
@@ -137,7 +164,7 @@ export function PreTestingPipeline() {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Run</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stage</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Items</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Flagged</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Needs Action</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                   </tr>
@@ -150,7 +177,7 @@ export function PreTestingPipeline() {
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">{run.stage}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{run.items}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{run.flagged}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{run.actionSummary}</td>
                       <td className="px-4 py-3">
                         <Badge variant="outline" className="text-gray-700 font-normal">
                           {run.status}
