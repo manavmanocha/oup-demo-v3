@@ -109,14 +109,14 @@ const DEMO_SCREENING_FIXTURES: Record<string, DemoScreeningFixture> = {
   },
   'EAS-DEM-SPK-B2-103': {
     screening: {
-      cefrFit: 'Pass',
+      cefrFit: 'Fail',
       distractorStrength: 'Pass',
       clarity: 'Pass',
       fairness: 'Pass',
       similarity: 'Pass',
     },
     feedback:
-      'Reviewer feedback: Passed all screening checks. The scenario is clear, level-appropriate, and aligned with workplace decision-making tasks used in operational speaking assessments.',
+      'Reviewer feedback: The scenario and prompt are well-constructed, but the CEFR level alignment needs review. The task requires candidates to synthesise multiple sources of evidence and justify prioritisation decisions — cognitive and linguistic demands that sit closer to C1 than B2. Recalibrate the level or simplify the reasoning required before approval.',
   },
   'EAS-DEM-WRT-C1-104': {
     screening: {
@@ -487,6 +487,7 @@ export const queueItemsForScreening = (itemIds: string[]) => {
 
     return {
       workflowState: 'PENDING_SCREENING_REVIEW',
+      status: 'In Review',
       flaggedForReview: !allPassed,
       flagReason: allPassed ? undefined : fixture.feedback,
       screening: fixture.screening,
