@@ -95,7 +95,7 @@ export function ItemBankOverview() {
 
   return (
     <div className="p-4 sm:p-6 md:p-8">
-      <div className="mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-6">
           <Link to="/workflows" className="hover:text-gray-700">Workflows</Link>
