@@ -86,7 +86,7 @@ export function Login() {
               type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="manav.manocha@comprotechnologies.com"
+              placeholder="you@example.com"
               className="h-11 rounded-md border-[#c7d0dc] bg-[#dbe3f0] px-4 text-base text-[#222] focus-visible:ring-1 focus-visible:ring-[#5f88d1]"
               required
             />
