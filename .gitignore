@@ -28,6 +28,10 @@ test-results/.last-run.json
 .env.*
 !.env.example
 
+# Local secrets (e.g. Google Gemini API key)
+secrets.json
+secrets.local.json
+
 # Caches
 .cache
 .vite
