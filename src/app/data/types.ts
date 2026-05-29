@@ -117,6 +117,16 @@ export interface AssessmentItem {
   aiPredictionDate?: string;
   manualOverride?: boolean;
   manualOverrideReason?: string;
+
+  // Psychometrics supplied at ingest (e.g. CSV) but not yet surfaced to
+  // reviewers. These remain hidden until the Difficulty Estimation stage runs,
+  // at which point the values are promoted onto the top-level fields.
+  pendingPsychometrics?: {
+    irtParameters?: IRTParameters;
+    confidence?: number;
+    discrimination?: string;
+    difficulty?: Difficulty;
+  };
 }
 
 export interface BankCapacity {

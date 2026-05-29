@@ -213,14 +213,31 @@ const getDiscriminationLabel = (confidence: number): string => {
 
 const getAlignedDifficultyPrediction = (item: AssessmentItem): DifficultyPredictionResult => {
   const profile = LEVEL_DIFFICULTY_PROFILE[item.level];
+  const pending = item.pendingPsychometrics;
+
+  // CSV-supplied IRT b takes precedence over the deterministic per-level value
+  // so values captured at ingest flow through DP unchanged.
+  const pendingB = pending?.irtParameters?.b;
   const b = Number(
-    clampBValue(profile.meanB + deterministicOffset(`${item.id}:${item.level}`, profile.spread)).toFixed(2),
+    clampBValue(
+      typeof pendingB === 'number'
+        ? pendingB
+        : profile.meanB + deterministicOffset(`${item.id}:${item.level}`, profile.spread),
+    ).toFixed(2),
   );
+
   // Honour an explicit confidence on the item (e.g. supplied via CSV ingest)
   // so deterministic demo data flows through the prediction stage unchanged.
-  const rawConfidence = typeof item.confidence === 'number'
-    ? item.confidence
-    : profile.confidence + deterministicOffset(`${item.id}:confidence`, 22);
+  const explicitConfidence =
+    typeof item.confidence === 'number'
+      ? item.confidence
+      : typeof pending?.confidence === 'number'
+        ? pending.confidence
+        : undefined;
+  const rawConfidence =
+    typeof explicitConfidence === 'number'
+      ? explicitConfidence
+      : profile.confidence + deterministicOffset(`${item.id}:confidence`, 22);
   const confidence = Math.round(Math.min(95, Math.max(40, rawConfidence)));
 
   return {
@@ -228,7 +245,7 @@ const getAlignedDifficultyPrediction = (item: AssessmentItem): DifficultyPredict
     b,
     confidence,
     difficulty: getDifficultyLabelFromB(b),
-    discrimination: getDiscriminationLabel(confidence),
+    discrimination: pending?.discrimination ?? getDiscriminationLabel(confidence),
   };
 };
 
