@@ -173,16 +173,6 @@ export function ScreenItems() {
               </Button>
             </div>
 
-            {/* Filter placeholders */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide mr-1">Filters (roadmap)</span>
-              {['Reading', 'Writing', 'Listening', 'Speaking', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((filter) => (
-                <Button key={filter} variant="outline" size="sm" disabled className="text-gray-500">
-                  {filter}
-                </Button>
-              ))}
-            </div>
-
             {/* Selection Summary */}
             <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-blue-50 rounded-lg">
               <span className="text-sm font-medium text-gray-900">
