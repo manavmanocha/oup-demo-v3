@@ -299,9 +299,8 @@ const normalizeItemStatus = (status: string | undefined): AssessmentItem['status
     case 'Draft':
     case 'Retired':
     case 'Compromised':
-      return status;
     case 'In Review':
-      return 'Draft';
+      return status;
     case 'Active':
     case 'Approved':
     case 'Calibrated':
