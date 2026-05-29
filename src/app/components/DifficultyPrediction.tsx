@@ -68,11 +68,13 @@ export function DifficultyPrediction() {
   const [showAllReadyToAccept, setShowAllReadyToAccept] = useState(false);
   const [selectedReadyIds, setSelectedReadyIds] = useState<string[]>([]);
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
-  const inReviewItems = useMemo(() => allItems.filter((item) => item.status === 'In Review'), [allItems]);
-  const waitingForPrediction = inReviewItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED'));
+  const waitingForPrediction = useMemo(
+    () => allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED')),
+    [allItems],
+  );
 
   const calibratedItems = useMemo(
-    () => inReviewItems
+    () => allItems
       .filter((item) => isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW'))
       .map((item) => ({
         id: item.id,
@@ -98,7 +100,7 @@ export function DifficultyPrediction() {
 
         return b.id.localeCompare(a.id);
       }),
-    [inReviewItems],
+    [allItems],
   );
 
   const needsReview = calibratedItems.filter((item) => item.confidence < 85);

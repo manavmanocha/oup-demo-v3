@@ -517,6 +517,7 @@ export const approveScreenedItems = (itemIds: string[]) => {
 
     return {
       workflowState: 'SCREENING_APPROVED',
+      status: 'In Review',
       flaggedForReview: false,
       flagReason: undefined,
       screening: {
@@ -581,6 +582,7 @@ export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]
 
       return {
         workflowState: 'PENDING_DP_REVIEW',
+        status: 'In Review',
         difficulty: result.difficulty,
         confidence: result.confidence,
         discrimination: result.discrimination,
