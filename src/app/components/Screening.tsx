@@ -32,7 +32,46 @@ const hasScreeningFailure = (item: AssessmentItem) => {
   return Object.values(item.screening ?? {}).includes('Fail');
 };
 
-const getScreeningFeedback = (item: AssessmentItem) => {
+const SCREENING_DIMENSION_NOTES: Record<keyof NonNullable<AssessmentItem['screening']>, { fail: string; review: string; label: string }> = {
+  cefrFit: {
+    label: 'CEFR fit',
+    fail: 'CEFR fit: estimated level falls outside the target band.',
+    review: 'CEFR fit: borderline between the target level and an adjacent band — confirm before progression.',
+  },
+  distractorStrength: {
+    label: 'Distractor strength',
+    fail: 'Distractor analysis: one or more distractors are non-functional and unlikely to attract test-takers.',
+    review: 'Distractor analysis: distractor balance is weaker than the bank average — review for plausibility.',
+  },
+  clarity: {
+    label: 'Clarity',
+    fail: 'Clarity: stem wording is ambiguous and likely to confuse test-takers.',
+    review: 'Clarity: stem wording may be ambiguous on re-read — confirm a single defensible interpretation.',
+  },
+  fairness: {
+    label: 'Fairness',
+    fail: 'Fairness: contains content that may disadvantage a candidate group.',
+    review: 'Fairness: includes a culturally specific reference — review for accessibility across cohorts.',
+  },
+  similarity: {
+    label: 'Similarity',
+    fail: 'Similarity: high textual overlap with an existing live item — risk of item exposure.',
+    review: 'Similarity: moderate overlap with an existing item — confirm it is sufficiently differentiated.',
+  },
+};
+
+const getScreeningFeedback = (item: AssessmentItem): string | null => {
+  const screening = item.screening;
+  if (screening) {
+    const notes: string[] = [];
+    (Object.keys(SCREENING_DIMENSION_NOTES) as Array<keyof typeof SCREENING_DIMENSION_NOTES>).forEach((key) => {
+      const result = screening[key];
+      if (result === 'Fail') notes.push(SCREENING_DIMENSION_NOTES[key].fail);
+      else if (result === 'Review') notes.push(SCREENING_DIMENSION_NOTES[key].review);
+    });
+    if (notes.length > 0) return notes.join(' ');
+  }
+
   if (item.flagReason) {
     return item.flagReason;
   }
@@ -41,7 +80,7 @@ const getScreeningFeedback = (item: AssessmentItem) => {
     .reverse()
     .find((entry) => entry.state === 'PENDING_SCREENING_REVIEW' && entry.notes);
 
-  return queuedEntry?.notes ?? 'Reviewer feedback: Passed all screening checks and is ready for approval.';
+  return queuedEntry?.notes ?? null;
 };
 
 const renderScreeningBadges = (item: AssessmentItem) => {
@@ -58,7 +97,15 @@ const renderScreeningBadges = (item: AssessmentItem) => {
       const result = item.screening?.[key];
 
       if (result === 'Fail') {
-        return <Badge key={key} variant="destructive">{label}: Fail</Badge>;
+        return (
+          <Badge
+            key={key}
+            variant="outline"
+            className="bg-red-50 text-red-700 border-red-200"
+          >
+            {label}: Fail
+          </Badge>
+        );
       }
 
       if (result === 'Review') {
@@ -133,7 +180,10 @@ const ScreeningQueueSection = ({
 
               {renderScreeningBadges(item)}
 
-              <div className={feedbackClassName}>{getScreeningFeedback(item)}</div>
+              {(() => {
+                const feedback = getScreeningFeedback(item);
+                return feedback ? <div className={feedbackClassName}>{feedback}</div> : null;
+              })()}
 
               <div className="flex items-center gap-2 mt-4">
                 <Button size="sm" onClick={() => onApprove(item.id)}>Approve</Button>
@@ -202,22 +252,20 @@ export function Screening() {
           <span className="text-gray-400">/</span>
           <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
           <span className="text-gray-400">/</span>
-          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
-          <span className="text-gray-400">/</span>
           <span className="text-gray-900">Screening</span>
         </div>
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 gap-3">
           <div>
-            <div className="text-sm font-medium text-gray-500 uppercase mb-1">Step 1</div>
+            <div className="text-lg font-bold text-gray-800 uppercase tracking-wider mb-2">Stage 1</div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Screening</h1>
             <p className="text-gray-600">
-              AI checks each item across 5 dimensions: CEFR fit, distractor strength, clarity, fairness, and similarity.
+              Five automated checks — CEFR fit, distractor strength, clarity, fairness and similarity — applied to every new or revised item.
             </p>
           </div>
           <Link to="/workflows/pre-testing-pipeline/screening/start">
-            <Button>+ Start Screening</Button>
+            <Button>Run Screening Batch</Button>
           </Link>
         </div>
 
@@ -253,21 +301,21 @@ export function Screening() {
 
         <div className="space-y-6">
           <ScreeningQueueSection
-            title="Failed / Needs Review"
-            description="These items have one or more failed screening dimensions and need a reviewer decision before they can move forward."
+            title="Flagged — Needs Reviewer Decision"
+            description="One or more screening dimensions failed for these items. Review the AI feedback and either approve the item for progression or reject it from the pipeline."
             items={failedItems}
             feedbackClassName="p-3 bg-orange-50 border border-orange-200 rounded text-sm text-gray-700"
-            emptyMessage="No failed screening items are currently awaiting review."
+            emptyMessage="No items are currently flagged — all screened items either passed or have been actioned."
             onApprove={handleApprove}
             onReject={handleReject}
           />
 
           <ScreeningQueueSection
-            title="Passed / Ready to Approve"
-            description="These items passed all screening checks but are still awaiting reviewer approval before difficulty estimation."
+            title="Passed — Ready to Approve"
+            description="These items cleared all five screening dimensions. Approve to move them forward to difficulty estimation, or reject if a manual review finds an issue."
             items={passedPendingItems}
             feedbackClassName="p-3 bg-green-50 border border-green-200 rounded text-sm text-gray-700"
-            emptyMessage="No all-clear screening items are waiting for approval."
+            emptyMessage="No all-clear items are awaiting approval at this time."
             onApprove={handleApprove}
             onReject={handleReject}
           />
