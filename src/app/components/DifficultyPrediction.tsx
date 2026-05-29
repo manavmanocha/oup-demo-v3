@@ -16,9 +16,9 @@ import { isWorkflowState } from '../data/workflowState';
 const DEFAULT_VISIBLE_ITEMS = 5;
 
 const metricHelpText = {
-  confidence: 'How sure the model is about its estimation (higher is better)',
-  difficulty: 'How hard the question is for students at the target level',
-  discrimination: 'How well the question separates stronger from weaker students (better discrimination = better)',
+  confidence: 'The model\'s estimated reliability for this prediction, expressed as a percentage. Values below 85% are flagged for manual review before the item can proceed.',
+  difficulty: 'How difficult the item is predicted to be for candidates at the target level. Higher values mean harder items.',
+  discrimination: 'How sharply the item distinguishes between candidates of different ability levels. Higher discrimination means the item gives more diagnostic information.',
 };
 
 function MetricValueWithTooltip({
@@ -146,30 +146,37 @@ export function DifficultyPrediction() {
           <span className="text-gray-400">/</span>
           <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
           <span className="text-gray-400">/</span>
-          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
-          <span className="text-gray-400">/</span>
           <span className="text-gray-900">Difficulty Estimation</span>
         </div>
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <div className="text-sm font-medium text-gray-500 uppercase mb-1">Step 2</div>
+            <div className="text-lg font-bold text-gray-800 uppercase tracking-wider mb-2">Stage 2</div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Difficulty Estimation</h1>
             <p className="text-gray-600">
-              Our model estimates how hard each question is, and how well it separates stronger from weaker students.
+              Estimates item difficulty, CEFR alignment and discrimination from prior pre-test data, so items can be calibrated before live trialling.
             </p>
           </div>
           <Link to="/workflows/pre-testing-pipeline/difficulty-prediction/start">
-            <Button>+ Start Estimation</Button>
+            <Button>Run Estimation</Button>
           </Link>
         </div>
 
-        {/* Summary Cards */}
+        {/* Summary Cards — ordered upstream → current work */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-500 uppercase">Need Your Review</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-500 uppercase">Waiting for Estimation</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="text-3xl font-bold text-gray-900">{waitingForPrediction.length}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-500 uppercase">Needs Your Review</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="text-3xl font-bold text-gray-900">{needsReview.length}</div>
@@ -184,27 +191,21 @@ export function DifficultyPrediction() {
                 <div className="text-3xl font-bold text-gray-900">{readyToAccept.length}</div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-500 uppercase">Waiting for Estimation</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="text-3xl font-bold text-gray-900">{waitingForPrediction.length}</div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Needs Your Review */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-500 uppercase">
-              Needs Your Review · {needsReview.length} items
-            </CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="text-sm font-medium text-gray-500 uppercase">
+                Needs Your Review · {needsReview.length} items
+              </CardTitle>
+              <span className="text-xs text-gray-500">Confidence below 85%</span>
+            </div>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-6">
-              The model isn't sure about these — please check the estimations before accepting.
+              These estimates fell below the confidence threshold. Review each item and override any parameter that does not match your judgement.
             </p>
 
             <div className="space-y-4">
@@ -220,8 +221,9 @@ export function DifficultyPrediction() {
                         {item.id}
                       </Link>
                       <Badge variant="outline">{item.level}</Badge>
-                      <Badge variant="outline">{item.skill}</Badge>
-                      <Badge variant="outline">{item.itemType}</Badge>
+                      <Badge variant="outline">
+                        {item.skill === item.itemType ? item.skill : `${item.skill} · ${item.itemType}`}
+                      </Badge>
                     </div>
                   </div>
 
@@ -246,22 +248,24 @@ export function DifficultyPrediction() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Button size="sm" onClick={() => handleAcceptItem(item.id)}>Accept</Button>
+                    <Button size="sm" onClick={() => handleAcceptItem(item.id)}>Override estimate</Button>
+                    <Button size="sm" variant="outline" onClick={() => handleAcceptItem(item.id)}>Accept as-is</Button>
                     <Button size="sm" variant="outline">Reject</Button>
-                    <Button size="sm" variant="outline">Override</Button>
                   </div>
                 </div>
               ))}
 
               {needsReview.length === 0 && (
                 <div className="text-sm text-gray-600 border rounded-lg p-6 bg-gray-50">
-                  No low-confidence estimations are pending manual review.
+                  No items currently below the confidence threshold — all recent estimations passed automatically.
                 </div>
               )}
 
-              {!showAllNeedsReview && hiddenNeedsReviewCount > 0 && (
-                <Button variant="outline" onClick={() => setShowAllNeedsReview(true)}>
-                  Show {hiddenNeedsReviewCount} more item{hiddenNeedsReviewCount === 1 ? '' : 's'}
+              {hiddenNeedsReviewCount > 0 && (
+                <Button variant="outline" onClick={() => setShowAllNeedsReview((prev) => !prev)}>
+                  {showAllNeedsReview
+                    ? 'Show fewer items'
+                    : `Show ${hiddenNeedsReviewCount} more item${hiddenNeedsReviewCount === 1 ? '' : 's'}`}
                 </Button>
               )}
             </div>
@@ -271,16 +275,21 @@ export function DifficultyPrediction() {
         {/* Ready to Accept */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium text-gray-500 uppercase">
-              Ready to Accept · {readyToAccept.length} items
-            </CardTitle>
-            <Button size="sm" onClick={handleAcceptAll} disabled={selectedReadyIds.length === 0}>
-              {selectedReadyIds.length > 0 && readyToAccept.length === selectedReadyIds.length ? 'Accept All' : `Accept (${selectedReadyIds.length})`}
-            </Button>
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-sm font-medium text-gray-500 uppercase">
+                Ready to Accept · {readyToAccept.length} items
+              </CardTitle>
+              <span className="text-xs text-gray-500">Confidence 85% or above</span>
+            </div>
+            {selectedReadyIds.length > 0 && (
+              <Button size="sm" onClick={handleAcceptAll}>
+                Accept {selectedReadyIds.length} selected
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-6">
-              The model is highly confident about these estimations. You can accept them all at once.
+              These items met the confidence threshold and can be calibrated without further review.
             </p>
 
             <div className="border rounded-lg overflow-hidden">
@@ -297,9 +306,45 @@ export function DifficultyPrediction() {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CEFR</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Confidence</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Difficulty</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Discrimination</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <div className="inline-flex items-center gap-1.5">
+                        <span>Confidence</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button type="button" className="text-gray-400 hover:text-gray-600" aria-label="Confidence info">
+                              <Info className="w-3.5 h-3.5" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs"><p className="text-sm">{metricHelpText.confidence}</p></TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <div className="inline-flex items-center gap-1.5">
+                        <span>Difficulty</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button type="button" className="text-gray-400 hover:text-gray-600" aria-label="Difficulty info">
+                              <Info className="w-3.5 h-3.5" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs"><p className="text-sm">{metricHelpText.difficulty}</p></TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <div className="inline-flex items-center gap-1.5">
+                        <span>Discrimination</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button type="button" className="text-gray-400 hover:text-gray-600" aria-label="Discrimination info">
+                              <Info className="w-3.5 h-3.5" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs"><p className="text-sm">{metricHelpText.discrimination}</p></TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -311,7 +356,7 @@ export function DifficultyPrediction() {
                           onCheckedChange={() => toggleReadyItem(item.id)}
                         />
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <Link
                           to={`/item-bank/${item.level}/${item.id}`}
                           state={{ fromWorkflow: true }}
@@ -320,71 +365,17 @@ export function DifficultyPrediction() {
                           {item.id}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700 max-w-md truncate">{item.item}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{item.level}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
-                        <div className="inline-flex items-center gap-2">
-                          <span>{item.confidence}%</span>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                className="inline-flex h-5 w-5 items-center justify-center rounded-full text-gray-400 transition-colors hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                                aria-label={`Confidence info for ${item.id}`}
-                              >
-                                <Info className="w-4 h-4" />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-xs">
-                              <p className="text-sm">{metricHelpText.confidence}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
-                        <div className="inline-flex items-center gap-2">
-                          <span>{item.difficulty}</span>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                className="inline-flex h-5 w-5 items-center justify-center rounded-full text-gray-400 transition-colors hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                                aria-label={`Difficulty info for ${item.id}`}
-                              >
-                                <Info className="w-4 h-4" />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-xs">
-                              <p className="text-sm">{metricHelpText.difficulty}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
-                        <div className="inline-flex items-center gap-2">
-                          <span>{item.discrimination}</span>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                className="inline-flex h-5 w-5 items-center justify-center rounded-full text-gray-400 transition-colors hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                                aria-label={`Discrimination info for ${item.id}`}
-                              >
-                                <Info className="w-4 h-4" />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-xs">
-                              <p className="text-sm">{metricHelpText.discrimination}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700 max-w-md truncate" title={item.item}>{item.item}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{item.level}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{item.confidence}%</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{item.difficulty}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{item.discrimination}</td>
                     </tr>
                   ))}
                   {readyToAccept.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                        No high-confidence estimations available yet.
+                        No items currently meet the confidence threshold — check back after the next estimation run.
                       </td>
                     </tr>
                   )}
@@ -392,10 +383,12 @@ export function DifficultyPrediction() {
               </table>
             </div>
 
-            {!showAllReadyToAccept && hiddenReadyToAcceptCount > 0 && (
+            {hiddenReadyToAcceptCount > 0 && (
               <div className="mt-4">
-                <Button variant="outline" onClick={() => setShowAllReadyToAccept(true)}>
-                  Show {hiddenReadyToAcceptCount} more item{hiddenReadyToAcceptCount === 1 ? '' : 's'}
+                <Button variant="outline" onClick={() => setShowAllReadyToAccept((prev) => !prev)}>
+                  {showAllReadyToAccept
+                    ? 'Show fewer items'
+                    : `Show ${hiddenReadyToAcceptCount} more item${hiddenReadyToAcceptCount === 1 ? '' : 's'}`}
                 </Button>
               </div>
             )}
