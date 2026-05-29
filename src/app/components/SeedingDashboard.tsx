@@ -3,14 +3,22 @@ import { Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
-import { getAllItems } from '../data/mockData';
+import {
+  SEEDED_RESPONSE_TARGET,
+  getAllItems,
+  getSeededResponsesAccrued,
+  getSeedingRuns,
+} from '../data/mockData';
 import { isWorkflowState } from '../data/workflowState';
 
-const RECENT_SEEDING_RUNS = [
-  { id: 'SEED-0031', date: '26 May 2026', items: 12, confirmedBy: 'G. Pearson' },
-  { id: 'SEED-0030', date: '21 May 2026', items: 5, confirmedBy: 'M. Khan' },
-  { id: 'SEED-0029', date: '14 May 2026', items: 8, confirmedBy: 'G. Pearson' },
-];
+const RECENT_SEEDING_RUN_LIMIT = 5;
+
+const formatSeedingRunDate = (iso?: string): string => {
+  if (!iso) return '—';
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return iso;
+  return parsed.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+};
 
 const toTimestamp = (value?: string): number => {
   if (!value) return 0;
@@ -49,6 +57,16 @@ export function SeedingDashboard() {
   const currentlySeeded = currentlySeededItems.length;
   const visibleSeeded = currentlySeededItems.slice(0, 5);
   const hiddenSeededCount = Math.max(currentlySeeded - visibleSeeded.length, 0);
+
+  const recentSeedingRuns = useMemo(
+    () =>
+      getSeedingRuns(RECENT_SEEDING_RUN_LIMIT).map((run) => ({
+        ...run,
+        displayDate: formatSeedingRunDate(run.date),
+        confirmedBy: run.reviewer ?? 'Seeding Team',
+      })),
+    [],
+  );
 
   return (
     <div className="p-4 sm:p-6 md:p-8">
@@ -205,7 +223,7 @@ export function SeedingDashboard() {
                           </td>
                           <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">{item.level}</td>
                           <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{item.difficulty || 'N/A'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">0 / 200</td>
+                          <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{getSeededResponsesAccrued(item)} / {SEEDED_RESPONSE_TARGET}</td>
                           <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{item.lastEditedDate || 'N/A'}</td>
                         </tr>
                       ))}
@@ -244,14 +262,22 @@ export function SeedingDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {RECENT_SEEDING_RUNS.map((run) => (
-                    <tr key={run.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">{run.id}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{run.date}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{run.items}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{run.confirmedBy}</td>
+                  {recentSeedingRuns.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-6 text-sm text-gray-500 text-center">
+                        No seeding runs recorded yet.
+                      </td>
                     </tr>
-                  ))}
+                  ) : (
+                    recentSeedingRuns.map((run) => (
+                      <tr key={run.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">{run.id}</td>
+                        <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{run.displayDate}</td>
+                        <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{run.items}</td>
+                        <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{run.confirmedBy}</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

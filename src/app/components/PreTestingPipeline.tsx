@@ -2,19 +2,29 @@ import { Link } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { ArrowRight } from 'lucide-react';
-import { getAllItems } from '../data/mockData';
+import { getAllItems, getLastRunDateByStage, getPipelineRuns } from '../data/mockData';
 import { isWorkflowState } from '../data/workflowState';
+
+const RECENT_RUNS_LIMIT = 6;
+
+const formatRunDate = (iso?: string): string => {
+  if (!iso) return '—';
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return iso;
+  return parsed.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+};
 
 export function PreTestingPipeline() {
   const allItems = getAllItems();
   const screeningQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'NOT_STARTED')).length;
   const predictionQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'SCREENING_APPROVED')).length;
   const seedingQueueCount = allItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')).length;
+  const lastRunByStage = getLastRunDateByStage();
 
   const stageCards = [
     {
       step: 'Stage 1',
-      lastRun: '29 May 2026',
+      lastRun: formatRunDate(lastRunByStage.Screening),
       title: 'Screening',
       description:
         'Automated quality checks on new and revised items, covering rubric alignment, clarity, key accuracy, bias and CEFR fit.',
@@ -24,7 +34,7 @@ export function PreTestingPipeline() {
     },
     {
       step: 'Stage 2',
-      lastRun: '28 May 2026',
+      lastRun: formatRunDate(lastRunByStage['Difficulty Estimation']),
       title: 'Difficulty Estimation',
       description:
         'Estimates item difficulty and CEFR level so items can be calibrated before live trialling.',
@@ -34,7 +44,7 @@ export function PreTestingPipeline() {
     },
     {
       step: 'Stage 3',
-      lastRun: '26 May 2026',
+      lastRun: formatRunDate(lastRunByStage.Seeding),
       title: 'Seeding',
       description:
         'Assigns calibrated items to live forms, prioritised by item-bank coverage and estimate confidence.',
@@ -44,14 +54,10 @@ export function PreTestingPipeline() {
     },
   ];
 
-  const recentRuns = [
-    { id: 'SCR-0142', stage: 'Screening', items: 22, flagged: 4, status: 'Running', date: '29 May 2026' },
-    { id: 'EST-0087', stage: 'Difficulty Estimation', items: 16, flagged: 0, status: 'Complete', date: '28 May 2026' },
-    { id: 'SCR-0141', stage: 'Screening', items: 31, flagged: 7, status: 'Complete', date: '27 May 2026' },
-    { id: 'SEED-0031', stage: 'Seeding', items: 12, flagged: 0, status: 'Complete', date: '26 May 2026' },
-    { id: 'EST-0086', stage: 'Difficulty Estimation', items: 19, flagged: 2, status: 'Needs review', date: '25 May 2026' },
-    { id: 'SCR-0140', stage: 'Screening', items: 18, flagged: 3, status: 'Complete', date: '24 May 2026' },
-  ];
+  const recentRuns = getPipelineRuns(RECENT_RUNS_LIMIT).map((run) => ({
+    ...run,
+    displayDate: formatRunDate(run.date),
+  }));
 
   return (
     <div className="p-4 sm:p-6 md:p-8">
@@ -145,7 +151,7 @@ export function PreTestingPipeline() {
                           {run.status}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{run.date}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{run.displayDate}</td>
                     </tr>
                   ))}
                 </tbody>
