@@ -216,7 +216,11 @@ const getAlignedDifficultyPrediction = (item: AssessmentItem): DifficultyPredict
   const b = Number(
     clampBValue(profile.meanB + deterministicOffset(`${item.id}:${item.level}`, profile.spread)).toFixed(2),
   );
-  const rawConfidence = profile.confidence + deterministicOffset(`${item.id}:confidence`, 22);
+  // Honour an explicit confidence on the item (e.g. supplied via CSV ingest)
+  // so deterministic demo data flows through the prediction stage unchanged.
+  const rawConfidence = typeof item.confidence === 'number'
+    ? item.confidence
+    : profile.confidence + deterministicOffset(`${item.id}:confidence`, 22);
   const confidence = Math.round(Math.min(95, Math.max(40, rawConfidence)));
 
   return {
@@ -664,25 +668,37 @@ export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]
   });
 };
 
-export const acceptPredictedItems = (itemIds: string[]) => {
+export type DifficultyAcceptDestination = 'publish' | 'seeding';
+
+export const acceptPredictedItems = (
+  itemIds: string[],
+  destination: DifficultyAcceptDestination = 'seeding',
+) => {
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
   const nowIso = now.toISOString();
 
   upsertItemOverrides(itemIds, (item, existingPatch) => {
     const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
+    const nextState: AssessmentItem['workflowState'] =
+      destination === 'publish' ? 'DP_APPROVED' : 'RECOMMENDED_FOR_SEEDING';
+    const action =
+      destination === 'publish'
+        ? 'Estimation Accepted — Published to Bank'
+        : 'Estimation Accepted — Queued for Seeding';
+
     const nextHistory = [
       ...previousHistory,
       {
         date: today,
         reviewer: 'Difficulty Review Team',
-        action: 'Estimation Accepted',
-        state: 'RECOMMENDED_FOR_SEEDING',
+        action,
+        state: nextState,
       },
     ];
 
     return {
-      workflowState: 'RECOMMENDED_FOR_SEEDING',
+      workflowState: nextState,
       status: 'Published',
       flaggedForReview: false,
       reviewHistory: nextHistory,

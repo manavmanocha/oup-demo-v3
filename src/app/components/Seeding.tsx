@@ -29,12 +29,29 @@ const formatItemIdForDisplay = (id: string): string => {
   return id.startsWith('ITMBK-') ? id.slice('ITMBK-'.length) : id;
 };
 
+// Bank-aware priority score for ordering seeding candidates.
+// Items in heavily under-supplied CEFR levels are pushed up; among items at the
+// same level, lower model confidence breaks ties (those benefit most from field
+// evidence). Higher score = higher priority.
+const getSeedingPriorityScore = (
+  item: Pick<AssessmentItem, 'level' | 'confidence'>,
+  gapByLevel: Record<string, number>,
+): number => {
+  const gap = gapByLevel[item.level] ?? 0;
+  const confidence = item.confidence ?? 100;
+  return gap * 2 + (100 - confidence);
+};
+
 const buildSeedingRationale = (
   item: Pick<AssessmentItem, 'id' | 'level' | 'skill' | 'confidence'>,
   gapByLevel: Record<string, number>,
 ): string => {
   const confidence = item.confidence ?? 0;
   const gap = gapByLevel[item.level] ?? 0;
+
+  if (gap >= 20) {
+    return `Bank gap at ${item.level} ${item.skill} — ${gap} item${gap === 1 ? '' : 's'} below target (priority fill)`;
+  }
 
   if (confidence > 0 && confidence < LOW_CONFIDENCE_THRESHOLD) {
     return `Low model confidence (${confidence}%) — field evidence required before bank entry`;
@@ -83,11 +100,22 @@ export function Seeding() {
   );
 
   const recommendedItems = useMemo(
-    () =>
-      sortNewestFirst(
-        allItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')),
-      ),
-    [allItems],
+    () => {
+      const candidates = allItems.filter((item) =>
+        isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING'),
+      );
+
+      return [...candidates].sort((a, b) => {
+        const scoreDiff = getSeedingPriorityScore(b, gapByLevel) - getSeedingPriorityScore(a, gapByLevel);
+        if (scoreDiff !== 0) return scoreDiff;
+
+        const aTime = Math.max(toTimestamp(a.lastEditedDate), toTimestamp(a.createdDate));
+        const bTime = Math.max(toTimestamp(b.lastEditedDate), toTimestamp(b.createdDate));
+        if (bTime !== aTime) return bTime - aTime;
+        return b.id.localeCompare(a.id);
+      });
+    },
+    [allItems, gapByLevel],
   );
 
   const currentlySeeded = useMemo(

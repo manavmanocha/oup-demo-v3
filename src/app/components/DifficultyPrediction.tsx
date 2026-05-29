@@ -127,18 +127,18 @@ export function DifficultyPrediction() {
     }
   };
 
-  const handleAcceptItem = (itemId: string) => {
-    acceptPredictedItems([itemId]);
+  const handleAcceptItem = (itemId: string, destination: 'publish' | 'seeding') => {
+    acceptPredictedItems([itemId], destination);
     setSelectedReadyIds((prev) => prev.filter((id) => id !== itemId));
     setRefreshVersion((prev) => prev + 1);
   };
 
-  const handleAcceptAll = () => {
+  const handleAcceptAll = (destination: 'publish' | 'seeding') => {
     if (!selectedReadyIds.length) {
       return;
     }
 
-    acceptPredictedItems(selectedReadyIds);
+    acceptPredictedItems(selectedReadyIds, destination);
     setSelectedReadyIds([]);
     setRefreshVersion((prev) => prev + 1);
   };
@@ -260,11 +260,12 @@ export function DifficultyPrediction() {
                     />
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" onClick={() => handleAcceptItem(item.id)}>Override estimate</Button>
-                    <Button size="sm" variant="outline" onClick={() => handleAcceptItem(item.id)}>Accept as-is</Button>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button size="sm" onClick={() => handleAcceptItem(item.id, 'publish')}>Publish to bank</Button>
+                    <Button size="sm" variant="outline" onClick={() => handleAcceptItem(item.id, 'seeding')}>Send to seeding</Button>
                     <Button size="sm" variant="outline">Reject</Button>
                   </div>
+                  <p className="mt-2 text-xs text-gray-500">Publish goes straight to the live bank; Send to seeding queues the item for prioritised field-evidence collection.</p>
                 </div>
               ))}
 
@@ -293,13 +294,27 @@ export function DifficultyPrediction() {
               </CardTitle>
               <span className="text-xs text-gray-500">Confidence 85% or above</span>
             </div>
-            <Button size="sm" onClick={handleAcceptAll} disabled={selectedReadyIds.length === 0}>
-              {selectedReadyIds.length > 0 ? `Accept ${selectedReadyIds.length} selected` : 'Accept selected'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleAcceptAll('seeding')}
+                disabled={selectedReadyIds.length === 0}
+              >
+                {selectedReadyIds.length > 0 ? `Send ${selectedReadyIds.length} to seeding` : 'Send to seeding'}
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => handleAcceptAll('publish')}
+                disabled={selectedReadyIds.length === 0}
+              >
+                {selectedReadyIds.length > 0 ? `Publish ${selectedReadyIds.length} to bank` : 'Publish to bank'}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-6">
-              These items met the confidence threshold and can be calibrated without further review.
+              These items met the confidence threshold. Publish them straight to the bank, or send them to seeding for prioritised field-evidence collection.
             </p>
 
             <div className="border rounded-lg overflow-hidden">
