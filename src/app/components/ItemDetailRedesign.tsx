@@ -1304,10 +1304,10 @@ export function ItemDetailRedesign() {
             {isFromWorkflow && screeningEntries.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm tracking-[0.12em] uppercase text-slate-500">Screening</CardTitle>
+                  <CardTitle className="text-xs uppercase tracking-wide text-gray-500 font-medium">Screening</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {screeningEntries.map((entry) => {
                       const isFailed = entry.value === 'Fail';
                       const isExpanded = Boolean(expandedScreeningReasons[entry.key]);
@@ -1315,17 +1315,11 @@ export function ItemDetailRedesign() {
                       return (
                         <div
                           key={entry.label}
-                          className={`overflow-hidden rounded-xl border ${
-                            entry.value === 'Review'
-                              ? 'border-amber-200 bg-amber-50/70'
-                              : entry.value === 'Pass'
-                                ? 'border-green-200 bg-green-50/70'
-                                : 'border-red-200 bg-red-50/70'
-                          }`}
+                          className="overflow-hidden rounded-lg border border-gray-200 bg-white"
                         >
                        
                           <div
-                            className={`flex items-center justify-between gap-3 px-4 py-3 ${isFailed ? 'cursor-pointer' : ''}`}
+                            className={`flex items-center justify-between gap-3 px-4 py-3 ${isFailed ? 'cursor-pointer hover:bg-gray-50' : ''}`}
                             onClick={isFailed ? () => toggleScreeningReason(entry.key) : undefined}
                             role={isFailed ? 'button' : undefined}
                             tabIndex={isFailed ? 0 : undefined}
@@ -1337,38 +1331,25 @@ export function ItemDetailRedesign() {
                             } : undefined}
                             aria-expanded={isFailed ? isExpanded : undefined}
                           >
-                            <div className="text-base font-semibold leading-tight text-gray-900 sm:text-md">
+                            <div className="text-sm font-medium text-gray-900">
                               {entry.label}
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant={
-                                  entry.value === 'Fail'
-                                    ? 'destructive'
-                                    : entry.value === 'Review'
-                                      ? 'secondary'
-                                      : 'outline'
-                                }
-                                className={`rounded-full px-4 py-1 text-xs font-semibold tracking-wide uppercase ${
-                                  entry.value === 'Pass'
-                                    ? 'bg-green-100 text-green-700 border-green-200'
-                                    : entry.value === 'Review'
-                                      ? 'bg-amber-200/80 text-amber-800 border-amber-300'
-                                      : ''
-                                }`}
-                              >
-                                {entry.value}
-                              </Badge>
-                              {/* {isFailed && (
-                                <span className="text-xs font-medium text-red-700">
-                                  {isExpanded ? 'Hide reason' : 'Show reason'}
-                                </span>
-                              )} */}
-                            </div>
+                            <Badge
+                              variant="outline"
+                              className={
+                                entry.value === 'Pass'
+                                  ? 'bg-green-50 text-green-700 border-green-200'
+                                  : entry.value === 'Review'
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                    : 'bg-red-50 text-red-700 border-red-200'
+                              }
+                            >
+                              {entry.value}
+                            </Badge>
                           </div>
                           {isFailed && isExpanded && (
-                            <div className="border-t border-red-200 bg-white/80 px-4 py-3">
-                              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-red-700">Failure Reason</p>
+                            <div className="border-t border-gray-200 bg-gray-50 px-4 py-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Failure Reason</p>
                               <p className="mt-1 text-sm leading-relaxed text-gray-700">
                                 {screeningFailureReasonByKey.get(entry.key)}
                               </p>
@@ -1388,9 +1369,9 @@ export function ItemDetailRedesign() {
               </CardHeader>
               <CardContent>
                 {/* Current State */}
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                  <div className="text-sm text-gray-600 mb-2">Current State</div>
-                  <Badge className="bg-gray-600 text-white px-3 py-1">
+                <div className="mb-6 flex items-center gap-3">
+                  <span className="text-sm text-gray-600">Current state</span>
+                  <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal">
                     {getWorkflowStateLabel(item.workflowState)}
                   </Badge>
                 </div>
