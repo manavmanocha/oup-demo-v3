@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { getAllItems, getIngestedItems, queueItemsForScreening } from "../data/mockData";
+import { AssessmentItem } from '../data/types';
 import { isWorkflowState } from '../data/workflowState';
 
 const prioritizeIngestedFirst = <T extends { id: string }>(items: T[], ingestedIds: Set<string>): T[] => {
@@ -30,6 +31,42 @@ const prioritizeIngestedFirst = <T extends { id: string }>(items: T[], ingestedI
   });
 
   return [...ingested, ...nonIngested];
+};
+
+const SKILL_CODE_BY_SKILL: Record<AssessmentItem['skill'], string> = {
+  Reading: 'RDG',
+  Writing: 'WRT',
+  Listening: 'LIS',
+  Speaking: 'SPK',
+};
+
+const SCREENING_START_TITLE_OVERRIDES: Record<string, string> = {
+  'ITM-WRITE-C1-0221': 'Discuss the impact of social media on adolescent wellbeing. Refer to specific examples.',
+  'ITM-WRITE-C1-0229': 'Some argue public libraries are no longer necessary in the digital age. To what extent do you agree?',
+  'ITM-WRITE-C1-0233': 'Analyse the changing role of small businesses in your local economy.',
+};
+
+const getNormalizedItemIdForDisplay = (item: AssessmentItem): string => {
+  if (item.id.startsWith('ITMBK-')) {
+    return item.id.slice('ITMBK-'.length);
+  }
+
+  const writeMatch = item.id.match(/^ITM-WRITE-(A1|A2|B1|B2|C1|C2)-(\d{3,4})$/);
+  if (writeMatch) {
+    const [, level, sequence] = writeMatch;
+    return `WRT-${level}-${String(Number(sequence)).padStart(3, '0')}`;
+  }
+
+  if (/^LQ-\d{3}$/.test(item.id)) {
+    const sequence = item.id.slice('LQ-'.length);
+    return `${SKILL_CODE_BY_SKILL[item.skill]}-${item.level}-${sequence}`;
+  }
+
+  return item.id;
+};
+
+const getItemTitleForDisplay = (item: AssessmentItem): string => {
+  return SCREENING_START_TITLE_OVERRIDES[item.id] ?? item.title ?? item.content ?? 'Untitled item';
 };
 
 export function ScreenItems() {
@@ -60,11 +97,14 @@ export function ScreenItems() {
   const filteredItems = useMemo(() => {
     return availableItems.filter(
       (item) =>
-        item.id
+        getNormalizedItemIdForDisplay(item)
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
-        item.title
+        getItemTitleForDisplay(item)
           .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        item.topic
+          ?.toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
         item?.content
           ?.toLowerCase()
@@ -139,7 +179,7 @@ export function ScreenItems() {
                 Select Items for Screening
               </h1>
               <p className="text-gray-600">
-                Select draft items from the library to queue for AI screening. Items currently in another pipeline stage are not shown.
+                Select draft items from the library to queue for AI screening. This list includes only draft items that have not entered the pipeline; items already in screening are tracked on the screening dashboard.
               </p>
             </div>
 
@@ -148,7 +188,7 @@ export function ScreenItems() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  placeholder="Search items..."
+                  placeholder="Search by ID, title, or topic"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -160,10 +200,21 @@ export function ScreenItems() {
               <Button
                 onClick={handleContinue}
                 disabled={selectedItemIds.length === 0}
+                title={selectedItemIds.length === 0 ? 'Select at least one item to continue' : 'Continue to confirmation'}
               >
                 Continue
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
+            </div>
+
+            {/* Filter placeholders */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide mr-1">Filters (roadmap)</span>
+              {['Reading', 'Writing', 'Listening', 'Speaking', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((filter) => (
+                <Button key={filter} variant="outline" size="sm" disabled className="text-gray-500">
+                  {filter}
+                </Button>
+              ))}
             </div>
 
             {/* Selection Summary */}
@@ -251,10 +302,10 @@ export function ScreenItems() {
                               />
                             </td>
                             <td className="px-4 py-3 text-sm font-medium text-blue-600">
-                              {item.id}
+                              {getNormalizedItemIdForDisplay(item)}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-900 max-w-md truncate" title={item.title}>
-                              {item.title}
+                            <td className="px-4 py-3 text-sm text-gray-900 max-w-md truncate" title={getItemTitleForDisplay(item)}>
+                              {getItemTitleForDisplay(item)}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-700 hidden sm:table-cell">
                               {item.itemType}
@@ -288,7 +339,7 @@ export function ScreenItems() {
                 Confirm screening queue
               </h1>
               <p className="text-gray-600">
-                {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'} will be picked up by the next screening run — typically within a few minutes.
+                {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'} will be picked up by the next screening run, typically within a few minutes.
               </p>
             </div>
 
@@ -321,10 +372,10 @@ export function ScreenItems() {
                       className="hover:bg-gray-50"
                     >
                       <td className="px-4 py-3 text-sm font-medium text-blue-600 whitespace-nowrap">
-                        {item.id}
+                        {getNormalizedItemIdForDisplay(item)}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900">
-                        {item.title}
+                        {getItemTitleForDisplay(item)}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
                         {item.itemType}
