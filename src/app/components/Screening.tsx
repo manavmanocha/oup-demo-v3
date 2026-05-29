@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -241,11 +242,17 @@ export function Screening() {
   const handleApprove = (itemId: string) => {
     approveScreenedItems([itemId]);
     setRefreshKey((prev) => prev + 1);
+    toast.success(`Item ${itemId} approved`, {
+      description: 'Moved to difficulty estimation.',
+    });
   };
 
   const handleReject = (itemId: string) => {
     rejectScreenedItems([itemId]);
     setRefreshKey((prev) => prev + 1);
+    toast.success(`Item ${itemId} rejected`, {
+      description: 'Removed from the screening queue.',
+    });
   };
 
   return (
