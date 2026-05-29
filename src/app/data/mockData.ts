@@ -148,21 +148,21 @@ const DEMO_DP_FIXTURES: Record<string, DifficultyPredictionResult> = {
     b: 0.58,
     confidence: 91,
     difficulty: 'Medium',
-    discrimination: 'High',
+    discrimination: 'Excellent',
   },
   'EAS-DEM-WRT-C1-104': {
     id: 'EAS-DEM-WRT-C1-104',
     b: 1.08,
-    confidence: 58,
+    confidence: 54,
     difficulty: 'Hard',
-    discrimination: 'Moderate',
+    discrimination: 'Low',
   },
   'EAS-DEM-SPK-C1-105': {
     id: 'EAS-DEM-SPK-C1-105',
     b: 1.02,
     confidence: 89,
     difficulty: 'Hard',
-    discrimination: 'High',
+    discrimination: 'Excellent',
   },
 };
 
@@ -178,12 +178,12 @@ type DifficultyProfile = {
 };
 
 const LEVEL_DIFFICULTY_PROFILE: Record<CEFRLevel, DifficultyProfile> = {
-  A1: { meanB: -1.7, spread: 0.18, confidence: 92 },
-  A2: { meanB: -1.1, spread: 0.16, confidence: 90 },
-  B1: { meanB: -0.35, spread: 0.18, confidence: 88 },
-  B2: { meanB: 0.35, spread: 0.2, confidence: 86 },
-  C1: { meanB: 1.05, spread: 0.18, confidence: 84 },
-  C2: { meanB: 1.65, spread: 0.15, confidence: 82 },
+  A1: { meanB: -1.7, spread: 0.22, confidence: 88 },
+  A2: { meanB: -1.1, spread: 0.25, confidence: 84 },
+  B1: { meanB: -0.35, spread: 0.28, confidence: 78 },
+  B2: { meanB: 0.35, spread: 0.32, confidence: 72 },
+  C1: { meanB: 1.05, spread: 0.30, confidence: 64 },
+  C2: { meanB: 1.65, spread: 0.26, confidence: 58 },
 };
 
 const sumHashString = (value: string) =>
@@ -204,21 +204,27 @@ const getDifficultyLabelFromB = (b: number): DifficultyPredictionResult['difficu
   return 'Very Hard';
 };
 
+const getDiscriminationLabel = (confidence: number): string => {
+  if (confidence >= 88) return 'Excellent';
+  if (confidence >= 75) return 'Good';
+  if (confidence >= 58) return 'Moderate';
+  return 'Low';
+};
+
 const getAlignedDifficultyPrediction = (item: AssessmentItem): DifficultyPredictionResult => {
   const profile = LEVEL_DIFFICULTY_PROFILE[item.level];
   const b = Number(
     clampBValue(profile.meanB + deterministicOffset(`${item.id}:${item.level}`, profile.spread)).toFixed(2),
   );
-  const confidence = Math.round(
-    Math.min(99, Math.max(70, profile.confidence + deterministicOffset(`${item.id}:confidence`, 4))),
-  );
+  const rawConfidence = profile.confidence + deterministicOffset(`${item.id}:confidence`, 22);
+  const confidence = Math.round(Math.min(95, Math.max(40, rawConfidence)));
 
   return {
     id: item.id,
     b,
     confidence,
     difficulty: getDifficultyLabelFromB(b),
-    discrimination: confidence >= 90 ? 'High' : confidence >= 80 ? 'Moderate' : 'Low',
+    discrimination: getDiscriminationLabel(confidence),
   };
 };
 
@@ -267,7 +273,7 @@ export const getMockDifficultyPredictionResult = (id: string): DifficultyPredict
   }
 
   const b = Number((Math.random() * 2).toFixed(2));
-  const confidence = Math.floor(Math.random() * 30) + 70;
+  const confidence = Math.floor(Math.random() * 55) + 40;
   const difficulty = getDifficultyLabelFromB(b);
 
   return {
@@ -275,7 +281,7 @@ export const getMockDifficultyPredictionResult = (id: string): DifficultyPredict
     b,
     confidence,
     difficulty,
-    discrimination: confidence >= 90 ? 'High' : confidence >= 80 ? 'Moderate' : 'Low',
+    discrimination: getDiscriminationLabel(confidence),
   };
 };
 
@@ -567,8 +573,8 @@ export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]
         ...previousHistory,
         {
           date: today,
-          reviewer: 'Prediction Engine',
-          action: 'Difficulty Predicted',
+          reviewer: 'Estimation Engine',
+          action: 'Difficulty Estimation Complete',
           state: 'PENDING_DP_REVIEW',
         },
       ];
@@ -585,14 +591,14 @@ export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]
           c: item.irtParameters?.c ?? 0.25,
           predictedByAI: true,
           calibratedFromFieldTest: false,
-          modelVersion: 'IRT-LSTM-3.1',
+          modelVersion: 'IRT-v3.1',
           predictionDate: nowIso,
         },
-        aiModelVersion: 'IRT-LSTM-3.1',
+        aiModelVersion: 'IRT-v3.1',
         aiPredictionDate: nowIso,
         reviewHistory: nextHistory,
         lastEditedDate: nowIso,
-        lastEditedBy: 'Prediction Engine',
+        lastEditedBy: 'Estimation Engine',
       };
     });
   });
@@ -610,7 +616,7 @@ export const acceptPredictedItems = (itemIds: string[]) => {
       {
         date: today,
         reviewer: 'Difficulty Review Team',
-        action: 'DP Approved',
+        action: 'Estimation Accepted',
         state: 'RECOMMENDED_FOR_SEEDING',
       },
     ];

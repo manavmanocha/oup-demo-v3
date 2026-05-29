@@ -15,7 +15,6 @@ import {
   RotateCcw,
   CheckCircle2,
   XCircle,
-  BookOpen,
   Lightbulb,
   AlertTriangle,
   AlertCircle,
@@ -518,42 +517,59 @@ export function ItemDetailRedesign() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation Bar - Fixed positioning for all zoom levels */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-        <div className="w-full px-8 py-4">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex items-center justify-between gap-4">
-              {/* Left section - Back button with proper alignment */}
-              <div className="flex items-center gap-4 min-w-0 flex-shrink-0">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleBack}
-                  className="flex-shrink-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-                <Separator orientation="vertical" className="h-6 flex-shrink-0" />
-                {/* Item metadata badges - highlighted */}
-                <div className="flex items-center gap-2 flex-wrap">
+      {/* Top Navigation Bar */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="w-full px-8 pt-3 pb-4">
+          <div className="max-w-5xl mx-auto space-y-3">
+            {/* Breadcrumb row */}
+            <div className="flex items-center justify-between gap-3">
+              <nav className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
+                <Link to="/item-bank" className="hover:text-gray-700">Item Bank</Link>
+                <span className="text-gray-300">/</span>
+                <Link to={`/item-bank/${item.level}`} className="hover:text-gray-700">{item.level}</Link>
+                <span className="text-gray-300">/</span>
+                <span className="font-mono text-gray-700 truncate">{item.id}</span>
+              </nav>
+              {isPreviewMode && <Badge variant="secondary">Preview Mode</Badge>}
+            </div>
+
+            {/* Title row */}
+            <div className="flex items-start gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="-ml-2 flex-shrink-0 text-gray-600 hover:text-gray-900"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1.5" />
+                Back
+              </Button>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl font-semibold text-gray-900 font-mono truncate">{item.id}</h1>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal">
+                    {item.skill}
+                  </Badge>
+                  <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal">
+                    {item.level}
+                  </Badge>
+                  {item.workflowState && (
+                    <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal">
+                      {getWorkflowStateLabel(item.workflowState)}
+                    </Badge>
+                  )}
                   {item.status === 'Compromised' && (
-                    <Badge variant="destructive" className="font-semibold">
+                    <Badge variant="outline" className="border-red-200 bg-red-50 text-red-700 font-normal">
                       Compromised
                     </Badge>
                   )}
-                  <Badge variant="outline" className="font-semibold text-blue-700 border-blue-300 bg-blue-50">
-                    {item.skill}
-                  </Badge>
-                  <Badge variant="outline" className="font-semibold text-gray-700 border-gray-300">
-                    {item.level}
-                  </Badge>
-                  <span className="text-sm font-mono text-gray-500">{item.id}</span>
+                  {item.passageTitle && (
+                    <>
+                      <span className="text-gray-300">·</span>
+                      <span className="text-sm text-gray-600 truncate">{item.passageTitle}</span>
+                    </>
+                  )}
                 </div>
-              </div>
-
-              <div className="flex-shrink-0">
-                {isPreviewMode && <Badge variant="secondary">Preview Mode</Badge>}
               </div>
             </div>
           </div>
@@ -689,17 +705,19 @@ export function ItemDetailRedesign() {
                 <Card>
                   <CollapsibleTrigger className="w-full">
                     <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="w-5 h-5 text-blue-600" />
-                          <CardTitle className="text-lg">
+                      <div className="flex items-center justify-between gap-3 min-w-0">
+                        <div className="min-w-0">
+                          <div className="text-xs uppercase tracking-wide text-gray-500">
                             {(isListening || item?.audioAsset) ? 'Transcript' : isSpeakingQuestion ? 'Speaking Prompt' : 'Reading Passage'}
-                          </CardTitle>
+                          </div>
+                          {item.passageTitle && (
+                            <CardTitle className="text-base mt-1 truncate">{item.passageTitle}</CardTitle>
+                          )}
                         </div>
                         {passageExpanded ? (
-                          <ChevronUp className="w-5 h-5 text-gray-400" />
+                          <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
                         ) : (
-                          <ChevronDown className="w-5 h-5 text-gray-400" />
+                          <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
                         )}
                       </div>
                     </CardHeader>
@@ -707,11 +725,6 @@ export function ItemDetailRedesign() {
                   <CollapsibleContent>
                     <CardContent className="pt-0">
                       <div className="prose max-w-none">
-                        {item.passageTitle && (
-                          <h3 className="text-base font-semibold text-gray-900 mb-2">
-                            {item.passageTitle}
-                          </h3>
-                        )}
                         <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                           {item.passage}
                         </p>
@@ -723,15 +736,10 @@ export function ItemDetailRedesign() {
             )}
 
             {/* Main Question */}
-            <Card className="border-2 border-blue-200 shadow-md">
+            <Card>
               <CardContent className="p-4 sm:p-6 md:p-8">
                 <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                      Q
-                    </div>
-                    <h2 className="text-xl font-bold text-gray-900">Question</h2>
-                  </div>
+                  <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Question</div>
                   {!isSentenceCompletion && (
                     <p className="text-lg text-gray-900 leading-relaxed">
                       {item.title}
@@ -749,11 +757,11 @@ export function ItemDetailRedesign() {
                         {item.content}
                   </div>
                 )}
-                </div>
-
-                <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
-                  <p className="text-sm font-medium text-blue-900">Instructions</p>
-                  <p className="mt-1 text-sm text-blue-800">{item.instructions || 'Review the question and use the answer explanation panel for reference.'}</p>
+                  {(item.instructions || true) && (
+                    <p className="mt-3 text-sm italic text-gray-500">
+                      {item.instructions || 'Review the question and use the answer explanation panel for reference.'}
+                    </p>
+                  )}
                 </div>
 
                 {/* Answer Options */}
@@ -950,15 +958,17 @@ export function ItemDetailRedesign() {
                   </div>
                 )}
 
-                {/* Show Answer Button */}
+                {/* Show Answer toggle */}
                 {!showExplanation && (
-                  <div className="mt-4 pt-4 border-t">
+                  <div className="mt-6 pt-4 border-t border-gray-100">
                     <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setShowExplanation(true)}
-                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      className="text-gray-700"
                     >
-                      <Lightbulb className="w-4 h-4 mr-2" />
-                      Show Correct Answer & Explanation
+                      <Lightbulb className="w-4 h-4 mr-2 text-gray-500" />
+                      Show answer key
                     </Button>
                   </div>
                 )}
@@ -1106,10 +1116,10 @@ export function ItemDetailRedesign() {
                       </TooltipTrigger>
                       <TooltipContent className="max-w-sm">
                         <p className="text-sm">
-                          <strong>IRT (Item Response Theory)</strong> parameters describe item characteristics:
-                          <br />• <strong>b</strong> (difficulty): Higher values = harder items
-                          <br />• <strong>a</strong> (discrimination): How well item separates ability levels
-                          <br />• <strong>c</strong> (guessing): Probability of correct guess
+                          Model-predicted parameters describing how this item behaves when administered to candidates.
+                          <br />• <strong>Difficulty</strong>: predicted position on the ability scale — higher means harder
+                          <br />• <strong>Discrimination</strong>: how sharply the item separates stronger from weaker candidates
+                          <br />• <strong>Guessing</strong>: estimated probability of a correct response by chance
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -1118,26 +1128,22 @@ export function ItemDetailRedesign() {
               </CardHeader>
               <CardContent>
                 {item.irtParameters ? (
-                  <div className="space-y-4">
-                    {/* IRT Source */}
-                    
-
-                    <div className="grid grid-cols-3 gap-6">
+                  <div className="space-y-5">
+                    {/* Parameters */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                       <div>
-                        <div className="text-sm text-gray-600 mb-1">Difficulty (b-parameter)</div>
-                        <div className="text-2xl font-bold text-gray-900">
+                        <div className="text-sm text-gray-600 mb-1">Difficulty</div>
+                        <div className="text-2xl font-semibold text-gray-900">
                           {item.irtParameters.b.toFixed(2)}
                         </div>
                         {item.difficulty && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Qualitative: {item.difficulty}
-                          </div>
+                          <div className="text-xs text-gray-500 mt-1">{item.difficulty}</div>
                         )}
                       </div>
 
                       <div>
-                        <div className="text-sm text-gray-600 mb-1">Discrimination (a-parameter)</div>
-                        <div className="text-2xl font-bold text-gray-900">
+                        <div className="text-sm text-gray-600 mb-1">Discrimination</div>
+                        <div className="text-2xl font-semibold text-gray-900">
                           {item.irtParameters.a.toFixed(2)}
                         </div>
                         {item.discrimination && (
@@ -1146,56 +1152,49 @@ export function ItemDetailRedesign() {
                       </div>
 
                       <div>
-                        <div className="text-sm text-gray-600 mb-1">Guessing (c-parameter)</div>
-                        <div className="text-2xl font-bold text-gray-900">
+                        <div className="text-sm text-gray-600 mb-1">Guessing</div>
+                        <div className="text-2xl font-semibold text-gray-900">
                           {item.irtParameters.c.toFixed(2)}
                         </div>
                       </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="grid grid-cols-3 gap-6">
-                      {item.irtParameters.sampleSize && (
-                        <div>
-                          <div className="text-sm text-gray-600 mb-1">Sample Size</div>
-                          <div className="text-lg font-semibold text-gray-900">
-                            {item.irtParameters.sampleSize.toLocaleString()}
-                          </div>
-                        </div>
-                      )}
-
-                      {item.irtParameters.modelVersion && (
-                        <div>
-                          <div className="text-sm text-gray-600 mb-1">Model Version</div>
-                          <div className="text-lg font-semibold text-gray-900">
-                            {item.irtParameters.modelVersion}
-                          </div>
-                        </div>
-                      )}
-
-                      {item.irtParameters.predictionDate && (
-                        <div>
-                          <div className="text-sm text-gray-600 mb-1">
-                            {item.irtParameters.calibratedFromFieldTest ? 'Calibration Date' : 'Estimation Date'}
-                          </div>
-                          <div className="text-lg font-semibold text-gray-900">
-                            {new Date(item.irtParameters.predictionDate).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </div>
-                        </div>
-                      )}
 
                       {item.confidence !== undefined && (
                         <div>
                           <div className="text-sm text-gray-600 mb-1">Confidence</div>
-                          <div className="text-lg font-semibold text-gray-900">{item.confidence}%</div>
+                          <div className="text-2xl font-semibold text-gray-900">{item.confidence}%</div>
                         </div>
                       )}
                     </div>
+
+                    {/* Run metadata strip */}
+                    {(item.irtParameters.sampleSize || item.irtParameters.modelVersion || item.irtParameters.predictionDate) && (
+                      <div className="pt-3 border-t border-gray-100 flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-500">
+                        {item.irtParameters.sampleSize && (
+                          <div>
+                            <span>Sample size </span>
+                            <span className="text-gray-700 font-medium">{item.irtParameters.sampleSize.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {item.irtParameters.modelVersion && (
+                          <div>
+                            <span>Model </span>
+                            <span className="text-gray-700 font-medium font-mono">{item.irtParameters.modelVersion}</span>
+                          </div>
+                        )}
+                        {item.irtParameters.predictionDate && (
+                          <div>
+                            <span>{item.irtParameters.calibratedFromFieldTest ? 'Calibrated' : 'Estimated'} </span>
+                            <span className="text-gray-700 font-medium">
+                              {new Date(item.irtParameters.predictionDate).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Manual Override */}
                     {item.manualOverride && item.manualOverrideReason && (
@@ -1305,10 +1304,10 @@ export function ItemDetailRedesign() {
             {isFromWorkflow && screeningEntries.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm tracking-[0.12em] uppercase text-slate-500">Screening</CardTitle>
+                  <CardTitle className="text-xs uppercase tracking-wide text-gray-500 font-medium">Screening</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {screeningEntries.map((entry) => {
                       const isFailed = entry.value === 'Fail';
                       const isExpanded = Boolean(expandedScreeningReasons[entry.key]);
@@ -1316,17 +1315,11 @@ export function ItemDetailRedesign() {
                       return (
                         <div
                           key={entry.label}
-                          className={`overflow-hidden rounded-xl border ${
-                            entry.value === 'Review'
-                              ? 'border-amber-200 bg-amber-50/70'
-                              : entry.value === 'Pass'
-                                ? 'border-green-200 bg-green-50/70'
-                                : 'border-red-200 bg-red-50/70'
-                          }`}
+                          className="overflow-hidden rounded-lg border border-gray-200 bg-white"
                         >
                        
                           <div
-                            className={`flex items-center justify-between gap-3 px-4 py-3 ${isFailed ? 'cursor-pointer' : ''}`}
+                            className={`flex items-center justify-between gap-3 px-4 py-3 ${isFailed ? 'cursor-pointer hover:bg-gray-50' : ''}`}
                             onClick={isFailed ? () => toggleScreeningReason(entry.key) : undefined}
                             role={isFailed ? 'button' : undefined}
                             tabIndex={isFailed ? 0 : undefined}
@@ -1338,38 +1331,25 @@ export function ItemDetailRedesign() {
                             } : undefined}
                             aria-expanded={isFailed ? isExpanded : undefined}
                           >
-                            <div className="text-base font-semibold leading-tight text-gray-900 sm:text-md">
+                            <div className="text-sm font-medium text-gray-900">
                               {entry.label}
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant={
-                                  entry.value === 'Fail'
-                                    ? 'destructive'
-                                    : entry.value === 'Review'
-                                      ? 'secondary'
-                                      : 'outline'
-                                }
-                                className={`rounded-full px-4 py-1 text-xs font-semibold tracking-wide uppercase ${
-                                  entry.value === 'Pass'
-                                    ? 'bg-green-100 text-green-700 border-green-200'
-                                    : entry.value === 'Review'
-                                      ? 'bg-amber-200/80 text-amber-800 border-amber-300'
-                                      : ''
-                                }`}
-                              >
-                                {entry.value}
-                              </Badge>
-                              {/* {isFailed && (
-                                <span className="text-xs font-medium text-red-700">
-                                  {isExpanded ? 'Hide reason' : 'Show reason'}
-                                </span>
-                              )} */}
-                            </div>
+                            <Badge
+                              variant="outline"
+                              className={
+                                entry.value === 'Pass'
+                                  ? 'bg-green-50 text-green-700 border-green-200'
+                                  : entry.value === 'Review'
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                    : 'bg-red-50 text-red-700 border-red-200'
+                              }
+                            >
+                              {entry.value}
+                            </Badge>
                           </div>
                           {isFailed && isExpanded && (
-                            <div className="border-t border-red-200 bg-white/80 px-4 py-3">
-                              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-red-700">Failure Reason</p>
+                            <div className="border-t border-gray-200 bg-gray-50 px-4 py-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Failure Reason</p>
                               <p className="mt-1 text-sm leading-relaxed text-gray-700">
                                 {screeningFailureReasonByKey.get(entry.key)}
                               </p>
@@ -1389,9 +1369,9 @@ export function ItemDetailRedesign() {
               </CardHeader>
               <CardContent>
                 {/* Current State */}
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                  <div className="text-sm text-gray-600 mb-2">Current State</div>
-                  <Badge className="bg-gray-600 text-white px-3 py-1">
+                <div className="mb-6 flex items-center gap-3">
+                  <span className="text-sm text-gray-600">Current state</span>
+                  <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal">
                     {getWorkflowStateLabel(item.workflowState)}
                   </Badge>
                 </div>

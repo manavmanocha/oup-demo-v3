@@ -983,17 +983,17 @@
         "similarity": "Pass"
       },
       "flaggedForReview": false,
-              "reviewHistory": [
-                {
-                  "date": "2026-05-22",
-                  "reviewer": "Maya Thompson",
-                  "action": "Created",
-                  "state": "Draft"
-                }
-              ],
-              "author": "Elena Petrova",
-              "createdDate": "2026-05-22",
-              "lastEditedDate": "2026-05-22"
+      "reviewHistory": [
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Elena Petrova",
+      "createdDate": "2026-05-22",
+      "lastEditedDate": "2026-05-22"
     },
     {
       "id": "ITMBK-SPK-A2-016",
@@ -1075,7 +1075,7 @@
           "audioTitle": "Public Announcement",
           "audioFile": "spk_b1_017_repeat_sentence.mp3",
           "audioAsset": "/audio/spk_b1_017_repeat_sentence.mp3",
-          "transcript":  "Passengers for Platform 6 should check the new departure time on the main screen.",
+          "transcript": "Passengers for Platform 6 should check the new departure time on the main screen.",
           "instructions": "Listen once. When you hear the tone, repeat the sentence exactly.",
           "rubric": "Assess accuracy of repetition, pronunciation, and retention of key content words.",
           "prepTime": 45,
@@ -1170,14 +1170,14 @@
       },
       "flaggedForReview": false,
       "reviewHistory": [
-{
-                  "date": "2026-05-22",
-                  "reviewer": "Maya Thompson",
-                  "action": "Created",
-                  "state": "Draft"
-                }
-              ],
-              "author": "Neha Kapoor",
+        {
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Neha Kapoor",
       "createdDate": "2026-05-22",
       "lastEditedDate": "2026-05-22"
     },
@@ -1235,19 +1235,19 @@
       "flaggedForReview": false,
       "reviewHistory": [
         {
-                  "date": "2026-05-17",
-                  "reviewer": "Speaking Item Writer",
-                  "action": "Created",
-                  "state": "Draft"
-                },
-                {
-                  "date": "2026-05-20",
-                  "reviewer": "Speaking Reviewer",
-                  "action": "Reviewed",
-                  "state": "In Review"
-                }
-              ],
-              "author": "Speaking Item Writer",
+          "date": "2026-05-17",
+          "reviewer": "Speaking Item Writer",
+          "action": "Created",
+          "state": "Draft"
+        },
+        {
+          "date": "2026-05-20",
+          "reviewer": "Speaking Reviewer",
+          "action": "Reviewed",
+          "state": "In Review"
+        }
+      ],
+      "author": "Speaking Item Writer",
       "createdDate": "2026-05-22",
       "lastEditedDate": "2026-05-22"
     },
@@ -1307,13 +1307,13 @@
       "flaggedForReview": false,
       "reviewHistory": [
         {
-                  "date": "2026-05-22",
-                  "reviewer": "Maya Thompson",
-                  "action": "Created",
-                  "state": "Draft"
-                }
-              ],
-              "author": "Aisha Verma",
+          "date": "2026-05-22",
+          "reviewer": "Maya Thompson",
+          "action": "Created",
+          "state": "Draft"
+        }
+      ],
+      "author": "Aisha Verma",
       "createdDate": "2026-05-22",
       "lastEditedDate": "2026-05-22"
     },
@@ -1346,7 +1346,7 @@
       "contentDomain": "Linguistics and Culture",
       "languageVariety": "International",
       "discrimination": "High",
-      "confidence": 55,
+      "confidence": 58,
       "irtParameters": {
         "b": 1.35,
         "a": 1.13,
@@ -1456,7 +1456,7 @@
       "contentDomain": "Energy and Technology",
       "languageVariety": "International",
       "discrimination": "Moderate",
-      "confidence": 55,
+      "confidence": 62,
       "irtParameters": {
         "b": 0.85,
         "a": 1.12,
@@ -1557,7 +1557,7 @@
       "contentDomain": "Academic",
       "languageVariety": "International",
       "discrimination": "Low",
-      "confidence": 55,
+      "confidence": 67,
       "irtParameters": {
         "b": 0.35,
         "a": 1.07,
@@ -1639,7 +1639,7 @@
       "contentDomain": "History and Culture",
       "languageVariety": "International",
       "discrimination": "High",
-      "confidence": 55,
+      "confidence": 71,
       "irtParameters": {
         "b": 1.35,
         "a": 1.06,
@@ -1707,7 +1707,7 @@
       "prompt": "How has technology changed the way people travel compared to the past?",
       "correctAnswer": null,
       "difficulty": "Medium",
-      "level": "A1",
+      "level": "B2",
       "topic": "Technology and Travel",
       "skillTag": "Speaking - Part 3",
       "skillTagId": "speaking-part3-abstract",
@@ -1740,7 +1740,7 @@
       "contentDomain": "Technology and Travel",
       "languageVariety": "International",
       "discrimination": "Moderate",
-      "confidence": 55,
+      "confidence": 73,
       "irtParameters": {
         "b": 0.85,
         "a": 1.09,
@@ -1808,7 +1808,7 @@
       "prompt": "Globalization has brought about more positive economic impacts than negative ones. To what extent do you agree or disagree with this statement?",
       "correctAnswer": null,
       "difficulty": "Hard",
-      "level": "A1",
+      "level": "C2",
       "topic": "Economics and Globalization",
       "skillTag": "Writing - Task 2",
       "skillTagId": "writing-task2-globalization",
@@ -1832,7 +1832,7 @@
       "contentDomain": "Economics and Globalization",
       "languageVariety": "International",
       "discrimination": "High",
-      "confidence": 55,
+      "confidence": 76,
       "irtParameters": {
         "b": 1.35,
         "a": 1.09,
@@ -1925,7 +1925,7 @@
       "contentDomain": "Education Statistics",
       "languageVariety": "International",
       "discrimination": "Moderate",
-      "confidence": 55,
+      "confidence": 78,
       "irtParameters": {
         "b": 0.85,
         "a": 1.08,
@@ -2019,7 +2019,7 @@
       "contentDomain": "Culture and Tradition",
       "languageVariety": "International",
       "discrimination": "High",
-      "confidence": 55,
+      "confidence": 79,
       "irtParameters": {
         "b": 1.35,
         "a": 1.11,
@@ -2112,7 +2112,7 @@
       "contentDomain": "Media and Society",
       "languageVariety": "International",
       "discrimination": "High",
-      "confidence": 55,
+      "confidence": 81,
       "irtParameters": {
         "b": 1.35,
         "a": 1.13,
@@ -2181,7 +2181,7 @@
       "prompt": "Describe a person who has influenced you greatly. You should say: who this person is, how you know them, what qualities they have, and explain how they have influenced you.",
       "correctAnswer": null,
       "difficulty": "Medium",
-      "level": "A1",
+      "level": "B2",
       "topic": "People and Relationships",
       "skillTag": "Speaking - Part 2",
       "skillTagId": "speaking-part2-person",
@@ -2204,13 +2204,13 @@
         }
       },
       "status": "Draft",
-      "workflowState": "PENDING_DP_REVIEW",
+      "workflowState": "RECOMMENDED_FOR_SEEDING",
       "subSkill": "Speaking - Part 2",
       "cognitiveLevel": "L3 Apply",
       "contentDomain": "People and Relationships",
       "languageVariety": "International",
       "discrimination": "Moderate",
-      "confidence": 55,
+      "confidence": 83,
       "irtParameters": {
         "b": 0.85,
         "a": 1.06,
@@ -2484,7 +2484,7 @@
       "prompt": "The graph and table below give information about water use worldwide and water consumption in two different countries. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
       "correctAnswer": null,
       "difficulty": "Hard",
-      "level": "A1",
+      "level": "C1",
       "topic": "Water Resources",
       "skillTag": "Writing - Task 1",
       "skillTagId": "writing-task1-mixed",
@@ -2588,7 +2588,7 @@
       "prompt": "The line graph below shows the percentage of people in different age groups who used the Internet in a particular country between 1998 and 2010. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
       "correctAnswer": null,
       "difficulty": "Medium",
-      "level": "A1",
+      "level": "B2",
       "topic": "Technology and Demographics",
       "skillTag": "Writing - Task 1",
       "skillTagId": "writing-task1-graph",
@@ -3742,7 +3742,7 @@
         }
       },
       "status": "Draft",
-      "workflowState": "PENDING_DP_REVIEW",
+      "workflowState": "RECOMMENDED_FOR_SEEDING",
       "subSkill": "Understanding theoretical concepts",
       "cognitiveLevel": "L4 Analyze",
       "contentDomain": "Psychology and Neuroscience",
@@ -4017,7 +4017,7 @@
         }
       },
       "status": "Draft",
-      "workflowState": "PENDING_DP_REVIEW",
+      "workflowState": "RECOMMENDED_FOR_SEEDING",
       "subSkill": "Writing - Task 1",
       "cognitiveLevel": "L4 Analyze",
       "contentDomain": "Economic Trends",
@@ -6266,7 +6266,7 @@
       "prompt": "Let's talk about your hometown. Where are you from?",
       "correctAnswer": null,
       "difficulty": "Easy",
-      "level": "A2",
+      "level": "A1",
       "topic": "Hometown and Background",
       "skillTag": "Speaking - Part 1",
       "skillTagId": "speaking-part1-intro",

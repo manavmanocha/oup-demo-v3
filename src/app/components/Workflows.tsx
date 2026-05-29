@@ -83,7 +83,7 @@ export function Workflows() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Workflows</h1>
           <p className="text-gray-600">
-            Browse available and upcoming workflows. Cards are currently shown for planning and visibility only.
+            Automated pipelines that process, validate, and publish content across the comproDLS platform.
           </p>
         </div>
 

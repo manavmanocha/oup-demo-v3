@@ -6,7 +6,6 @@ import { Badge } from './ui/badge';
 import { Checkbox } from './ui/checkbox';
 import { Input } from './ui/input';
 import { CheckCircle2, Sparkles, Search, ChevronRight } from 'lucide-react';
-import { Progress } from './ui/progress';
 import { applyDifficultyPredictions, getAllItems, getMockDifficultyPredictionResult } from '../data/mockData';
 import { Difficulty } from '../data/types';
 import { isWorkflowState } from '../data/workflowState';
@@ -137,31 +136,28 @@ export function PredictDifficulty() {
     <div className="p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
-          <Link to="/workflows" className="hover:underline">Workflows</Link>
-          <span className="text-gray-400">/</span>
-          <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
-          <span className="text-gray-400">/</span>
-          <Link to="/workflows/pre-testing-pipeline/stages" className="hover:underline">Pipeline Stages</Link>
-          <span className="text-gray-400">/</span>
-          <Link to="/workflows/pre-testing-pipeline/difficulty-prediction" className="hover:underline">Difficulty Estimation</Link>
-          <span className="text-gray-400">/</span>
-          <span className="text-gray-900">Estimate Difficulty</span>
-        </div>
+        {step !== 'success' && (
+          <div className="flex items-center gap-2 text-sm text-blue-600 mb-6">
+            <Link to="/workflows" className="hover:underline">Workflows</Link>
+            <span className="text-gray-400">/</span>
+            <Link to="/workflows/pre-testing-pipeline" className="hover:underline">Pre-Testing Pipeline</Link>
+            <span className="text-gray-400">/</span>
+            <Link to="/workflows/pre-testing-pipeline/difficulty-prediction" className="hover:underline">Difficulty Estimation</Link>
+            <span className="text-gray-400">/</span>
+            <span className="text-gray-900">Select Items</span>
+          </div>
+        )}
 
         {step === 'select' && (
           <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-8 h-8 text-purple-600" />
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Select Items for Difficulty Estimation
-                </h1>
-                <p className="text-gray-600">
-                  Choose items that have passed screening to run ML-based difficulty estimation.
-                </p>
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Select Items for Difficulty Estimation
+              </h1>
+              <p className="text-gray-600">
+                Choose items that have passed screening. The model will estimate difficulty and discrimination for each one.
+              </p>
             </div>
 
             {/* Search */}
@@ -188,132 +184,117 @@ export function PredictDifficulty() {
             </div>
 
             {/* Selection Summary */}
-            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
               <span className="text-sm font-medium text-gray-900">
-                {selectedItemIds.length} item(s) selected
+                {selectedItemIds.length === 0
+                  ? 'No items selected'
+                  : `${selectedItemIds.length} item${selectedItemIds.length === 1 ? '' : 's'} selected`}
               </span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleAll}
               >
-                {selectedItemIds.length === filteredItems.length ? 'Deselect All' : 'Select All'}
+                {selectedItemIds.length === filteredItems.length && filteredItems.length > 0
+                  ? 'Deselect all'
+                  : `Select all (${filteredItems.length})`}
               </Button>
             </div>
 
+            {/* Count indicator */}
+            <div className="text-sm text-gray-600">
+              Showing {filteredItems.length} of {availableItems.length} screening-passed item{availableItems.length === 1 ? '' : 's'}
+              {searchQuery && availableItems.length !== filteredItems.length ? ' (filtered)' : ''}
+            </div>
+
             {/* Items Table */}
-            <Card>
-              <CardContent className="p-0">
-                <div className="border rounded-lg overflow-hidden overflow-x-auto">
-                  <table className="w-full min-w-[560px]">
-                    <thead className="bg-gray-50 border-b">
-                      <tr>
-                        <th className="px-4 py-3 text-left w-12">
+            <div className="border rounded-lg overflow-hidden overflow-x-auto">
+              <table className="w-full min-w-[560px]">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-4 py-3 text-left w-12">
+                      <Checkbox
+                        checked={
+                          filteredItems.length > 0 &&
+                          selectedItemIds.length === filteredItems.length
+                        }
+                        onCheckedChange={toggleAll}
+                        aria-label="Select all items"
+                      />
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skill / Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CEFR</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {filteredItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                        No items available for difficulty estimation
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredItems.map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
                           <Checkbox
-                            checked={
-                              filteredItems.length > 0 &&
-                              selectedItemIds.length === filteredItems.length
-                            }
-                            onCheckedChange={toggleAll}
-                            aria-label="Select all items"
+                            checked={selectedItemIds.includes(item.id)}
+                            onCheckedChange={() => toggleItem(item.id)}
                           />
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CEFR</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skill</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        </td>
+                        <td className="px-4 py-3 text-sm font-medium text-blue-600 whitespace-nowrap">{item.id}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 max-w-md truncate" title={item.title}>{item.title}</td>
+                        <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                          {item.skill === item.itemType ? item.skill : `${item.skill} · ${item.itemType}`}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">{item.level}</td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {filteredItems.length === 0 ? (
-                        <tr>
-                          <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                            No items available for difficulty estimation
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredItems.map((item) => (
-                          <tr key={item.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3">
-                              <Checkbox
-                                checked={selectedItemIds.includes(item.id)}
-                                onCheckedChange={() => toggleItem(item.id)}
-                              />
-                            </td>
-                            <td className="px-4 py-3 text-sm font-medium text-blue-600">{item.id}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900 max-w-md truncate">{item.title}</td>
-                            <td className="px-4 py-3 text-sm text-gray-700">{item.itemType}</td>
-                            <td className="px-4 py-3">
-                              <Badge variant="outline">{item.level}</Badge>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-700">{item.skill}</td>
-                            <td className="px-4 py-3">
-                              <Badge variant="outline" className='bg-green-100 text-green-800'>Screening Passed</Badge>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-
-
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
         {step === 'confirm' && (
           <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-8 h-8 text-purple-600" />
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Start Difficulty Estimation
-                </h1>
-                <p className="text-gray-600">
-                  {selectedItems.length} items selected for ML-based difficulty estimation.
-                </p>
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Confirm difficulty estimation
+              </h1>
+              <p className="text-gray-600">
+                {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'} will be sent to the estimation model — the run typically completes within a minute.
+              </p>
             </div>
 
             {/* Items Table */}
-            <Card>
-              <CardContent className="p-0">
-                <div className="border rounded-lg overflow-hidden overflow-x-auto">
-                  <table className="w-full min-w-[560px]">
-                    <thead className="bg-gray-50 border-b">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CEFR</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {selectedItems.map((item) => (
-                        <tr key={item.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm font-medium text-blue-600">{item.id}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{item.title}</td>
-                          <td className="px-4 py-3 text-sm text-gray-700">{item.itemType}</td>
-                          <td className="px-4 py-3">
-                            <Badge variant="outline">{item.level}</Badge>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="pt-4">
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                Would you like to start difficulty estimation on these items?
-              </p>
+            <div className="border rounded-lg overflow-hidden overflow-x-auto">
+              <table className="w-full min-w-[560px]">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skill / Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CEFR</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {selectedItems.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm font-medium text-blue-600 whitespace-nowrap">{item.id}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{item.title}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                        {item.skill === item.itemType ? item.skill : `${item.skill} · ${item.itemType}`}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">{item.level}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             {/* Actions */}
@@ -321,15 +302,9 @@ export function PredictDifficulty() {
               <Button variant="outline" onClick={() => setStep('select')}>
                 Back
               </Button>
-              <div className="flex gap-3">
-                <Link to="/workflows/pre-testing-pipeline/difficulty-prediction">
-                  <Button variant="outline">Cancel</Button>
-                </Link>
-                <Button onClick={handleStartPrediction}>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Start Estimation
-                </Button>
-              </div>
+              <Button onClick={handleStartPrediction}>
+                Run estimation on {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'}
+              </Button>
             </div>
           </div>
         )}
@@ -337,100 +312,114 @@ export function PredictDifficulty() {
         {step === 'processing' && (
           <div className="space-y-6 py-12">
             <div className="flex justify-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center animate-pulse">
-                <Sparkles className="w-10 h-10 text-purple-600" />
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center animate-pulse">
+                <Sparkles className="w-10 h-10 text-blue-600" />
               </div>
             </div>
 
             <div className="text-center">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Running Estimations...
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Running estimation
               </h1>
               <p className="text-gray-600 mb-6">
-                AI is analyzing {selectedItems.length} items. This may take a moment.
+                Estimating difficulty for {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'}. This typically takes under a minute.
               </p>
 
               <div className="max-w-md mx-auto">
-                <Progress value={progress} className="h-3 mb-2" />
+                <div className="h-3 w-full overflow-hidden rounded-full bg-blue-100 mb-2">
+                  <div
+                    className="h-full bg-blue-500 transition-all"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
                 <p className="text-sm text-gray-600">{progress}% complete</p>
               </div>
             </div>
           </div>
         )}
 
-        {step === 'success' && (
-          <div className="space-y-6 py-12">
-            <div className="flex justify-center">
+        {step === 'success' && (() => {
+          const CONFIDENCE_THRESHOLD = 85;
+          const readyCount = selectedItems.filter((item) => item.confidence >= CONFIDENCE_THRESHOLD).length;
+          const reviewCount = selectedItems.length - readyCount;
+          return (
+          <div className="space-y-6 py-8">
+            <div className="flex flex-col items-center text-center gap-3">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                 <CheckCircle2 className="w-10 h-10 text-green-600" />
               </div>
-            </div>
-
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Estimations Complete
-              </h1>
-              <p className="text-gray-600 mb-6">
-                {selectedItems.length} items have been analyzed successfully.
-              </p>
+              <div className="space-y-1">
+                <p className="text-base text-gray-900">
+                  Estimation complete for {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'}.
+                </p>
+                <p className="text-sm text-gray-600">
+                  <span className="font-semibold text-gray-900">{readyCount}</span> ready to publish ·{' '}
+                  <span className="font-semibold text-gray-900">{reviewCount}</span> need{reviewCount === 1 ? 's' : ''} manual review.
+                </p>
+              </div>
             </div>
 
             {/* Results Summary */}
             <Card>
-              <CardContent className="pt-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Estimation Results</h3>
-                <div className="space-y-3">
-                  {selectedItems.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{item.id}</p>
-                        <p className="text-xs text-gray-600">{item.title}</p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500">Estimated Level</p>
-                          <p className="text-sm font-semibold text-gray-900">
-                            {predictionResults[item.id]?.difficulty ?? 'N/A'}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500">Discrimination</p>
-                          <p className="text-sm font-semibold text-gray-900">
-                            {predictionResults[item.id]?.discrimination ?? 'N/A'}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500">Difficulty (b)</p>
-                          <p className="text-sm font-semibold text-gray-900">{item.predictedDifficulty.toFixed(2)}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500">Confidence</p>
-                          <p className="text-sm font-semibold text-purple-600">{item.confidence}%</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+              <CardContent className="p-0">
+                <div className="border-b px-4 py-3">
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                    Estimation results · {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'}
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[640px]">
+                    <thead className="bg-gray-50 border-b">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Difficulty</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Discrimination</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Confidence</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {selectedItems.map((item) => {
+                        const needsReview = item.confidence < CONFIDENCE_THRESHOLD;
+                        return (
+                        <tr key={item.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3">
+                            <div className="text-sm font-medium text-blue-600">{item.id}</div>
+                            <div className="text-xs text-gray-600 truncate max-w-md" title={item.title}>{item.title}</div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{predictionResults[item.id]?.difficulty ?? 'N/A'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{predictionResults[item.id]?.discrimination ?? 'N/A'}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-sm ${needsReview ? 'text-amber-700 font-medium' : 'text-gray-700'}`}>
+                                {item.confidence}%
+                              </span>
+                              {needsReview && (
+                                <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
+                                  Needs review
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );})}
+                    </tbody>
+                  </table>
                 </div>
               </CardContent>
             </Card>
 
-            <div className="text-center">
-              <p className="text-sm text-gray-700 mb-4">
-                Would you like to estimate more items?
-              </p>
-            </div>
-
             {/* Actions */}
             <div className="flex items-center justify-center gap-3 pt-4">
-              <Button variant="outline" onClick={handleFinish}>
-                No, Finish
+              <Button variant="outline" onClick={handleAddMore}>
+                Estimate more items
               </Button>
-              <Button onClick={handleAddMore}>
-                Estimate More Items
+              <Button onClick={handleFinish}>
+                Return to estimation dashboard
               </Button>
             </div>
           </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );

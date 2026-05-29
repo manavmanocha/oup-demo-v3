@@ -13,6 +13,7 @@ import { Workflows } from "./components/Workflows";
 import { PreTestingPipeline } from "./components/PreTestingPipeline";
 import { Screening } from "./components/Screening";
 import { DifficultyPrediction } from "./components/DifficultyPrediction";
+import { SeedingDashboard } from "./components/SeedingDashboard";
 import { Seeding } from "./components/Seeding";
 import { ScreenItems } from "./components/ScreenItems";
 import { PredictDifficulty } from "./components/PredictDifficulty";
@@ -41,7 +42,8 @@ export const router = createBrowserRouter([
       { path: "workflows/pre-testing-pipeline/screening/start", Component: ScreenItems },
       { path: "workflows/pre-testing-pipeline/difficulty-prediction", Component: DifficultyPrediction },
       { path: "workflows/pre-testing-pipeline/difficulty-prediction/start", Component: PredictDifficulty },
-      { path: "workflows/pre-testing-pipeline/seeding", Component: Seeding },
+      { path: "workflows/pre-testing-pipeline/seeding", Component: SeedingDashboard },
+      { path: "workflows/pre-testing-pipeline/seeding/start", Component: Seeding },
     ],
   },
 ]);

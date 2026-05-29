@@ -176,7 +176,7 @@ export function Root() {
         ) : (
           <div className="text-xs text-gray-500">
             <img src={dlsLogo} alt="comproDLS" className="h-8 w-full max-w-[8.5rem] h-[3rem] display-block m-auto" />
-            <div className="text-gray-400 m-auto text-center mt-1">© 2025 Compro Technologies</div>
+            <div className="text-gray-400 m-auto text-center mt-1">© 2026 Compro Technologies</div>
           </div>
         )}
       </div>

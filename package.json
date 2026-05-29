@@ -11,7 +11,8 @@
     "test:unit:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:ci": "pnpm run test:unit && pnpm run test:e2e"
+    "test:ci": "pnpm run test:unit && pnpm run test:e2e",
+    "predictions:gemini": "node scripts/run-gemini-predictions.cjs"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

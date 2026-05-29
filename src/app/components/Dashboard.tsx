@@ -29,7 +29,7 @@ export function Dashboard() {
     .slice(0, 8)
     .map((item) => ({
       id: item.id,
-      status: isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW') ? 'DP Review' : 'Screening Review',
+      status: isWorkflowState(item.workflowState, 'PENDING_DP_REVIEW') ? 'Estimation Review' : 'Screening Review',
       type: item.itemType,
       level: item.level,
       flaggedFor:
@@ -42,9 +42,9 @@ export function Dashboard() {
     }));
 
   const aiInsights = [
-    { message: '12 items may be over-difficult for their CEFR level', severity: 'warning' },
-    { message: '5 items require metadata review before seeding', severity: 'info' },
-    { message: 'Reading set shows high confidence estimations (avg 89%)', severity: 'success' },
+    { message: '8 C1 Writing items estimated above B-parameter threshold — review before seeding', severity: 'warning' },
+    { message: '5 items are missing skill-domain tags required for bank entry', severity: 'info' },
+    { message: 'A2 Reading batch: avg confidence 91% — all items cleared for acceptance', severity: 'success' },
   ];
 
   return (
@@ -53,10 +53,10 @@ export function Dashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            AI Workflow Hub
+            Pre-Testing Pipeline
           </h1>
           <p className="text-gray-600">
-            Accelerate your assessment preparation with intelligent workflows
+            Screen, calibrate, and seed new items before they enter the live bank.
           </p>
         </div>
 
@@ -80,7 +80,7 @@ export function Dashboard() {
                 <Gauge className="w-4 h-4 text-purple-500" />
               </div>
               <div className="text-3xl font-bold text-gray-900">412</div>
-              <p className="text-xs text-gray-500 mt-1">82% avg accuracy</p>
+              <p className="text-xs text-gray-500 mt-1">Last 30 days</p>
             </CardContent>
           </Card>
 
@@ -127,15 +127,15 @@ export function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-gray-600">
-                AI-powered content screening for quality and compliance review across 5 dimensions
+                Automated quality checks across five dimensions: CEFR fit, distractor strength, clarity, fairness, and similarity.
               </p>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Queue Status</span>
-                <span className="font-semibold text-gray-900">6 items waiting</span>
+                <span className="text-gray-500">Queue</span>
+                <span className="font-semibold text-gray-900">6 items awaiting screening</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Last Run</span>
-                <span className="text-gray-600">21 items · 5 flagged</span>
+                <span className="text-gray-500">Last run</span>
+                <span className="text-gray-600">18 items · 3 flagged · 27 May</span>
               </div>
               <Link to="/workflows/pre-testing-pipeline/screening">
                 <Button className="w-full bg-blue-600 hover:bg-blue-700">
@@ -164,15 +164,15 @@ export function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-gray-600">
-                AI-estimated CEFR alignment and difficulty with confidence indicators
+                ML model predicts difficulty and CEFR alignment before items reach the live bank.
               </p>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Queue Status</span>
-                <span className="font-semibold text-gray-900">3 items waiting</span>
+                <span className="text-gray-500">Queue</span>
+                <span className="font-semibold text-gray-900">3 items awaiting estimation</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Model Accuracy</span>
-                <span className="text-green-600 font-semibold">82%</span>
+                <span className="text-gray-500">Last run</span>
+                <span className="text-gray-600">12 items · 22 May</span>
               </div>
               <Link to="/workflows/pre-testing-pipeline/difficulty-prediction">
                 <Button className="w-full bg-purple-600 hover:bg-purple-700">
@@ -200,15 +200,15 @@ export function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-gray-600">
-                Prepare items for adaptive testing with intelligent prioritization
+                Allocate calibrated items to live test forms, prioritised by bank gap and skill coverage.
               </p>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Queue Status</span>
-                <span className="font-semibold text-gray-900">8 items ready</span>
+                <span className="text-gray-500">Queue</span>
+                <span className="font-semibold text-gray-900">8 items ready to seed</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Next Window</span>
-                <span className="text-gray-600">15 Mar 2025</span>
+                <span className="text-gray-500">Last run</span>
+                <span className="text-gray-600">7 items · 15 May</span>
               </div>
               <Link to="/workflows/pre-testing-pipeline/seeding">
                 <Button className="w-full bg-green-600 hover:bg-green-700">
@@ -262,10 +262,10 @@ export function Dashboard() {
                           Screening Review
                         </Badge>
                       )}
-                      {item.status === 'DP Review' && (
+                      {item.status === 'Estimation Review' && (
                         <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                           <AlertCircle className="w-3 h-3 mr-1" />
-                          DP Review
+                          Estimation Review
                         </Badge>
                       )}
                     </div>
@@ -273,7 +273,7 @@ export function Dashboard() {
                 ))}
                 {recentReviews.length === 0 && (
                   <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-                    No Screening Review or DP Review items in queue.
+                    No items are currently pending reviewer action.
                   </div>
                 )}
               </div>
