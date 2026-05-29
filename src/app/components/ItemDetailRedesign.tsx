@@ -705,17 +705,19 @@ export function ItemDetailRedesign() {
                 <Card>
                   <CollapsibleTrigger className="w-full">
                     <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="w-5 h-5 text-blue-600" />
-                          <CardTitle className="text-lg">
+                      <div className="flex items-center justify-between gap-3 min-w-0">
+                        <div className="min-w-0">
+                          <div className="text-xs uppercase tracking-wide text-gray-500">
                             {(isListening || item?.audioAsset) ? 'Transcript' : isSpeakingQuestion ? 'Speaking Prompt' : 'Reading Passage'}
-                          </CardTitle>
+                          </div>
+                          {item.passageTitle && (
+                            <CardTitle className="text-base mt-1 truncate">{item.passageTitle}</CardTitle>
+                          )}
                         </div>
                         {passageExpanded ? (
-                          <ChevronUp className="w-5 h-5 text-gray-400" />
+                          <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
                         ) : (
-                          <ChevronDown className="w-5 h-5 text-gray-400" />
+                          <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
                         )}
                       </div>
                     </CardHeader>
@@ -723,11 +725,6 @@ export function ItemDetailRedesign() {
                   <CollapsibleContent>
                     <CardContent className="pt-0">
                       <div className="prose max-w-none">
-                        {item.passageTitle && (
-                          <h3 className="text-base font-semibold text-gray-900 mb-2">
-                            {item.passageTitle}
-                          </h3>
-                        )}
                         <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                           {item.passage}
                         </p>
@@ -739,15 +736,10 @@ export function ItemDetailRedesign() {
             )}
 
             {/* Main Question */}
-            <Card className="border-2 border-blue-200 shadow-md">
+            <Card>
               <CardContent className="p-4 sm:p-6 md:p-8">
                 <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                      Q
-                    </div>
-                    <h2 className="text-xl font-bold text-gray-900">Question</h2>
-                  </div>
+                  <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Question</div>
                   {!isSentenceCompletion && (
                     <p className="text-lg text-gray-900 leading-relaxed">
                       {item.title}
@@ -765,11 +757,11 @@ export function ItemDetailRedesign() {
                         {item.content}
                   </div>
                 )}
-                </div>
-
-                <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
-                  <p className="text-sm font-medium text-blue-900">Instructions</p>
-                  <p className="mt-1 text-sm text-blue-800">{item.instructions || 'Review the question and use the answer explanation panel for reference.'}</p>
+                  {(item.instructions || true) && (
+                    <p className="mt-3 text-sm italic text-gray-500">
+                      {item.instructions || 'Review the question and use the answer explanation panel for reference.'}
+                    </p>
+                  )}
                 </div>
 
                 {/* Answer Options */}
@@ -966,15 +958,17 @@ export function ItemDetailRedesign() {
                   </div>
                 )}
 
-                {/* Show Answer Button */}
+                {/* Show Answer toggle */}
                 {!showExplanation && (
-                  <div className="mt-4 pt-4 border-t">
+                  <div className="mt-6 pt-4 border-t border-gray-100">
                     <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setShowExplanation(true)}
-                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      className="text-gray-700"
                     >
-                      <Lightbulb className="w-4 h-4 mr-2" />
-                      Show Correct Answer & Explanation
+                      <Lightbulb className="w-4 h-4 mr-2 text-gray-500" />
+                      Show answer key
                     </Button>
                   </div>
                 )}
