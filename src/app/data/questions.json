@@ -2185,6 +2185,12 @@
           "reviewer": "Gemini Generator",
           "action": "Created",
           "state": "Draft"
+        },
+        {
+          "date": "2026-05-29",
+          "reviewer": "Difficulty Review Team",
+          "action": "Estimation Accepted — Queued for Seeding",
+          "state": "RECOMMENDED_FOR_SEEDING"
         }
       ],
       "author": "AI Content Generator",
@@ -2211,8 +2217,9 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "status": "In Review",
-      "workflowState": "PENDING_DP_REVIEW"
+      "status": "Published",
+      "workflowState": "RECOMMENDED_FOR_SEEDING",
+      "lastEditedBy": "Difficulty Review Team"
     },
     {
       "id": "ITMBK-LIS-B1-170",
@@ -3490,6 +3497,12 @@
           "reviewer": "Gemini Generator",
           "action": "Created",
           "state": "Draft"
+        },
+        {
+          "date": "2026-05-29",
+          "reviewer": "Difficulty Review Team",
+          "action": "Estimation Accepted — Queued for Seeding",
+          "state": "RECOMMENDED_FOR_SEEDING"
         }
       ],
       "author": "AI Content Generator",
@@ -3516,8 +3529,9 @@
         "fairness": "Pass",
         "similarity": "Fail"
       },
-      "status": "In Review",
-      "workflowState": "PENDING_DP_REVIEW"
+      "status": "Published",
+      "workflowState": "RECOMMENDED_FOR_SEEDING",
+      "lastEditedBy": "Difficulty Review Team"
     },
     {
       "id": "ITMBK-LIS-B2-022",
@@ -5586,6 +5600,12 @@
           "reviewer": "Gemini Generator",
           "action": "Created",
           "state": "Draft"
+        },
+        {
+          "date": "2026-05-29",
+          "reviewer": "Difficulty Review Team",
+          "action": "Estimation Accepted — Queued for Seeding",
+          "state": "RECOMMENDED_FOR_SEEDING"
         }
       ],
       "author": "AI Content Generator",
@@ -5612,8 +5632,9 @@
         "fairness": "Pass",
         "similarity": "Fail"
       },
-      "status": "In Review",
-      "workflowState": "PENDING_DP_REVIEW"
+      "status": "Published",
+      "workflowState": "RECOMMENDED_FOR_SEEDING",
+      "lastEditedBy": "Difficulty Review Team"
     },
     {
       "id": "ITMBK-LIS-B2-298",
@@ -8468,6 +8489,12 @@
           "reviewer": "Gemini Generator",
           "action": "Created",
           "state": "Draft"
+        },
+        {
+          "date": "2026-05-29",
+          "reviewer": "Difficulty Review Team",
+          "action": "Estimation Accepted — Queued for Seeding",
+          "state": "RECOMMENDED_FOR_SEEDING"
         }
       ],
       "author": "AI Content Generator",
@@ -8494,8 +8521,9 @@
         "fairness": "Pass",
         "similarity": "Fail"
       },
-      "status": "In Review",
-      "workflowState": "PENDING_DP_REVIEW"
+      "status": "Published",
+      "workflowState": "RECOMMENDED_FOR_SEEDING",
+      "lastEditedBy": "Difficulty Review Team"
     },
     {
       "id": "ITMBK-RDG-A2-081",
@@ -9979,6 +10007,12 @@
           "reviewer": "Gemini Generator",
           "action": "Created",
           "state": "Draft"
+        },
+        {
+          "date": "2026-05-29",
+          "reviewer": "Difficulty Review Team",
+          "action": "Estimation Accepted — Queued for Seeding",
+          "state": "RECOMMENDED_FOR_SEEDING"
         }
       ],
       "author": "AI Content Generator",
@@ -10005,8 +10039,9 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "status": "In Review",
-      "workflowState": "PENDING_DP_REVIEW"
+      "status": "Published",
+      "workflowState": "RECOMMENDED_FOR_SEEDING",
+      "lastEditedBy": "Difficulty Review Team"
     },
     {
       "id": "ITMBK-RDG-B1-093",
@@ -15320,6 +15355,12 @@
           "reviewer": "Gemini Generator",
           "action": "Created",
           "state": "Draft"
+        },
+        {
+          "date": "2026-05-29",
+          "reviewer": "Difficulty Review Team",
+          "action": "Estimation Accepted — Queued for Seeding",
+          "state": "RECOMMENDED_FOR_SEEDING"
         }
       ],
       "author": "AI Content Generator",
@@ -15346,8 +15387,9 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "status": "In Review",
-      "workflowState": "PENDING_DP_REVIEW"
+      "status": "Published",
+      "workflowState": "RECOMMENDED_FOR_SEEDING",
+      "lastEditedBy": "Difficulty Review Team"
     },
     {
       "id": "ITMBK-SPK-A1-100",
@@ -21582,6 +21624,12 @@
           "reviewer": "Gemini Generator",
           "action": "Created",
           "state": "Draft"
+        },
+        {
+          "date": "2026-05-29",
+          "reviewer": "Difficulty Review Team",
+          "action": "Estimation Accepted — Queued for Seeding",
+          "state": "RECOMMENDED_FOR_SEEDING"
         }
       ],
       "author": "AI Content Generator",
@@ -21608,8 +21656,9 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "status": "In Review",
-      "workflowState": "PENDING_DP_REVIEW"
+      "status": "Published",
+      "workflowState": "RECOMMENDED_FOR_SEEDING",
+      "lastEditedBy": "Difficulty Review Team"
     },
     {
       "id": "ITMBK-SPK-C1-088",
@@ -22934,6 +22983,12 @@
           "reviewer": "Gemini Generator",
           "action": "Created",
           "state": "Draft"
+        },
+        {
+          "date": "2026-05-29",
+          "reviewer": "Difficulty Review Team",
+          "action": "Estimation Accepted — Queued for Seeding",
+          "state": "RECOMMENDED_FOR_SEEDING"
         }
       ],
       "author": "AI Content Generator",
@@ -22960,8 +23015,9 @@
         "fairness": "Pass",
         "similarity": "Pass"
       },
-      "status": "In Review",
-      "workflowState": "PENDING_DP_REVIEW"
+      "status": "Published",
+      "workflowState": "RECOMMENDED_FOR_SEEDING",
+      "lastEditedBy": "Difficulty Review Team"
     },
     {
       "id": "ITMBK-WRT-A1-243",
