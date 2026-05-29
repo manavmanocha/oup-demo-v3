@@ -1116,10 +1116,10 @@ export function ItemDetailRedesign() {
                       </TooltipTrigger>
                       <TooltipContent className="max-w-sm">
                         <p className="text-sm">
-                          <strong>IRT (Item Response Theory)</strong> parameters describe item characteristics:
-                          <br />• <strong>b</strong> (difficulty): Higher values = harder items
-                          <br />• <strong>a</strong> (discrimination): How well item separates ability levels
-                          <br />• <strong>c</strong> (guessing): Probability of correct guess
+                          Model-predicted parameters describing how this item behaves when administered to candidates.
+                          <br />• <strong>Difficulty</strong>: predicted position on the ability scale — higher means harder
+                          <br />• <strong>Discrimination</strong>: how sharply the item separates stronger from weaker candidates
+                          <br />• <strong>Guessing</strong>: estimated probability of a correct response by chance
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -1128,26 +1128,22 @@ export function ItemDetailRedesign() {
               </CardHeader>
               <CardContent>
                 {item.irtParameters ? (
-                  <div className="space-y-4">
-                    {/* IRT Source */}
-                    
-
-                    <div className="grid grid-cols-3 gap-6">
+                  <div className="space-y-5">
+                    {/* Parameters */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                       <div>
-                        <div className="text-sm text-gray-600 mb-1">Difficulty (b-parameter)</div>
-                        <div className="text-2xl font-bold text-gray-900">
+                        <div className="text-sm text-gray-600 mb-1">Difficulty</div>
+                        <div className="text-2xl font-semibold text-gray-900">
                           {item.irtParameters.b.toFixed(2)}
                         </div>
                         {item.difficulty && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Qualitative: {item.difficulty}
-                          </div>
+                          <div className="text-xs text-gray-500 mt-1">{item.difficulty}</div>
                         )}
                       </div>
 
                       <div>
-                        <div className="text-sm text-gray-600 mb-1">Discrimination (a-parameter)</div>
-                        <div className="text-2xl font-bold text-gray-900">
+                        <div className="text-sm text-gray-600 mb-1">Discrimination</div>
+                        <div className="text-2xl font-semibold text-gray-900">
                           {item.irtParameters.a.toFixed(2)}
                         </div>
                         {item.discrimination && (
@@ -1156,56 +1152,49 @@ export function ItemDetailRedesign() {
                       </div>
 
                       <div>
-                        <div className="text-sm text-gray-600 mb-1">Guessing (c-parameter)</div>
-                        <div className="text-2xl font-bold text-gray-900">
+                        <div className="text-sm text-gray-600 mb-1">Guessing</div>
+                        <div className="text-2xl font-semibold text-gray-900">
                           {item.irtParameters.c.toFixed(2)}
                         </div>
                       </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="grid grid-cols-3 gap-6">
-                      {item.irtParameters.sampleSize && (
-                        <div>
-                          <div className="text-sm text-gray-600 mb-1">Sample Size</div>
-                          <div className="text-lg font-semibold text-gray-900">
-                            {item.irtParameters.sampleSize.toLocaleString()}
-                          </div>
-                        </div>
-                      )}
-
-                      {item.irtParameters.modelVersion && (
-                        <div>
-                          <div className="text-sm text-gray-600 mb-1">Model Version</div>
-                          <div className="text-lg font-semibold text-gray-900">
-                            {item.irtParameters.modelVersion}
-                          </div>
-                        </div>
-                      )}
-
-                      {item.irtParameters.predictionDate && (
-                        <div>
-                          <div className="text-sm text-gray-600 mb-1">
-                            {item.irtParameters.calibratedFromFieldTest ? 'Calibration Date' : 'Estimation Date'}
-                          </div>
-                          <div className="text-lg font-semibold text-gray-900">
-                            {new Date(item.irtParameters.predictionDate).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </div>
-                        </div>
-                      )}
 
                       {item.confidence !== undefined && (
                         <div>
                           <div className="text-sm text-gray-600 mb-1">Confidence</div>
-                          <div className="text-lg font-semibold text-gray-900">{item.confidence}%</div>
+                          <div className="text-2xl font-semibold text-gray-900">{item.confidence}%</div>
                         </div>
                       )}
                     </div>
+
+                    {/* Run metadata strip */}
+                    {(item.irtParameters.sampleSize || item.irtParameters.modelVersion || item.irtParameters.predictionDate) && (
+                      <div className="pt-3 border-t border-gray-100 flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-500">
+                        {item.irtParameters.sampleSize && (
+                          <div>
+                            <span>Sample size </span>
+                            <span className="text-gray-700 font-medium">{item.irtParameters.sampleSize.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {item.irtParameters.modelVersion && (
+                          <div>
+                            <span>Model </span>
+                            <span className="text-gray-700 font-medium font-mono">{item.irtParameters.modelVersion}</span>
+                          </div>
+                        )}
+                        {item.irtParameters.predictionDate && (
+                          <div>
+                            <span>{item.irtParameters.calibratedFromFieldTest ? 'Calibrated' : 'Estimated'} </span>
+                            <span className="text-gray-700 font-medium">
+                              {new Date(item.irtParameters.predictionDate).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Manual Override */}
                     {item.manualOverride && item.manualOverrideReason && (
