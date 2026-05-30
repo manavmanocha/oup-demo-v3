@@ -612,9 +612,9 @@ export function ItemDetailRedesign() {
         { key: 'similarity', label: 'Similarity', value: item.screening.similarity },
       ].filter((entry) => Boolean(entry.value))
     : [];
-  const failedScreeningDimensions = screeningEntries.filter((entry) => entry.value === 'Fail');
-  const screeningFailureReasonByKey = useMemo(() => {
-    if (!item || failedScreeningDimensions.length === 0) {
+  const reviewedScreeningDimensions = screeningEntries.filter((entry) => entry.value === 'Fail' || entry.value === 'Review');
+  const screeningReasonByKey = useMemo(() => {
+    if (!item || reviewedScreeningDimensions.length === 0) {
       return new Map<string, string>();
     }
 
@@ -627,12 +627,12 @@ export function ItemDetailRedesign() {
     };
 
     return new Map(
-      failedScreeningDimensions.map((entry) => {
+      reviewedScreeningDimensions.map((entry) => {
         const dimensionReason = item.screeningReasons?.[entry.key as keyof NonNullable<AssessmentItem['screeningReasons']>];
         return [entry.key, dimensionReason?.trim() || defaultReasons[entry.key]];
       }),
     );
-  }, [item, failedScreeningDimensions]);
+  }, [item, reviewedScreeningDimensions]);
 
   const toggleScreeningReason = (dimensionKey: string) => {
     setExpandedScreeningReasons((prev) => ({
@@ -1677,7 +1677,7 @@ export function ItemDetailRedesign() {
                 <CardContent>
                   <div className="space-y-2">
                     {screeningEntries.map((entry) => {
-                      const isFailed = entry.value === 'Fail';
+                      const isReviewOrFail = entry.value === 'Fail' || entry.value === 'Review';
                       const isExpanded = Boolean(expandedScreeningReasons[entry.key]);
 
                       return (
@@ -1687,17 +1687,17 @@ export function ItemDetailRedesign() {
                         >
                        
                           <div
-                            className={`flex items-center justify-between gap-3 px-4 py-3 ${isFailed ? 'cursor-pointer hover:bg-gray-50' : ''}`}
-                            onClick={isFailed ? () => toggleScreeningReason(entry.key) : undefined}
-                            role={isFailed ? 'button' : undefined}
-                            tabIndex={isFailed ? 0 : undefined}
-                            onKeyDown={isFailed ? (event) => {
+                            className={`flex items-center justify-between gap-3 px-4 py-3 ${isReviewOrFail ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                            onClick={isReviewOrFail ? () => toggleScreeningReason(entry.key) : undefined}
+                            role={isReviewOrFail ? 'button' : undefined}
+                            tabIndex={isReviewOrFail ? 0 : undefined}
+                            onKeyDown={isReviewOrFail ? (event) => {
                               if (event.key === 'Enter' || event.key === ' ') {
                                 event.preventDefault();
                                 toggleScreeningReason(entry.key);
                               }
                             } : undefined}
-                            aria-expanded={isFailed ? isExpanded : undefined}
+                            aria-expanded={isReviewOrFail ? isExpanded : undefined}
                           >
                             <div className="text-sm font-medium text-gray-900">
                               {entry.label}
@@ -1715,11 +1715,11 @@ export function ItemDetailRedesign() {
                               {entry.value}
                             </Badge>
                           </div>
-                          {isFailed && isExpanded && (
+                          {isReviewOrFail && isExpanded && (
                             <div className="border-t border-gray-200 bg-gray-50 px-4 py-3">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Failure Reason</p>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Screening Reason</p>
                               <p className="mt-1 text-sm leading-relaxed text-gray-700">
-                                {screeningFailureReasonByKey.get(entry.key)}
+                                {screeningReasonByKey.get(entry.key)}
                               </p>
                             </div>
                           )}

@@ -801,6 +801,7 @@ type QuestionWithMetadata = UnifiedQuestion & {
   workflowState?: AssessmentItem['workflowState'];
   status?: AssessmentItem['status'];
   screening?: AssessmentItem['screening'];
+  screeningReasons?: AssessmentItem['screeningReasons'];
   flaggedForReview?: boolean;
   flagReason?: string;
   reviewHistory?: AssessmentItem['reviewHistory'];
@@ -875,6 +876,7 @@ const getQuestionMetadata = (question: UnifiedQuestion): Partial<AssessmentItem>
     status: q.status,
     workflowState: q.workflowState,
     screening: q.screening,
+    screeningReasons: q.screeningReasons,
     flaggedForReview: q.flaggedForReview,
     flagReason: q.flagReason,
     reviewHistory: q.reviewHistory,
@@ -945,6 +947,7 @@ const listeningItems: AssessmentItem[] = listeningQuestions.map((q) => {
     confidence: metadata.confidence,
     workflowState: metadata.workflowState,
     screening: metadata.screening,
+    screeningReasons: metadata.screeningReasons,
     flaggedForReview: metadata.flaggedForReview,
     flagReason: metadata.flagReason,
     author: metadata.author,
@@ -999,6 +1002,7 @@ const speakingItems: AssessmentItem[] = speakingQuestions.map((q) => {
     confidence: metadata.confidence,
     workflowState: metadata.workflowState,
     screening: metadata.screening,
+    screeningReasons: metadata.screeningReasons,
     flaggedForReview: metadata.flaggedForReview,
     flagReason: metadata.flagReason,
     author: metadata.author,
@@ -1046,6 +1050,7 @@ const writingItems: AssessmentItem[] = writingQuestions.map((q) => {
     confidence: metadata.confidence,
     workflowState: metadata.workflowState,
     screening: metadata.screening,
+    screeningReasons: metadata.screeningReasons,
     flaggedForReview: metadata.flaggedForReview,
     flagReason: metadata.flagReason,
     author: metadata.author,
@@ -1109,6 +1114,7 @@ const readingItems: AssessmentItem[] = readingQuestions.map((q) => {
     confidence: metadata.confidence,
     workflowState: metadata.workflowState,
     screening: metadata.screening,
+    screeningReasons: metadata.screeningReasons,
     flaggedForReview: metadata.flaggedForReview,
     flagReason: metadata.flagReason,
     author: metadata.author,
