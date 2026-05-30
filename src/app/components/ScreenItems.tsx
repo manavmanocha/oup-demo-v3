@@ -10,6 +10,7 @@ import { Checkbox } from "./ui/checkbox";
 import { Input } from "./ui/input";
 import {
   CheckCircle2,
+  Sparkles,
   Search,
   ChevronRight,
 } from "lucide-react";
@@ -35,16 +36,19 @@ const prioritizeIngestedFirst = <T extends { id: string }>(items: T[], ingestedI
 export function ScreenItems() {
   const navigate = useNavigate();
   const [step, setStep] = useState<
-    "select" | "confirm" | "success"
+    "select" | "confirm" | "processing" | "success"
   >("select");
   const [selectedItemIds, setSelectedItemIds] = useState<
     string[]
   >([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [queuedCount, setQueuedCount] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [completedAt, setCompletedAt] = useState<Date | null>(null);
   const stepLabel: Record<typeof step, string> = {
     select: 'Select Items',
     confirm: 'Confirm Queue',
+    processing: 'Running',
     success: 'Queue confirmed',
   };
 
@@ -108,8 +112,24 @@ export function ScreenItems() {
 
   const handleStartScreening = () => {
     setQueuedCount(selectedItemIds.length);
-    queueItemsForScreening(selectedItemIds);
-    setStep("success");
+    setStep("processing");
+    setProgress(0);
+    const itemIds = [...selectedItemIds];
+
+    // Simulate screening batch processing before confirmation
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          queueItemsForScreening(itemIds);
+          setCompletedAt(new Date());
+          setStep("success");
+          return 100;
+        }
+
+        return prev + 20;
+      });
+    }, 350);
   };
 
   const handleAddMore = () => {
@@ -117,10 +137,14 @@ export function ScreenItems() {
     setStep("select");
     setSelectedItemIds([]);
     setSearchQuery("");
+    setProgress(0);
+    setCompletedAt(null);
   };
 
   const handleFinish = () => {
-    navigate("/workflows/pre-testing-pipeline/screening");
+    navigate("/workflows/pre-testing-pipeline/screening", {
+      state: { justProcessedIds: selectedItemIds },
+    });
   };
 
   return (
@@ -171,16 +195,6 @@ export function ScreenItems() {
                 Continue
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
-            </div>
-
-            {/* Filter placeholders */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide mr-1">Filters (roadmap)</span>
-              {['Reading', 'Writing', 'Listening', 'Speaking', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((filter) => (
-                <Button key={filter} variant="outline" size="sm" disabled className="text-gray-500">
-                  {filter}
-                </Button>
-              ))}
             </div>
 
             {/* Selection Summary */}
@@ -373,6 +387,35 @@ export function ScreenItems() {
           </div>
         )}
 
+        {step === "processing" && (
+          <div className="space-y-6 py-12">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center animate-pulse">
+                <Sparkles className="w-10 h-10 text-blue-600" />
+              </div>
+            </div>
+
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                {progress >= 100 ? 'Finalising screening run' : 'Running screening checks'}
+              </h1>
+              <p className="text-gray-600 mb-6">
+                Screening {queuedCount} item{queuedCount === 1 ? '' : 's'} across CEFR fit, distractor strength, clarity, fairness, and similarity.
+              </p>
+
+              <div className="max-w-md mx-auto">
+                <div className="h-3 w-full overflow-hidden rounded-full bg-blue-100 mb-2">
+                  <div
+                    className="h-full bg-blue-500 transition-all"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <p className="text-sm text-gray-600">{progress}% complete</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {step === "success" && (
           <div className="space-y-6 py-2">
             <div>
@@ -392,6 +435,12 @@ export function ScreenItems() {
                   <p className="text-base text-gray-900">
                     {queuedCount} item{queuedCount === 1 ? '' : 's'} added to the screening queue. The next run typically completes within a few minutes. Results will appear in the screening dashboard.
                   </p>
+
+                  {completedAt && (
+                    <p className="text-xs text-gray-500">
+                      Completed at {completedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  )}
 
                   {/* Actions */}
                   <div className="flex items-center justify-center gap-3 pt-2">

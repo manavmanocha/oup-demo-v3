@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router';
+import { Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -9,6 +10,7 @@ import { AssessmentItem } from '../data/types';
 import { isWorkflowState } from '../data/workflowState';
 
 const DEFAULT_VISIBLE_ITEMS = 5;
+const JUST_PROCESSED_TIMEOUT_MS = 90_000;
 
 const toTimestamp = (value?: string): number => {
   if (!value) return 0;
@@ -95,7 +97,7 @@ const getScreeningFeedback = (item: AssessmentItem): string | null => {
         }
       }
     });
-    if (notes.length > 0) return notes.join(' ');
+    if (notes.length > 0) return notes.join('\n');
   }
 
   if (item.flagReason) {
@@ -169,6 +171,8 @@ const ScreeningQueueSection = ({
   emptyMessage,
   onApprove,
   onReject,
+  justProcessedIds,
+  onOpenItem,
 }: {
   title: string;
   description: string;
@@ -177,6 +181,8 @@ const ScreeningQueueSection = ({
   emptyMessage: string;
   onApprove: (itemId: string) => void;
   onReject: (itemId: string) => void;
+  justProcessedIds: Set<string>;
+  onOpenItem: (item: AssessmentItem) => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const visibleItems = isExpanded ? items : items.slice(0, DEFAULT_VISIBLE_ITEMS);
@@ -196,13 +202,30 @@ const ScreeningQueueSection = ({
         )}
 
         <div className="space-y-6">
-          {visibleItems.map((item) => (
-            <div key={item.id} className="border rounded-lg p-6">
+          {visibleItems.map((item) => {
+            const isJustProcessed = justProcessedIds.has(item.id);
+            return (
+            <div
+              key={item.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => onOpenItem(item)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onOpenItem(item);
+                }
+              }}
+              className={`border rounded-lg p-6 cursor-pointer transition-colors hover:border-gray-300 hover:bg-gray-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                isJustProcessed ? 'border-blue-300 bg-blue-50/40 ring-1 ring-blue-200 hover:bg-blue-50/60' : ''
+              }`}
+            >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3 flex-wrap">
                   <Link
                     to={`/item-bank/${item.level}/${item.id}`}
                     state={{ fromWorkflow: true }}
+                    onClick={(event) => event.stopPropagation()}
                     className="text-sm font-medium text-blue-600 hover:underline"
                   >
                     {formatItemIdForDisplay(item.id)}
@@ -210,6 +233,16 @@ const ScreeningQueueSection = ({
                   <Badge variant="outline">{item.level}</Badge>
                   <Badge variant="outline">{item.skill}</Badge>
                   <Badge variant="outline">{item.itemType}</Badge>
+                  {isJustProcessed && (
+                    <Badge
+                      variant="outline"
+                      title="Highlighted for 90 seconds after this run"
+                      className="bg-blue-100 text-blue-800 border-blue-300 inline-flex items-center gap-1"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      Just processed
+                    </Badge>
+                  )}
                 </div>
               </div>
 
@@ -219,15 +252,16 @@ const ScreeningQueueSection = ({
 
               {(() => {
                 const feedback = getScreeningFeedback(item);
-                return feedback ? <div className={feedbackClassName}>{feedback}</div> : null;
+                return feedback ? <div className={`${feedbackClassName} whitespace-pre-line`}>{feedback}</div> : null;
               })()}
 
               <div className="flex items-center gap-2 mt-4">
-                <Button size="sm" onClick={() => onApprove(item.id)}>Approve</Button>
-                <Button size="sm" variant="outline" onClick={() => onReject(item.id)}>Reject</Button>
+                <Button size="sm" onClick={(event) => { event.stopPropagation(); onApprove(item.id); }}>Approve</Button>
+                <Button size="sm" variant="outline" onClick={(event) => { event.stopPropagation(); onReject(item.id); }}>Reject</Button>
               </div>
             </div>
-          ))}
+            );
+          })}
 
           {items.length === 0 && (
             <div className="text-sm text-gray-600 border rounded-lg p-6 bg-gray-50">
@@ -247,7 +281,24 @@ const ScreeningQueueSection = ({
 };
 
 export function Screening() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [justProcessedIds, setJustProcessedIds] = useState<Set<string>>(() => {
+    const state = location.state as { justProcessedIds?: string[] } | null;
+    return new Set(state?.justProcessedIds ?? []);
+  });
+
+  useEffect(() => {
+    if (justProcessedIds.size === 0) return;
+    const timer = window.setTimeout(() => {
+      setJustProcessedIds(new Set());
+    }, JUST_PROCESSED_TIMEOUT_MS);
+    return () => window.clearTimeout(timer);
+    // Only schedule once when the initial set is populated; subsequent
+    // approvals/rejections shrink the set but should not reset the timer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const allItems = useMemo(() => getAllItems(), [refreshKey]);
 
@@ -261,13 +312,28 @@ export function Screening() {
     [allItems],
   );
 
+  const pinJustProcessedFirst = <T extends { id: string }>(items: T[]): T[] => {
+    if (justProcessedIds.size === 0) return items;
+    const fresh: T[] = [];
+    const rest: T[] = [];
+    items.forEach((item) => {
+      if (justProcessedIds.has(item.id)) fresh.push(item);
+      else rest.push(item);
+    });
+    return [...fresh, ...rest];
+  };
+
   const failedItems = useMemo(
-    () => screeningQueue.filter((item) => item.flaggedForReview || hasScreeningFailure(item) || hasScreeningReview(item)),
+    () => pinJustProcessedFirst(
+      screeningQueue.filter((item) => item.flaggedForReview || hasScreeningFailure(item) || hasScreeningReview(item)),
+    ),
     [screeningQueue],
   );
 
   const passedPendingItems = useMemo(
-    () => screeningQueue.filter((item) => !item.flaggedForReview && !hasScreeningFailure(item) && !hasScreeningReview(item)),
+    () => pinJustProcessedFirst(
+      screeningQueue.filter((item) => !item.flaggedForReview && !hasScreeningFailure(item) && !hasScreeningReview(item)),
+    ),
     [screeningQueue],
   );
 
@@ -289,6 +355,10 @@ export function Screening() {
     toast.success(`Item ${itemId} rejected`, {
       description: 'Removed from the screening queue.',
     });
+  };
+
+  const handleOpenItem = (item: AssessmentItem) => {
+    navigate(`/item-bank/${item.level}/${item.id}`, { state: { fromWorkflow: true } });
   };
 
   return (
@@ -358,6 +428,8 @@ export function Screening() {
             emptyMessage="No items are currently flagged. All screened items either passed or have been actioned."
             onApprove={handleApprove}
             onReject={handleReject}
+            justProcessedIds={justProcessedIds}
+            onOpenItem={handleOpenItem}
           />
 
           <ScreeningQueueSection
@@ -368,6 +440,8 @@ export function Screening() {
             emptyMessage="No all-clear items are awaiting approval at this time."
             onApprove={handleApprove}
             onReject={handleReject}
+            justProcessedIds={justProcessedIds}
+            onOpenItem={handleOpenItem}
           />
         </div>
       </div>

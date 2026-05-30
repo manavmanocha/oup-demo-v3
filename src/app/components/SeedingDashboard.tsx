@@ -48,8 +48,8 @@ export function SeedingDashboard() {
   const inReviewItems = useMemo(() => allItems.filter((item) => item.status === 'In Review'), [allItems]);
 
   const readyToSeedItems = useMemo(
-    () => inReviewItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')),
-    [inReviewItems],
+    () => allItems.filter((item) => isWorkflowState(item.workflowState, 'RECOMMENDED_FOR_SEEDING')),
+    [allItems],
   );
 
   const currentlySeededItems = useMemo(

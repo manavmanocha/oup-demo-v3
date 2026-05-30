@@ -1,414 +1,428 @@
 {
+  "_meta": {
+    "version": "2.0.0",
+    "alignedWith": [
+      "CEFR Companion Volume 2020 (Council of Europe)",
+      "Cambridge English Assessment analytic descriptors",
+      "Cambridge English Profile / English Grammar Profile",
+      "Cambridge English Topic List (PET / FCE / CAE)",
+      "IELTS / Aptis / OUP Test of English item-bank conventions"
+    ],
+    "notes": "Top-level labels mirror standard ELT publisher categories (OUP, CUP). Leaf labels are deliberately aligned with values produced by the item bank in questions.json so dashboards report real counts."
+  },
   "taxonomy": {
     "skills": [
       {
         "id": "READING",
         "label": "Reading",
         "children": [
-          {
-            "id": "READING_GLOBAL_DETAIL",
-            "label": "Careful reading global detail"
-          },
-          {
-            "id": "READING_LOCAL_DETAIL",
-            "label": "Careful reading local detail"
-          },
-          {
-            "id": "READING_CRITICAL_EVALUATION",
-            "label": "Critical evaluation and personal response"
-          },
-          {
-            "id": "READING_DEDUCING_MEANING",
-            "label": "Deducing meaning and predicting"
-          },
-          {
-            "id": "READING_MAIN_IDEAS_GIST",
-            "label": "Expeditious reading main ideas and gist"
-          },
-          {
-            "id": "READING_FEELINGS_OPINIONS",
-            "label": "Feelings and opinions"
-          },
-          {
-            "id": "READING_LITERACY",
-            "label": "Reading literacy"
-          },
-          {
-            "id": "READING_STYLISTIC_FEATURES",
-            "label": "Stylistic features"
-          },
-          {
-            "id": "READING_DICTIONARY_USAGE",
-            "label": "Using dictionaries"
-          },
-          {
-            "id": "READING_WRITERS_PURPOSE",
-            "label": "Writer's purpose"
-          }
+          { "id": "READING_GIST", "label": "Reading for gist" },
+          { "id": "READING_SPECIFIC_INFORMATION", "label": "Reading for specific information" },
+          { "id": "READING_DETAIL", "label": "Reading for detail" },
+          { "id": "READING_INFERENCE", "label": "Inference from context" },
+          { "id": "READING_WRITER_VIEWPOINT", "label": "Identifying writer viewpoint" },
+          { "id": "READING_TEXT_ORGANISATION", "label": "Understanding text organisation" },
+          { "id": "READING_VOCABULARY_IN_CONTEXT", "label": "Understanding vocabulary in context" },
+          { "id": "READING_SKIMMING_SCANNING", "label": "Skimming and scanning" }
         ]
       },
-
       {
         "id": "LISTENING",
         "label": "Listening",
         "children": [
-          {
-            "id": "LISTENING_GIST",
-            "label": "Listening for gist"
-          },
-          {
-            "id": "LISTENING_SPECIFIC_INFORMATION",
-            "label": "Listening for specific information"
-          },
-          {
-            "id": "LISTENING_DETAIL",
-            "label": "Listening for detailed understanding"
-          },
-          {
-            "id": "LISTENING_INFERENCE",
-            "label": "Inferring speaker meaning"
-          },
-          {
-            "id": "LISTENING_ATTITUDE_OPINION",
-            "label": "Recognizing attitude and opinion"
-          },
-          {
-            "id": "LISTENING_NOTE_TAKING",
-            "label": "Note taking and completion"
-          },
-          {
-            "id": "LISTENING_SEQUENCE",
-            "label": "Understanding sequence and process"
-          },
-          {
-            "id": "LISTENING_PRONUNCIATION_FEATURES",
-            "label": "Recognizing pronunciation features"
-          }
+          { "id": "LISTENING_GIST", "label": "Listening for gist" },
+          { "id": "LISTENING_SPECIFIC_INFORMATION", "label": "Listening for specific information" },
+          { "id": "LISTENING_DETAIL", "label": "Listening for detail" },
+          { "id": "LISTENING_ATTITUDE", "label": "Understanding attitude" },
+          { "id": "LISTENING_INFERENCE", "label": "Inference from context" },
+          { "id": "LISTENING_FOLLOWING_INSTRUCTIONS", "label": "Following practical instructions" },
+          { "id": "LISTENING_FUNCTION_PURPOSE", "label": "Understanding function and purpose" },
+          { "id": "LISTENING_NOTE_TAKING", "label": "Note-taking and completion" }
         ]
       },
-
       {
         "id": "WRITING",
         "label": "Writing",
         "children": [
-          {
-            "id": "WRITING_ARGUMENTATIVE",
-            "label": "Argumentative writing"
-          },
-          {
-            "id": "WRITING_DESCRIPTIVE",
-            "label": "Descriptive writing"
-          },
-          {
-            "id": "WRITING_NARRATIVE",
-            "label": "Narrative writing"
-          },
-          {
-            "id": "WRITING_EMAIL",
-            "label": "Email writing"
-          },
-          {
-            "id": "WRITING_REPORT",
-            "label": "Report writing"
-          },
-          {
-            "id": "WRITING_SUMMARY",
-            "label": "Summary writing"
-          },
-          {
-            "id": "WRITING_COHERENCE_COHESION",
-            "label": "Coherence and cohesion"
-          },
-          {
-            "id": "WRITING_GRAMMATICAL_ACCURACY",
-            "label": "Grammatical accuracy"
-          },
-          {
-            "id": "WRITING_LEXICAL_RESOURCE",
-            "label": "Vocabulary and lexical resource"
-          },
-          {
-            "id": "WRITING_TASK_ACHIEVEMENT",
-            "label": "Task achievement"
-          }
+          { "id": "WRITING_TASK_ACHIEVEMENT", "label": "Task achievement" },
+          { "id": "WRITING_COHERENCE_COHESION", "label": "Organising ideas coherently" },
+          { "id": "WRITING_ARGUMENT_DEVELOPMENT", "label": "Argument development" },
+          { "id": "WRITING_SUMMARISING", "label": "Summarising and synthesising" },
+          { "id": "WRITING_LEXICAL_RESOURCE", "label": "Lexical resource" },
+          { "id": "WRITING_GRAMMATICAL_RANGE", "label": "Grammatical range and accuracy" },
+          { "id": "WRITING_REGISTER", "label": "Genre and register awareness" }
         ]
       },
-
       {
         "id": "SPEAKING",
         "label": "Speaking",
         "children": [
-          {
-            "id": "SPEAKING_FLUENCY",
-            "label": "Fluency"
-          },
-          {
-            "id": "SPEAKING_PRONUNCIATION",
-            "label": "Pronunciation"
-          },
-          {
-            "id": "SPEAKING_INTERACTION",
-            "label": "Interactive communication"
-          },
-          {
-            "id": "SPEAKING_COHERENCE",
-            "label": "Coherence"
-          },
-          {
-            "id": "SPEAKING_ACCURACY",
-            "label": "Grammatical accuracy"
-          },
-          {
-            "id": "SPEAKING_VOCABULARY",
-            "label": "Vocabulary range"
-          },
-          {
-            "id": "SPEAKING_DISCOURSE_MANAGEMENT",
-            "label": "Discourse management"
-          },
-          {
-            "id": "SPEAKING_OPINION_EXPRESSION",
-            "label": "Expressing and justifying opinions"
-          }
+          { "id": "SPEAKING_FLUENCY", "label": "Fluency and coherence" },
+          { "id": "SPEAKING_INTERACTIVE", "label": "Interactive communication" },
+          { "id": "SPEAKING_DISCOURSE_MANAGEMENT", "label": "Discourse management" },
+          { "id": "SPEAKING_OPINION", "label": "Expressing and justifying opinions" },
+          { "id": "SPEAKING_LEXICAL_RESOURCE", "label": "Lexical resource" },
+          { "id": "SPEAKING_GRAMMATICAL_RANGE", "label": "Grammatical range and accuracy" },
+          { "id": "SPEAKING_PRONUNCIATION", "label": "Pronunciation" },
+          { "id": "SPEAKING_EXTENDED_TURN", "label": "Extended turn-taking" }
         ]
       }
     ],
 
     "contentDomains": [
       {
-        "id": "GENERAL_SOCIAL",
-        "label": "General Social"
+        "id": "DOMAIN_PERSONAL",
+        "label": "Personal",
+        "children": [
+          { "id": "DOMAIN_PERSONAL_HEALTH", "label": "Health" },
+          { "id": "DOMAIN_PERSONAL_CONSUMER", "label": "Consumer life" }
+        ]
       },
       {
-        "id": "PERSONAL",
-        "label": "Personal Life"
+        "id": "DOMAIN_PUBLIC",
+        "label": "Public",
+        "children": [
+          { "id": "DOMAIN_PUBLIC_COMMUNITY", "label": "Community" },
+          { "id": "DOMAIN_PUBLIC_PUBLIC_SERVICES", "label": "Public services" },
+          { "id": "DOMAIN_PUBLIC_MEDIA", "label": "Media" },
+          { "id": "DOMAIN_PUBLIC_CULTURE", "label": "Culture" },
+          { "id": "DOMAIN_PUBLIC_TRAVEL", "label": "Travel" },
+          { "id": "DOMAIN_PUBLIC_ENVIRONMENT", "label": "Environment" }
+        ]
       },
       {
-        "id": "ACADEMIC",
-        "label": "Academic"
+        "id": "DOMAIN_EDUCATIONAL",
+        "label": "Educational",
+        "children": [
+          { "id": "DOMAIN_EDU_EDUCATION", "label": "Education" },
+          { "id": "DOMAIN_EDU_SCIENCE", "label": "Science" },
+          { "id": "DOMAIN_EDU_TECHNOLOGY", "label": "Technology" }
+        ]
       },
       {
-        "id": "PROFESSIONAL",
-        "label": "Professional"
-      },
-      {
-        "id": "BUSINESS",
-        "label": "Business"
-      },
-      {
-        "id": "SCIENTIFIC",
-        "label": "Scientific"
-      },
-      {
-        "id": "MEDIA",
-        "label": "Media"
-      },
-      {
-        "id": "CULTURAL",
-        "label": "Culture"
-      },
-      {
-        "id": "TECHNOLOGY",
-        "label": "Technology"
-      },
-      {
-        "id": "HEALTH",
-        "label": "Health"
+        "id": "DOMAIN_OCCUPATIONAL",
+        "label": "Occupational",
+        "children": [
+          { "id": "DOMAIN_OCC_WORKPLACE", "label": "Workplace" }
+        ]
       }
     ],
 
     "languageVarieties": [
       {
-        "id": "BRITISH_ENGLISH",
-        "label": "British English"
+        "id": "VARIETIES_NATIVE",
+        "label": "Native varieties",
+        "children": [
+          { "id": "BRITISH_ENGLISH", "label": "British English" },
+          { "id": "AMERICAN_ENGLISH", "label": "American English" },
+          { "id": "AUSTRALIAN_ENGLISH", "label": "Australian English" },
+          { "id": "CANADIAN_ENGLISH", "label": "Canadian English" },
+          { "id": "IRISH_ENGLISH", "label": "Irish English" },
+          { "id": "NEW_ZEALAND_ENGLISH", "label": "New Zealand English" },
+          { "id": "SOUTH_AFRICAN_ENGLISH", "label": "South African English" }
+        ]
       },
       {
-        "id": "AMERICAN_ENGLISH",
-        "label": "American English"
+        "id": "VARIETIES_WORLD",
+        "label": "World varieties",
+        "children": [
+          { "id": "INDIAN_ENGLISH", "label": "Indian English" },
+          { "id": "INTERNATIONAL_ENGLISH", "label": "International English" }
+        ]
       },
       {
-        "id": "AUSTRALIAN_ENGLISH",
-        "label": "Australian English"
-      },
-      {
-        "id": "CANADIAN_ENGLISH",
-        "label": "Canadian English"
-      },
-      {
-        "id": "INDIAN_ENGLISH",
-        "label": "Indian English"
-      },
-      {
-        "id": "INTERNATIONAL_ENGLISH",
-        "label": "International English"
-      },
-      {
-        "id": "FORMAL_ENGLISH",
-        "label": "Formal English"
-      },
-      {
-        "id": "INFORMAL_ENGLISH",
-        "label": "Informal English"
+        "id": "VARIETIES_REGISTER",
+        "label": "Register",
+        "children": [
+          { "id": "REGISTER_FORMAL", "label": "Formal register" },
+          { "id": "REGISTER_NEUTRAL", "label": "Neutral register" },
+          { "id": "REGISTER_INFORMAL", "label": "Informal register" }
+        ]
       }
     ],
+
     "cefrLevels": [
-      {
-        "id": "A1",
-        "label": "Beginner (A1)"
-      },
-      {
-        "id": "A2",
-        "label": "Elementary (A2)"
-      },
-      {
-        "id": "B1",
-        "label": "Intermediate (B1)"
-      },
-      {
-        "id": "B2",
-        "label": "Upper Intermediate (B2)"
-      },
-      {
-        "id": "C1",
-        "label": "Advanced (C1)"
-      },
-      {
-        "id": "C2",
-        "label": "Proficient (C2)"
-      }
+      { "id": "PRE_A1", "label": "Pre-A1 (Foundation)" },
+      { "id": "A1", "label": "A1 (Beginner)" },
+      { "id": "A2", "label": "A2 (Elementary)" },
+      { "id": "B1", "label": "B1 (Intermediate)" },
+      { "id": "B2", "label": "B2 (Upper Intermediate)" },
+      { "id": "C1", "label": "C1 (Advanced)" },
+      { "id": "C2", "label": "C2 (Proficient)" }
     ],
 
     "topics": [
       {
-        "id": "TRAVEL",
-        "label": "Travel"
+        "id": "TOPIC_DAILY_LIFE",
+        "label": "Daily life and lifestyle",
+        "children": [
+          { "id": "TOPIC_DAILY_ROUTINES", "label": "Daily Routines" },
+          { "id": "TOPIC_LIFESTYLE", "label": "Lifestyle" }
+        ]
       },
       {
-        "id": "EDUCATION",
-        "label": "Education"
+        "id": "TOPIC_EDUCATION",
+        "label": "Education and learning",
+        "children": [
+          { "id": "TOPIC_EDUCATION", "label": "Education" },
+          { "id": "TOPIC_LEARNING", "label": "Learning" },
+          { "id": "TOPIC_UNIVERSITY_LIFE", "label": "University life" },
+          { "id": "TOPIC_HIGHER_EDUCATION", "label": "Higher Education" },
+          { "id": "TOPIC_ACADEMIC_SKILLS", "label": "Academic Skills" },
+          { "id": "TOPIC_EDUCATION_CULTURE", "label": "Education and Culture" }
+        ]
       },
       {
-        "id": "BUSINESS",
-        "label": "Business"
+        "id": "TOPIC_WORK",
+        "label": "Work and workplace",
+        "children": [
+          { "id": "TOPIC_WORK", "label": "Work" },
+          { "id": "TOPIC_WORKPLACE", "label": "Workplace" },
+          { "id": "TOPIC_WORKPLACE_COMMUNICATION", "label": "Workplace Communication" }
+        ]
       },
       {
-        "id": "TECHNOLOGY",
-        "label": "Technology"
+        "id": "TOPIC_FOOD",
+        "label": "Food and drink",
+        "children": [
+          { "id": "TOPIC_FOOD_DRINK", "label": "Food and Drink" },
+          { "id": "TOPIC_FOOD_HEALTH", "label": "Food and Health" },
+          { "id": "TOPIC_FOOD_CULTURE", "label": "Food and Culture" },
+          { "id": "TOPIC_FOOD_CELEBRATIONS", "label": "Food and celebrations" },
+          { "id": "TOPIC_NUTRITION", "label": "Nutrition Science" }
+        ]
       },
       {
-        "id": "HEALTH",
-        "label": "Health"
+        "id": "TOPIC_SHOPPING",
+        "label": "Shopping and consumer life",
+        "children": [
+          { "id": "TOPIC_SHOPPING", "label": "Shopping" },
+          { "id": "TOPIC_SHOPPING_SERVICES", "label": "Shopping and Services" },
+          { "id": "TOPIC_CONSUMER_LIFE", "label": "Consumer life" },
+          { "id": "TOPIC_CONSUMER_BEHAVIOUR", "label": "Consumer Behaviour" },
+          { "id": "TOPIC_CONSUMER_SERVICES", "label": "Consumer services" },
+          { "id": "TOPIC_CONSUMERISM", "label": "Consumerism" }
+        ]
       },
       {
-        "id": "ENVIRONMENT",
-        "label": "Environment"
+        "id": "TOPIC_HEALTH",
+        "label": "Health and body care",
+        "children": [
+          { "id": "TOPIC_HEALTH", "label": "Health" },
+          { "id": "TOPIC_HEALTH_FITNESS", "label": "Health and Fitness" },
+          { "id": "TOPIC_HEALTH_SAFETY", "label": "Health & Safety" },
+          { "id": "TOPIC_HEALTH_WELLBEING", "label": "Health & Wellbeing" },
+          { "id": "TOPIC_HEALTH_LIFESTYLE", "label": "Health and Lifestyle" },
+          { "id": "TOPIC_HEALTH_MEDICINE", "label": "Health and Medicine" },
+          { "id": "TOPIC_HEALTH_TECHNOLOGY", "label": "Health and Technology" },
+          { "id": "TOPIC_HEALTHCARE_APPOINTMENTS", "label": "Healthcare appointments" }
+        ]
       },
       {
-        "id": "SOCIETY",
-        "label": "Society"
+        "id": "TOPIC_TRAVEL",
+        "label": "Travel and tourism",
+        "children": [
+          { "id": "TOPIC_TRAVEL", "label": "Travel" },
+          { "id": "TOPIC_TRAVEL_TOURISM", "label": "Travel and Tourism" },
+          { "id": "TOPIC_PUBLIC_TRANSPORT", "label": "Public Transport" },
+          { "id": "TOPIC_RESPONSIBLE_TOURISM", "label": "Responsible Tourism" },
+          { "id": "TOPIC_SUSTAINABLE_TOURISM", "label": "Sustainable Tourism" }
+        ]
       },
       {
-        "id": "CULTURE",
-        "label": "Culture"
+        "id": "TOPIC_ENVIRONMENT",
+        "label": "Environment and weather",
+        "children": [
+          { "id": "TOPIC_ENVIRONMENT", "label": "Environment" },
+          { "id": "TOPIC_ECOLOGY", "label": "Ecology" },
+          { "id": "TOPIC_WEATHER", "label": "Weather" },
+          { "id": "TOPIC_URBAN_ENVIRONMENT", "label": "Urban Environment" }
+        ]
       },
       {
-        "id": "WORK",
-        "label": "Work"
+        "id": "TOPIC_SCIENCE_TECH",
+        "label": "Science and technology",
+        "children": [
+          { "id": "TOPIC_SCIENCE", "label": "Science" },
+          { "id": "TOPIC_TECHNOLOGY", "label": "Technology" },
+          { "id": "TOPIC_AI", "label": "Artificial Intelligence" },
+          { "id": "TOPIC_BIOLOGY", "label": "Biology" },
+          { "id": "TOPIC_BOTANY", "label": "Botany" },
+          { "id": "TOPIC_MYCOLOGY", "label": "Mycology" },
+          { "id": "TOPIC_ENV_SCIENCE", "label": "Environmental Science" },
+          { "id": "TOPIC_MATERIALS_SCIENCE", "label": "Materials Science" },
+          { "id": "TOPIC_SUSTAINABLE_MATERIALS", "label": "Sustainable Materials" },
+          { "id": "TOPIC_MOBILE_APPS", "label": "Mobile Applications" },
+          { "id": "TOPIC_TECH_FINANCE", "label": "Technology and finance" },
+          { "id": "TOPIC_TECH_INNOVATION", "label": "Technology and innovation" },
+          { "id": "TOPIC_TECH_FUTURE_WORK", "label": "Technology and the Future of Work" },
+          { "id": "TOPIC_TECH_DAILY_LIFE", "label": "Technology in Daily Life" },
+          { "id": "TOPIC_UX", "label": "User Experience" },
+          { "id": "TOPIC_LINGUISTICS", "label": "Linguistics" },
+          { "id": "TOPIC_BIOETHICS", "label": "Bioethics" },
+          { "id": "TOPIC_SCIENCE_ETHICS", "label": "Science and Ethics" },
+          { "id": "TOPIC_SCIENCE_SOCIETY", "label": "Science and Society" }
+        ]
       },
       {
-        "id": "LIFESTYLE",
-        "label": "Lifestyle"
+        "id": "TOPIC_MEDIA",
+        "label": "Media and communication",
+        "children": [
+          { "id": "TOPIC_MEDIA", "label": "Media" },
+          { "id": "TOPIC_FILM_MEDIA", "label": "Film and Media" },
+          { "id": "TOPIC_MEDIA_ETHICS", "label": "Media Ethics" },
+          { "id": "TOPIC_MEDIA_STUDIES", "label": "Media Studies" },
+          { "id": "TOPIC_MEDIA_CULTURE", "label": "Media and Culture" },
+          { "id": "TOPIC_MEDIA_ENTERTAINMENT", "label": "Media and Entertainment" },
+          { "id": "TOPIC_MEDIA_TECHNOLOGY", "label": "Media and Technology" },
+          { "id": "TOPIC_SOCIAL_MEDIA", "label": "Social Media" },
+          { "id": "TOPIC_SOCIAL_MEDIA_TRENDS", "label": "Social Media Trends" },
+          { "id": "TOPIC_LOCAL_MEDIA", "label": "Local media" }
+        ]
       },
       {
-        "id": "SCIENCE",
-        "label": "Science"
+        "id": "TOPIC_CULTURE",
+        "label": "Arts and culture",
+        "children": [
+          { "id": "TOPIC_CULTURE", "label": "Culture" },
+          { "id": "TOPIC_ARTS_CULTURE", "label": "Arts and Culture" },
+          { "id": "TOPIC_CULTURE_FESTIVALS", "label": "Culture and Festivals" },
+          { "id": "TOPIC_CULTURAL_TRADITIONS", "label": "Cultural Traditions" },
+          { "id": "TOPIC_CULTURAL_INSTITUTIONS", "label": "Cultural institutions" },
+          { "id": "TOPIC_LOCAL_CULTURE", "label": "Local Culture" },
+          { "id": "TOPIC_MUSIC", "label": "Music" }
+        ]
       },
       {
-        "id": "MEDIA",
-        "label": "Media"
+        "id": "TOPIC_COMMUNITY",
+        "label": "Community and public services",
+        "children": [
+          { "id": "TOPIC_COMMUNITY", "label": "Community" },
+          { "id": "TOPIC_COMMUNITY_ACTIVITIES", "label": "Community Activities" },
+          { "id": "TOPIC_COMMUNITY_DEVELOPMENT", "label": "Community Development" },
+          { "id": "TOPIC_COMMUNITY_EVENTS", "label": "Community Events" },
+          { "id": "TOPIC_COMMUNITY_INITIATIVES", "label": "Community Initiatives" },
+          { "id": "TOPIC_COMMUNITY_LIFE", "label": "Community Life" },
+          { "id": "TOPIC_COMMUNITY_PROJECTS", "label": "Community Projects" },
+          { "id": "TOPIC_COMMUNITY_SERVICES", "label": "Community Services" },
+          { "id": "TOPIC_LOCAL_COMMUNITY", "label": "Local Community" },
+          { "id": "TOPIC_LOCAL_EVENTS", "label": "Local Events" },
+          { "id": "TOPIC_LOCAL_INITIATIVES", "label": "Local Initiatives" },
+          { "id": "TOPIC_LOCAL_SERVICES", "label": "Local Services" },
+          { "id": "TOPIC_LOCAL_GOVERNMENT", "label": "Local government" },
+          { "id": "TOPIC_PUBLIC_SERVICES", "label": "Public Services" },
+          { "id": "TOPIC_SOCIAL_EVENTS", "label": "Social events" },
+          { "id": "TOPIC_URBAN_DEVELOPMENT", "label": "Urban Development" },
+          { "id": "TOPIC_URBAN_PLANNING", "label": "Urban Planning" },
+          { "id": "TOPIC_URBAN_SOCIOLOGY", "label": "Urban Sociology" },
+          { "id": "TOPIC_EVENTS", "label": "Events" }
+        ]
+      },
+      {
+        "id": "TOPIC_NATURAL_WORLD",
+        "label": "The natural world",
+        "children": [
+          { "id": "TOPIC_ANIMALS", "label": "Animals" }
+        ]
       }
     ],
 
     "grammar": [
       {
-        "id": "PRESENT_SIMPLE",
-        "label": "Present Simple"
+        "id": "GRAMMAR_VERB_FORMS",
+        "label": "Verb forms and tenses",
+        "children": [
+          { "id": "GRAMMAR_PRESENT_SIMPLE", "label": "Present Simple" },
+          { "id": "GRAMMAR_PRESENT_CONTINUOUS", "label": "Present Continuous" },
+          { "id": "GRAMMAR_PRESENT_PERFECT", "label": "Present Perfect" },
+          { "id": "GRAMMAR_PAST_SIMPLE", "label": "Past Simple" },
+          { "id": "GRAMMAR_PAST_CONTINUOUS", "label": "Past Continuous" },
+          { "id": "GRAMMAR_PAST_PERFECT", "label": "Past Perfect" },
+          { "id": "GRAMMAR_FUTURE_FORMS", "label": "Future forms" }
+        ]
       },
       {
-        "id": "PAST_SIMPLE",
-        "label": "Past Simple"
+        "id": "GRAMMAR_MODALITY",
+        "label": "Modality",
+        "children": [
+          { "id": "GRAMMAR_MODALS_OBLIGATION", "label": "Modals of obligation" },
+          { "id": "GRAMMAR_MODALS_POSSIBILITY", "label": "Modals of possibility" },
+          { "id": "GRAMMAR_MODALS_ABILITY", "label": "Modals of ability" },
+          { "id": "GRAMMAR_MODALS_ADVICE", "label": "Modals of advice" }
+        ]
       },
       {
-        "id": "PAST_PERFECT",
-        "label": "Past Perfect"
+        "id": "GRAMMAR_SENTENCE_STRUCTURE",
+        "label": "Sentence structure",
+        "children": [
+          { "id": "GRAMMAR_CONDITIONALS", "label": "Conditionals" },
+          { "id": "GRAMMAR_RELATIVE_CLAUSES", "label": "Relative clauses" },
+          { "id": "GRAMMAR_REPORTED_SPEECH", "label": "Reported speech" },
+          { "id": "GRAMMAR_PASSIVE_VOICE", "label": "Passive voice" },
+          { "id": "GRAMMAR_QUESTION_FORMS", "label": "Question forms" }
+        ]
       },
       {
-        "id": "PASSIVE_VOICE",
-        "label": "Passive Voice"
+        "id": "GRAMMAR_NOUN_PHRASE",
+        "label": "Noun phrase",
+        "children": [
+          { "id": "GRAMMAR_ARTICLES", "label": "Articles and determiners" },
+          { "id": "GRAMMAR_PRONOUNS", "label": "Pronouns" },
+          { "id": "GRAMMAR_COMPARATIVES", "label": "Comparatives and superlatives" }
+        ]
       },
       {
-        "id": "CONDITIONALS",
-        "label": "Conditionals"
-      },
-      {
-        "id": "REPORTED_SPEECH",
-        "label": "Reported Speech"
+        "id": "GRAMMAR_LEXICOGRAMMAR",
+        "label": "Lexico-grammar",
+        "children": [
+          { "id": "GRAMMAR_GERUNDS_INFINITIVES", "label": "Gerunds and infinitives" },
+          { "id": "GRAMMAR_PHRASAL_VERBS", "label": "Phrasal verbs" },
+          { "id": "GRAMMAR_PREPOSITIONS", "label": "Prepositions" },
+          { "id": "GRAMMAR_LINKERS", "label": "Linking words and discourse markers" }
+        ]
       }
     ],
 
     "cognitiveLevels": [
-      {
-        "id": "REMEMBER",
-        "label": "Remember"
-      },
-      {
-        "id": "UNDERSTAND",
-        "label": "Understand"
-      },
-      {
-        "id": "APPLY",
-        "label": "Apply"
-      },
-      {
-        "id": "ANALYZE",
-        "label": "Analyze"
-      },
-      {
-        "id": "EVALUATE",
-        "label": "Evaluate"
-      },
-      {
-        "id": "CREATE",
-        "label": "Create"
-      }
+      { "id": "REMEMBER", "label": "Remember" },
+      { "id": "UNDERSTAND", "label": "Understand" },
+      { "id": "APPLY", "label": "Apply" },
+      { "id": "ANALYZE", "label": "Analyze" },
+      { "id": "EVALUATE", "label": "Evaluate" },
+      { "id": "CREATE", "label": "Create" }
     ],
 
     "itemTypes": [
       {
-        "id": "MCQ",
-        "label": "Multiple Choice Question"
+        "id": "ITEM_OBJECTIVE",
+        "label": "Objective items",
+        "children": [
+          { "id": "ITEM_MCQ", "label": "Multiple Choice" },
+          { "id": "ITEM_MATCHING", "label": "Matching" },
+          { "id": "ITEM_MATCHING_HEADINGS", "label": "Matching Headings" },
+          { "id": "ITEM_TRUE_FALSE_NG", "label": "True/False/Not Given" }
+        ]
       },
       {
-        "id": "GAP_FILL",
-        "label": "Gap Fill"
+        "id": "ITEM_COMPLETION",
+        "label": "Completion tasks",
+        "children": [
+          { "id": "ITEM_SENTENCE_COMPLETION", "label": "Sentence Completion" },
+          { "id": "ITEM_SUMMARY_COMPLETION", "label": "Summary Completion" },
+          { "id": "ITEM_NOTE_COMPLETION", "label": "Note Completion" },
+          { "id": "ITEM_FORM_COMPLETION", "label": "Form Completion" },
+          { "id": "ITEM_TABLE_COMPLETION", "label": "Table Completion" },
+          { "id": "ITEM_SHORT_ANSWER", "label": "Short Answer" }
+        ]
       },
       {
-        "id": "MATCHING",
-        "label": "Matching"
-      },
-      {
-        "id": "ESSAY",
-        "label": "Essay"
-      },
-      {
-        "id": "SPEAKING_PROMPT",
-        "label": "Speaking Prompt"
-      },
-      {
-        "id": "LISTENING_AUDIO",
-        "label": "Listening Audio"
+        "id": "ITEM_PRODUCTIVE",
+        "label": "Productive tasks",
+        "children": [
+          { "id": "ITEM_ESSAY", "label": "Essay" },
+          { "id": "ITEM_SPEAKING", "label": "Speaking" }
+        ]
       }
-    ]	
-
-    }
+    ]
+  }
 }

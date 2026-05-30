@@ -213,10 +213,31 @@ const getDiscriminationLabel = (confidence: number): string => {
 
 const getAlignedDifficultyPrediction = (item: AssessmentItem): DifficultyPredictionResult => {
   const profile = LEVEL_DIFFICULTY_PROFILE[item.level];
+  const pending = item.pendingPsychometrics;
+
+  // CSV-supplied IRT b takes precedence over the deterministic per-level value
+  // so values captured at ingest flow through DP unchanged.
+  const pendingB = pending?.irtParameters?.b;
   const b = Number(
-    clampBValue(profile.meanB + deterministicOffset(`${item.id}:${item.level}`, profile.spread)).toFixed(2),
+    clampBValue(
+      typeof pendingB === 'number'
+        ? pendingB
+        : profile.meanB + deterministicOffset(`${item.id}:${item.level}`, profile.spread),
+    ).toFixed(2),
   );
-  const rawConfidence = profile.confidence + deterministicOffset(`${item.id}:confidence`, 22);
+
+  // Honour an explicit confidence on the item (e.g. supplied via CSV ingest)
+  // so deterministic demo data flows through the prediction stage unchanged.
+  const explicitConfidence =
+    typeof item.confidence === 'number'
+      ? item.confidence
+      : typeof pending?.confidence === 'number'
+        ? pending.confidence
+        : undefined;
+  const rawConfidence =
+    typeof explicitConfidence === 'number'
+      ? explicitConfidence
+      : profile.confidence + deterministicOffset(`${item.id}:confidence`, 22);
   const confidence = Math.round(Math.min(95, Math.max(40, rawConfidence)));
 
   return {
@@ -224,7 +245,7 @@ const getAlignedDifficultyPrediction = (item: AssessmentItem): DifficultyPredict
     b,
     confidence,
     difficulty: getDifficultyLabelFromB(b),
-    discrimination: getDiscriminationLabel(confidence),
+    discrimination: pending?.discrimination ?? getDiscriminationLabel(confidence),
   };
 };
 
@@ -392,6 +413,10 @@ const mergeItemWithPatch = (baseItem: AssessmentItem, patch: Partial<AssessmentI
       ...baseItem.screening,
       ...patch.screening,
     },
+    screeningReasons: {
+      ...baseItem.screeningReasons,
+      ...patch.screeningReasons,
+    },
     irtParameters: hasIrt
       ? {
           b: patch.irtParameters?.b ?? baseItem.irtParameters?.b ?? 0,
@@ -464,14 +489,68 @@ export const addIngestedItems = (items: AssessmentItem[]) => {
   setStoredIngestedItems(Array.from(mergedById.values()));
 };
 
+// Per-dimension screening reasons sourced directly from public/samples/item-ingest-sample.csv
+// for the demo CSV items. Used as the authoritative source so the UI shows the same
+// detailed reasoning regardless of when the item was ingested.
+const DEMO_CSV_SCREENING_REASONS: Record<string, NonNullable<AssessmentItem['screeningReasons']>> = {
+  'EAS-DEM-LIS-B2-204': {
+    cefrFit:
+      'Audio uses C1 vocabulary above the B2 target: ramifications, consolidate, forthwith, discretionary, jurisdictional, overarching.',
+    clarity:
+      "Gaps 2 and 5 both accept 'Tuesday' as a valid answer (rollout date vs workflow go-live), with no disambiguating context.",
+  },
+  'EAS-DEM-RDG-B1-205': {
+    cefrFit:
+      "Lexis above B1: 'centres on', 'widely debated', 'modern observers focus on its role as', 'expressions of gratitude'.",
+    fairness:
+      'Passage requires US-specific cultural knowledge (Thanksgiving date, named foods, football tradition) that is not derivable from the text.',
+  },
+};
+
+const applyDemoCsvScreeningReasons = (item: AssessmentItem): AssessmentItem => {
+  const demoReasons = DEMO_CSV_SCREENING_REASONS[item.id];
+  if (!demoReasons) {
+    return item;
+  }
+
+  return {
+    ...item,
+    screeningReasons: {
+      ...demoReasons,
+      ...item.screeningReasons,
+    },
+  };
+};
+
 export const queueItemsForScreening = (itemIds: string[]) => {
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
   const nowIso = now.toISOString();
 
   upsertItemOverrides(itemIds, (item, existingPatch) => {
-    const fixture = getScreeningFixture(item.id);
-    const allPassed = SCREENING_DIMENSIONS.every((dimension) => fixture.screening[dimension] === 'Pass');
+    const hasIngestedScreening = Boolean(
+      item.screening && Object.values(item.screening).some((v) => v !== undefined),
+    );
+
+    let screeningResult: ScreeningResults;
+    let feedbackText: string;
+
+    if (hasIngestedScreening) {
+      screeningResult = {
+        cefrFit: item.screening?.cefrFit ?? 'Pass',
+        distractorStrength: item.screening?.distractorStrength ?? 'Pass',
+        clarity: item.screening?.clarity ?? 'Pass',
+        fairness: item.screening?.fairness ?? 'Pass',
+        similarity: item.screening?.similarity ?? 'Pass',
+      };
+      feedbackText = item.flagReason?.trim() ?? '';
+    } else {
+      const fixture = getScreeningFixture(item.id);
+      screeningResult = fixture.screening;
+      feedbackText = fixture.feedback;
+    }
+
+    const allPassed = SCREENING_DIMENSIONS.every((dimension) => screeningResult[dimension] === 'Pass');
 
     const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
     const nextHistory = [
@@ -481,7 +560,7 @@ export const queueItemsForScreening = (itemIds: string[]) => {
         reviewer: 'Screening Queue',
         action: allPassed ? 'Screening Auto-Completed (Pass)' : 'Screening Auto-Completed (Needs Review)',
         state: 'PENDING_SCREENING_REVIEW',
-        notes: fixture.feedback,
+        notes: feedbackText,
       },
     ];
 
@@ -489,8 +568,8 @@ export const queueItemsForScreening = (itemIds: string[]) => {
       workflowState: 'PENDING_SCREENING_REVIEW',
       status: 'In Review',
       flaggedForReview: !allPassed,
-      flagReason: allPassed ? undefined : fixture.feedback,
-      screening: fixture.screening,
+      flagReason: allPassed ? undefined : feedbackText,
+      screening: screeningResult,
       reviewHistory: nextHistory,
       lastEditedDate: nowIso,
       lastEditedBy: 'Screening Queue',
@@ -606,25 +685,37 @@ export const applyDifficultyPredictions = (results: DifficultyPredictionResult[]
   });
 };
 
-export const acceptPredictedItems = (itemIds: string[]) => {
+export type DifficultyAcceptDestination = 'publish' | 'seeding';
+
+export const acceptPredictedItems = (
+  itemIds: string[],
+  destination: DifficultyAcceptDestination = 'seeding',
+) => {
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
   const nowIso = now.toISOString();
 
   upsertItemOverrides(itemIds, (item, existingPatch) => {
     const previousHistory = existingPatch?.reviewHistory ?? item.reviewHistory ?? [];
+    const nextState: AssessmentItem['workflowState'] =
+      destination === 'publish' ? 'DP_APPROVED' : 'RECOMMENDED_FOR_SEEDING';
+    const action =
+      destination === 'publish'
+        ? 'Estimation Accepted — Published to Bank'
+        : 'Estimation Accepted — Queued for Seeding';
+
     const nextHistory = [
       ...previousHistory,
       {
         date: today,
         reviewer: 'Difficulty Review Team',
-        action: 'Estimation Accepted',
-        state: 'RECOMMENDED_FOR_SEEDING',
+        action,
+        state: nextState,
       },
     ];
 
     return {
-      workflowState: 'RECOMMENDED_FOR_SEEDING',
+      workflowState: nextState,
       status: 'Published',
       flaggedForReview: false,
       reviewHistory: nextHistory,
@@ -710,6 +801,7 @@ type QuestionWithMetadata = UnifiedQuestion & {
   workflowState?: AssessmentItem['workflowState'];
   status?: AssessmentItem['status'];
   screening?: AssessmentItem['screening'];
+  screeningReasons?: AssessmentItem['screeningReasons'];
   flaggedForReview?: boolean;
   flagReason?: string;
   reviewHistory?: AssessmentItem['reviewHistory'];
@@ -784,6 +876,7 @@ const getQuestionMetadata = (question: UnifiedQuestion): Partial<AssessmentItem>
     status: q.status,
     workflowState: q.workflowState,
     screening: q.screening,
+    screeningReasons: q.screeningReasons,
     flaggedForReview: q.flaggedForReview,
     flagReason: q.flagReason,
     reviewHistory: q.reviewHistory,
@@ -831,7 +924,7 @@ const listeningItems: AssessmentItem[] = listeningQuestions.map((q) => {
 
   return {
     id: q.id,
-    title: q.skillDetails.listening.context,
+    title: q.skillDetails.listening.context || q.title || q.prompt,
     content: q.prompt || q.skillDetails.listening.context,
     answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
     level: q.level as CEFRLevel,
@@ -854,6 +947,7 @@ const listeningItems: AssessmentItem[] = listeningQuestions.map((q) => {
     confidence: metadata.confidence,
     workflowState: metadata.workflowState,
     screening: metadata.screening,
+    screeningReasons: metadata.screeningReasons,
     flaggedForReview: metadata.flaggedForReview,
     flagReason: metadata.flagReason,
     author: metadata.author,
@@ -886,7 +980,7 @@ const speakingItems: AssessmentItem[] = speakingQuestions.map((q) => {
     answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
     level: q.level as CEFRLevel,
     skill: 'Speaking',
-    itemType: 'Speaking' as ItemType,
+    itemType: q.questionType as ItemType,
     status: metadata.status as AssessmentItem['status'],
     difficulty: q.difficulty as AssessmentItem['difficulty'],
     instructions: speakingDetails.instructions,
@@ -908,6 +1002,7 @@ const speakingItems: AssessmentItem[] = speakingQuestions.map((q) => {
     confidence: metadata.confidence,
     workflowState: metadata.workflowState,
     screening: metadata.screening,
+    screeningReasons: metadata.screeningReasons,
     flaggedForReview: metadata.flaggedForReview,
     flagReason: metadata.flagReason,
     author: metadata.author,
@@ -931,12 +1026,12 @@ const writingItems: AssessmentItem[] = writingQuestions.map((q) => {
 
   return {
     id: q.id,
-    title: writingDetails.promptContext || q.prompt,
+    title: writingDetails.promptContext || q.title || q.prompt,
     content: q.prompt,
     answerKey: typeof q.correctAnswer === 'string' ? q.correctAnswer : undefined,
     level: q.level as CEFRLevel,
     skill: 'Writing',
-    itemType: 'Essay' as ItemType,
+    itemType: q.questionType as ItemType,
     status: metadata.status as AssessmentItem['status'],
     difficulty: q.difficulty as AssessmentItem['difficulty'],
     instructions: writingDetails.instructions,
@@ -955,6 +1050,7 @@ const writingItems: AssessmentItem[] = writingQuestions.map((q) => {
     confidence: metadata.confidence,
     workflowState: metadata.workflowState,
     screening: metadata.screening,
+    screeningReasons: metadata.screeningReasons,
     flaggedForReview: metadata.flaggedForReview,
     flagReason: metadata.flagReason,
     author: metadata.author,
@@ -1018,6 +1114,7 @@ const readingItems: AssessmentItem[] = readingQuestions.map((q) => {
     confidence: metadata.confidence,
     workflowState: metadata.workflowState,
     screening: metadata.screening,
+    screeningReasons: metadata.screeningReasons,
     flaggedForReview: metadata.flaggedForReview,
     flagReason: metadata.flagReason,
     author: metadata.author,
@@ -1149,7 +1246,7 @@ export const getAllItems = () => {
 
   const overrides = getStoredWorkflowOverrides();
   if (!overrides.length) {
-    return Array.from(combinedById.values());
+    return Array.from(combinedById.values()).map((item) => applyDemoCsvScreeningReasons(item));
   }
 
   const overrideMap = new Map<string, Partial<AssessmentItem>>();
@@ -1160,10 +1257,10 @@ export const getAllItems = () => {
   return Array.from(combinedById.values()).map((item) => {
     const patch = overrideMap.get(item.id);
     if (!patch) {
-      return normalizeItemLifecycle(item);
+      return applyDemoCsvScreeningReasons(normalizeItemLifecycle(item));
     }
 
-    return normalizeItemLifecycle(mergeItemWithPatch(item, patch));
+    return applyDemoCsvScreeningReasons(normalizeItemLifecycle(mergeItemWithPatch(item, patch)));
   });
 };
 
@@ -1373,4 +1470,3 @@ export const getSeededResponsesAccrued = (item: AssessmentItem, referenceDate: D
 };
 
 export const SEEDED_RESPONSE_TARGET = RESPONSE_TARGET;
-

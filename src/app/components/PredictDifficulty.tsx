@@ -139,7 +139,9 @@ export function PredictDifficulty() {
   };
 
   const handleFinish = () => {
-    navigate('/workflows/pre-testing-pipeline/difficulty-prediction');
+    navigate('/workflows/pre-testing-pipeline/difficulty-prediction', {
+      state: { justProcessedIds: selectedItemIds },
+    });
   };
 
   return (
@@ -383,12 +385,12 @@ export function PredictDifficulty() {
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[640px]">
+                  <table className="w-full min-w-[880px]">
                     <thead className="bg-gray-50 border-b">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Item ID</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Skill / Type</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Skill / Type</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CEFR</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Difficulty</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Discrimination</th>
@@ -401,7 +403,9 @@ export function PredictDifficulty() {
                         return (
                         <tr key={item.id} className="hover:bg-gray-50">
                           <td className="px-4 py-3 text-sm font-medium text-blue-600 whitespace-nowrap">{item.id}</td>
-                          <td className="px-4 py-3 text-sm text-gray-700 max-w-md truncate" title={item.title}>{item.title}</td>
+                          <td className="px-4 py-3 text-sm text-gray-700 max-w-xs" title={item.title}>
+                            <div className="truncate">{item.title}</div>
+                          </td>
                           <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
                             {item.skill === item.itemType ? item.skill : `${item.skill} · ${item.itemType}`}
                           </td>
@@ -435,7 +439,7 @@ export function PredictDifficulty() {
               </Button>
               {reviewCount > 0 ? (
                 <Button onClick={handleFinish}>
-                  Review needs-review items
+                  Review flagged items
                 </Button>
               ) : (
                 <Button onClick={handleFinish}>
