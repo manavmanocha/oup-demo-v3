@@ -229,6 +229,16 @@ export function ItemDetailRedesign() {
   const syntheticAudioScript = useMemo(() => (
     item && isListening && !item.audioAsset ? getSyntheticAudioScript(item) : ''
   ), [isListening, item]);
+  // Audio asset paths in the data layer / CSV imports are stored as bare
+  // filenames (e.g. "lis-b2-204-supplier-briefing.mp3"). They live under
+  // /public/audio so they must be served from /audio/<file>. If callers
+  // already pass an absolute URL or a path with a slash, leave it untouched.
+  const resolvedAudioSrc = useMemo(() => {
+    const raw = item?.audioAsset;
+    if (!raw) return '';
+    if (/^(https?:)?\//i.test(raw) || raw.startsWith('audio/')) return raw;
+    return `/audio/${raw}`;
+  }, [item?.audioAsset]);
   const hasPlayableAudio = Boolean((isListening || isSpeakingSkill) && (item?.audioAsset || syntheticAudioScript));
   const locationState = location.state as { fromWorkflow?: boolean; backTo?: string } | null;
   const fromWorkflowState = locationState?.fromWorkflow;
@@ -915,7 +925,7 @@ export function ItemDetailRedesign() {
             {hasPlayableAudio && (
               <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
                 <CardContent className="p-6">
-                  {item.audioAsset && <audio ref={audioRef} src={item.audioAsset} preload="metadata" />}
+                  {item.audioAsset && <audio ref={audioRef} src={resolvedAudioSrc} preload="metadata" />}
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                       <Headphones className="w-8 h-8 text-white" />
@@ -1680,10 +1690,21 @@ export function ItemDetailRedesign() {
                       const isReviewOrFail = entry.value === 'Fail' || entry.value === 'Review';
                       const isExpanded = Boolean(expandedScreeningReasons[entry.key]);
 
+                      const containerBorderClass =
+                        entry.value === 'Fail'
+                          ? 'border-red-200'
+                          : entry.value === 'Review'
+                            ? 'border-amber-200'
+                            : 'border-gray-200';
+                      const reasonBorderClass =
+                        entry.value === 'Fail'
+                          ? 'border-red-200 bg-red-50'
+                          : 'border-amber-200 bg-amber-50';
+
                       return (
                         <div
                           key={entry.label}
-                          className="overflow-hidden rounded-lg border border-gray-200 bg-white"
+                          className={`overflow-hidden rounded-lg border bg-white ${containerBorderClass}`}
                         >
                        
                           <div
@@ -1716,7 +1737,7 @@ export function ItemDetailRedesign() {
                             </Badge>
                           </div>
                           {isReviewOrFail && isExpanded && (
-                            <div className="border-t border-gray-200 bg-gray-50 px-4 py-3">
+                            <div className={`border-t px-4 py-3 ${reasonBorderClass}`}>
                               <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Screening Reason</p>
                               <p className="mt-1 text-sm leading-relaxed text-gray-700">
                                 {screeningReasonByKey.get(entry.key)}

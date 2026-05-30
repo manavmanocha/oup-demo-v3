@@ -142,7 +142,9 @@ export function ScreenItems() {
   };
 
   const handleFinish = () => {
-    navigate("/workflows/pre-testing-pipeline/screening");
+    navigate("/workflows/pre-testing-pipeline/screening", {
+      state: { justProcessedIds: selectedItemIds },
+    });
   };
 
   return (

@@ -139,7 +139,9 @@ export function PredictDifficulty() {
   };
 
   const handleFinish = () => {
-    navigate('/workflows/pre-testing-pipeline/difficulty-prediction');
+    navigate('/workflows/pre-testing-pipeline/difficulty-prediction', {
+      state: { justProcessedIds: selectedItemIds },
+    });
   };
 
   return (

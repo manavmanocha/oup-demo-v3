@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Checkbox } from './ui/checkbox';
-import { Info } from 'lucide-react';
+import { Info, Sparkles } from 'lucide-react';
 import { acceptPredictedItems, getAllItems } from '../data/mockData';
 import {
   Tooltip,
@@ -14,6 +14,7 @@ import {
 import { isWorkflowState } from '../data/workflowState';
 
 const DEFAULT_VISIBLE_ITEMS = 5;
+const JUST_PROCESSED_TIMEOUT_MS = 90_000;
 
 const metricHelpText = {
   confidence: 'How sure the model is about this estimate, based on similarity to items in the training set.',
@@ -63,10 +64,25 @@ const toTimestamp = (value?: string): number => {
 };
 
 export function DifficultyPrediction() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [showAllNeedsReview, setShowAllNeedsReview] = useState(false);
   const [showAllReadyToAccept, setShowAllReadyToAccept] = useState(false);
   const [selectedReadyIds, setSelectedReadyIds] = useState<string[]>([]);
+  const [justProcessedIds, setJustProcessedIds] = useState<Set<string>>(() => {
+    const state = location.state as { justProcessedIds?: string[] } | null;
+    return new Set(state?.justProcessedIds ?? []);
+  });
+
+  useEffect(() => {
+    if (justProcessedIds.size === 0) return;
+    const timer = window.setTimeout(() => {
+      setJustProcessedIds(new Set());
+    }, JUST_PROCESSED_TIMEOUT_MS);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const allItems = useMemo(() => getAllItems(), [refreshVersion]);
 
@@ -106,8 +122,19 @@ export function DifficultyPrediction() {
     [allItems],
   );
 
-  const needsReview = calibratedItems.filter((item) => item.confidence < 85);
-  const readyToAccept = calibratedItems.filter((item) => item.confidence >= 85);
+  const pinJustProcessedFirst = <T extends { id: string }>(items: T[]): T[] => {
+    if (justProcessedIds.size === 0) return items;
+    const fresh: T[] = [];
+    const rest: T[] = [];
+    items.forEach((item) => {
+      if (justProcessedIds.has(item.id)) fresh.push(item);
+      else rest.push(item);
+    });
+    return [...fresh, ...rest];
+  };
+
+  const needsReview = pinJustProcessedFirst(calibratedItems.filter((item) => item.confidence < 85));
+  const readyToAccept = pinJustProcessedFirst(calibratedItems.filter((item) => item.confidence >= 85));
   const visibleNeedsReview = showAllNeedsReview ? needsReview : needsReview.slice(0, DEFAULT_VISIBLE_ITEMS);
   const visibleReadyToAccept = showAllReadyToAccept ? readyToAccept : readyToAccept.slice(0, DEFAULT_VISIBLE_ITEMS);
   const hiddenNeedsReviewCount = Math.max(needsReview.length - DEFAULT_VISIBLE_ITEMS, 0);
@@ -222,13 +249,31 @@ export function DifficultyPrediction() {
             </p>
 
             <div className="space-y-4">
-              {visibleNeedsReview.map((item) => (
-                <div key={item.id} className="border rounded-lg p-6">
+              {visibleNeedsReview.map((item) => {
+                const isJustProcessed = justProcessedIds.has(item.id);
+                const openItem = () => navigate(`/item-bank/${item.level}/${item.id}`, { state: { fromWorkflow: true } });
+                return (
+                <div
+                  key={item.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={openItem}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      openItem();
+                    }
+                  }}
+                  className={`border rounded-lg p-6 cursor-pointer transition-colors hover:border-gray-300 hover:bg-gray-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                    isJustProcessed ? 'border-blue-300 bg-blue-50/40 ring-1 ring-blue-200 hover:bg-blue-50/60' : ''
+                  }`}
+                >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3 flex-wrap">
                       <Link
                         to={`/item-bank/${item.level}/${item.id}`}
                         state={{ fromWorkflow: true }}
+                        onClick={(event) => event.stopPropagation()}
                         className="text-sm font-medium text-blue-600 hover:underline"
                       >
                         {item.id}
@@ -237,6 +282,16 @@ export function DifficultyPrediction() {
                       <Badge variant="outline">
                         {item.skill === item.itemType ? item.skill : `${item.skill} · ${item.itemType}`}
                       </Badge>
+                      {isJustProcessed && (
+                        <Badge
+                          variant="outline"
+                          title="Highlighted for 90 seconds after this run"
+                          className="bg-blue-100 text-blue-800 border-blue-300 inline-flex items-center gap-1"
+                        >
+                          <Sparkles className="w-3 h-3" />
+                          Just processed
+                        </Badge>
+                      )}
                     </div>
                   </div>
 
@@ -261,13 +316,14 @@ export function DifficultyPrediction() {
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Button size="sm" onClick={() => handleAcceptItem(item.id, 'publish')}>Publish to bank</Button>
-                    <Button size="sm" variant="outline" onClick={() => handleAcceptItem(item.id, 'seeding')}>Send to seeding</Button>
-                    <Button size="sm" variant="outline">Reject</Button>
+                    <Button size="sm" onClick={(event) => { event.stopPropagation(); handleAcceptItem(item.id, 'publish'); }}>Publish to bank</Button>
+                    <Button size="sm" variant="outline" onClick={(event) => { event.stopPropagation(); handleAcceptItem(item.id, 'seeding'); }}>Send to seeding</Button>
+                    <Button size="sm" variant="outline" onClick={(event) => event.stopPropagation()}>Reject</Button>
                   </div>
                   <p className="mt-2 text-xs text-gray-500">Publish goes straight to the live bank; Send to seeding queues the item for prioritised field-evidence collection.</p>
                 </div>
-              ))}
+                );
+              })}
 
               {needsReview.length === 0 && (
                 <div className="text-sm text-gray-600 border rounded-lg p-6 bg-gray-50">
@@ -373,22 +429,42 @@ export function DifficultyPrediction() {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {visibleReadyToAccept.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
+                  {visibleReadyToAccept.map((item) => {
+                    const isJustProcessed = justProcessedIds.has(item.id);
+                    const openItem = () => navigate(`/item-bank/${item.level}/${item.id}`, { state: { fromWorkflow: true } });
+                    return (
+                    <tr
+                      key={item.id}
+                      onClick={openItem}
+                      className={`cursor-pointer ${isJustProcessed ? 'bg-blue-50/60 hover:bg-blue-50' : 'hover:bg-gray-50'}`}
+                    >
+                      <td className="px-4 py-3" onClick={(event) => event.stopPropagation()}>
                         <Checkbox
                           checked={selectedReadyIds.includes(item.id)}
                           onCheckedChange={() => toggleReadyItem(item.id)}
                         />
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <Link
-                          to={`/item-bank/${item.level}/${item.id}`}
-                          state={{ fromWorkflow: true }}
-                          className="text-sm font-medium text-blue-600 hover:underline"
-                        >
-                          {item.id}
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            to={`/item-bank/${item.level}/${item.id}`}
+                            state={{ fromWorkflow: true }}
+                            onClick={(event) => event.stopPropagation()}
+                            className="text-sm font-medium text-blue-600 hover:underline"
+                          >
+                            {item.id}
+                          </Link>
+                          {isJustProcessed && (
+                            <Badge
+                              variant="outline"
+                              title="Highlighted for 90 seconds after this run"
+                              className="bg-blue-100 text-blue-800 border-blue-300 inline-flex items-center gap-1"
+                            >
+                              <Sparkles className="w-3 h-3" />
+                              New
+                            </Badge>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 max-w-md truncate" title={item.item}>{item.item}</td>
                       <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{item.level}</td>
@@ -396,7 +472,8 @@ export function DifficultyPrediction() {
                       <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{item.difficulty}</td>
                       <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{item.discrimination}</td>
                     </tr>
-                  ))}
+                    );
+                  })}
                   {readyToAccept.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
