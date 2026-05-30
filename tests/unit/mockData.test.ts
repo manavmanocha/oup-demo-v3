@@ -109,7 +109,12 @@ describe('mockData workflow mutations', () => {
     acceptPredictedItems([target.id]);
     const accepted = getAllItems().find((item) => item.id === target.id);
     expect(accepted?.workflowState).toBe('RECOMMENDED_FOR_SEEDING');
-    expect(accepted?.status).toBe('Published');
+    expect(accepted?.status).toBe('In Review');
+
+    acceptPredictedItems([target.id], 'publish');
+    const published = getAllItems().find((item) => item.id === target.id);
+    expect(published?.workflowState).toBe('DP_APPROVED');
+    expect(published?.status).toBe('Published');
 
     moveItemsToSeeded([target.id]);
     const seeded = getAllItems().find((item) => item.id === target.id);

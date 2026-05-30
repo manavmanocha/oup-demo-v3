@@ -703,6 +703,7 @@ export const acceptPredictedItems = (
       destination === 'publish'
         ? 'Estimation Accepted — Published to Bank'
         : 'Estimation Accepted — Queued for Seeding';
+    const nextStatus: AssessmentItem['status'] = destination === 'publish' ? 'Published' : 'In Review';
 
     const nextHistory = [
       ...previousHistory,
@@ -716,7 +717,7 @@ export const acceptPredictedItems = (
 
     return {
       workflowState: nextState,
-      status: 'Published',
+      status: nextStatus,
       flaggedForReview: false,
       reviewHistory: nextHistory,
       lastEditedDate: nowIso,
