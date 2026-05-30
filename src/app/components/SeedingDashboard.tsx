@@ -161,12 +161,12 @@ export function SeedingDashboard() {
             <Card className="hover:border-gray-300 transition-colors h-full">
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Awaiting Prioritisation
+                  Pending Difficulty Prediction Review
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-gray-900">{waitingForPrioritisationCount}</div>
-                <p className="text-sm text-gray-500 mt-1">Estimation complete, confidence below threshold</p>
+                <p className="text-sm text-gray-500 mt-1">Low-confidence estimates awaiting reviewer sign-off in Difficulty Prediction</p>
               </CardContent>
             </Card>
           </Link>
@@ -180,7 +180,7 @@ export function SeedingDashboard() {
                 <p className="font-semibold text-gray-900 mb-1">No items ready to seed</p>
                 <p className="text-sm text-gray-600">
                   {waitingForPrioritisationCount > 0
-                    ? `${waitingForPrioritisationCount} item${waitingForPrioritisationCount === 1 ? '' : 's'} awaiting prioritisation in Difficulty Estimation.`
+                    ? `${waitingForPrioritisationCount} low-confidence estimate${waitingForPrioritisationCount === 1 ? '' : 's'} pending reviewer sign-off in Difficulty Prediction.`
                     : 'Items will appear here once their difficulty estimates have been accepted.'}
                 </p>
               </div>
