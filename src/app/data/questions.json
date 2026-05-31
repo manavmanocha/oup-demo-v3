@@ -24873,8 +24873,8 @@
       "level": "A1",
       "questionNumber": 284,
       "questionType": "Essay",
-      "prompt": "Write a short formal recommendation to the board on whether the company should use the proposed fully flexible working model. Say your opinion and mention two operational risks.",
-      "correctAnswer": "A successful response gives a clear opinion, mentions two risks such as planning, security, or team continuity, and uses simple polite workplace language.",
+      "prompt": "Write a short note for company leaders. Say if staff should be allowed to choose when and where they work. Give your opinion and name two possible problems for the business.",
+      "correctAnswer": "A successful response gives a clear opinion, names two possible business problems such as staffing plans, data safety, or keeping teams together, and uses simple polite workplace language.",
       "topic": "Workplace",
       "skillTag": "Task achievement",
       "skillTagId": "writing-task-achievement",
@@ -24882,10 +24882,10 @@
       "skillDetails": {
         "writing": {
           "task": 1,
-          "promptContext": "Flexible Working Model Proposal Brief",
-          "instructions": "Write 40-60 words in a polite formal recommendation style.",
-          "rubric": "Opinion is clear; two operational risks are mentioned; recommendation is understandable for a workplace reader; uses simple formal language.",
-          "visualData": "Background brief: The operations team has proposed a fully flexible working model that would allow employees to choose their own hours, location, and team composition for each project cycle. The model promises higher engagement and retention but introduces uncertainty around capacity planning, security, and team continuity.",
+          "promptContext": "Work Pattern Change Note",
+          "instructions": "Write 40-60 words in a polite workplace style.",
+          "rubric": "Opinion is clear; two business problems are mentioned; recommendation is understandable for a workplace reader; uses simple formal language.",
+          "visualData": "Workplace note: The company is thinking about letting staff decide their work time, work place, and project teams for each work cycle. This may make people happier and more likely to stay, but it may also make staffing plans, data safety, and stable teams harder to manage.",
           "wordCount": 60,
           "timeAllocation": 15
         }
@@ -24894,9 +24894,9 @@
       "cognitiveLevel": "L3 Apply",
       "contentDomain": "Workplace",
       "languageVariety": "International",
-      "title": "Flexible Working Model Recommendation",
+      "title": "Work Pattern Change Note",
       "flaggedForReview": true,
-      "flagReason": "Similarity failure against ITMBK-WRT-C1-371: both items use the same flexible working model brief, ask for a board recommendation, and require discussion of operational risks.",
+      "flagReason": "Semantic similarity failure against ITMBK-WRT-C1-371: the wording is different, but both items ask candidates to advise senior decision-makers about adopting flexible work and to cover two business risks.",
       "reviewHistory": [
         {
           "date": "2026-05-29",
@@ -24909,7 +24909,7 @@
           "reviewer": "Screening Review",
           "action": "Similarity Failure",
           "state": "PENDING_SCREENING_REVIEW",
-          "notes": "Similarity failed against ITMBK-WRT-C1-371 because both items use the same flexible working model brief, board recommendation task, and operational-risk focus."
+          "notes": "Semantic similarity failed against ITMBK-WRT-C1-371 because the wording differs but the meaning is the same: advise senior decision-makers on flexible work and cover two business risks."
         }
       ],
       "author": "Emma Carter",
@@ -24945,9 +24945,9 @@
       "screeningReasons": {
         "cefrFit": "The task has been simplified into a short workplace recommendation with controlled response expectations.",
         "distractorStrength": "As a constructed-response item, no distractors are required; the task constraints provide sufficient guidance.",
-        "clarity": "The instructions clearly ask for an opinion and two operational risks.",
+        "clarity": "The instructions clearly ask for an opinion and two possible business problems.",
         "fairness": "The workplace scenario is broadly accessible and does not depend on specialist cultural knowledge.",
-        "similarity": "Fails similarity against ITMBK-WRT-C1-371: both items use the same flexible working model brief, ask for a recommendation to the board, and require candidates to address operational risks."
+        "similarity": "Semantic similarity failure against ITMBK-WRT-C1-371: the surface wording is different, but both items ask candidates to advise senior decision-makers on a flexible work proposal and discuss two business or operational risks."
       }
     },
     {
@@ -32750,7 +32750,7 @@
       "languageVariety": "International",
       "title": "Flexible Working Model Proposal Brief",
       "flaggedForReview": true,
-      "flagReason": "Similarity failure against ITMBK-WRT-A1-119: both items use the same flexible working model brief, ask for a board recommendation, and require discussion of operational risks.",
+      "flagReason": "Semantic similarity failure against ITMBK-WRT-A1-119: the wording is different, but both items ask candidates to advise senior decision-makers about adopting flexible work and to cover two business risks.",
       "reviewHistory": [
         {
           "date": "2026-05-30",
@@ -32764,7 +32764,7 @@
           "reviewer": "Screening Review",
           "action": "Similarity Failure",
           "state": "PENDING_SCREENING_REVIEW",
-          "notes": "Similarity failed against ITMBK-WRT-A1-119 because both items use the same flexible working model brief, board recommendation task, and operational-risk focus."
+          "notes": "Semantic similarity failed against ITMBK-WRT-A1-119 because the wording differs but the meaning is the same: advise senior decision-makers on flexible work and cover two business risks."
         }
       ],
       "author": "CSV Import",
@@ -32801,7 +32801,7 @@
         "distractorStrength": "As a constructed-response writing item, no distractors are required; the prompt and rubric define the expected response space.",
         "clarity": "The task clearly states the audience, required stance, word count, and need to address two operational risks.",
         "fairness": "The workplace scenario is broadly accessible and does not depend on specialist cultural knowledge.",
-        "similarity": "Fails similarity against ITMBK-WRT-A1-119: both items use the same flexible working model brief, ask for a recommendation to the board, and require candidates to address operational risks."
+        "similarity": "Semantic similarity failure against ITMBK-WRT-A1-119: the surface wording is different, but both items ask candidates to advise senior decision-makers on a flexible work proposal and discuss two business or operational risks."
       }
     },
     {
