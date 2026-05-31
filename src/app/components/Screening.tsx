@@ -39,10 +39,6 @@ const hasScreeningReview = (item: AssessmentItem) => {
   return Object.values(item.screening ?? {}).includes('Review');
 };
 
-const formatItemIdForDisplay = (id: string): string => {
-  return id.startsWith('ITMBK-') ? id.slice('ITMBK-'.length) : id;
-};
-
 const SIMILARITY_REVIEW_VARIANTS = [
   'Similarity: moderate overlap with an existing item. Confirm it is sufficiently differentiated.',
   'Similarity: vocabulary range is close to a recent item at the same level. Confirm intent differs.',
@@ -88,9 +84,14 @@ const getScreeningFeedback = (item: AssessmentItem): string | null => {
     const notes: string[] = [];
     (Object.keys(SCREENING_DIMENSION_NOTES) as Array<keyof typeof SCREENING_DIMENSION_NOTES>).forEach((key) => {
       const result = screening[key];
-      if (result === 'Fail') notes.push(SCREENING_DIMENSION_NOTES[key].fail);
+      const dimensionReason = item.screeningReasons?.[key]?.trim();
+      if (result === 'Fail') {
+        notes.push(dimensionReason || (key === 'similarity' ? item.flagReason : undefined) || SCREENING_DIMENSION_NOTES[key].fail);
+      }
       else if (result === 'Review') {
-        if (key === 'similarity') {
+        if (dimensionReason) {
+          notes.push(dimensionReason);
+        } else if (key === 'similarity') {
           notes.push(pickSimilarityReviewVariant(item.id));
         } else {
           notes.push(SCREENING_DIMENSION_NOTES[key].review);
@@ -228,7 +229,7 @@ const ScreeningQueueSection = ({
                     onClick={(event) => event.stopPropagation()}
                     className="text-sm font-medium text-blue-600 hover:underline"
                   >
-                    {formatItemIdForDisplay(item.id)}
+                    {item.id}
                   </Link>
                   <Badge variant="outline">{item.level}</Badge>
                   <Badge variant="outline">{item.skill}</Badge>
