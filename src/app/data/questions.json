@@ -2383,7 +2383,7 @@
         "calibratedFromFieldTest": false,
         "predictedByAI": true
       },
-      "confidence": 88.7,
+      "confidence": 72.4,
       "difficulty": "Medium",
       "screening": {
         "cefrFit": "Pass",
@@ -10877,7 +10877,7 @@
         "calibratedFromFieldTest": false,
         "predictedByAI": true
       },
-      "confidence": 87.3,
+      "confidence": 68.9,
       "difficulty": "Medium",
       "screening": {
         "cefrFit": "Pass",
@@ -25007,7 +25007,7 @@
         "calibratedFromFieldTest": false,
         "predictedByAI": true
       },
-      "confidence": 92.3,
+      "confidence": 65.2,
       "difficulty": "Medium",
       "screening": {
         "cefrFit": "Pass",
