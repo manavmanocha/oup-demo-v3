@@ -931,7 +931,7 @@ export function ItemDetailRedesign() {
                       <Headphones className="w-8 h-8 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-4">{item.audioTitle || item.title}</h3>
+                      <h3 className="font-semibold text-gray-900 mb-4">{item.audioTitle || item.passageTitle || item.title}</h3>
                       <div className="flex items-center gap-3">
                         <Button
                           size="sm"
@@ -1053,7 +1053,7 @@ export function ItemDetailRedesign() {
               <CardContent className="p-4 sm:p-6 md:p-8">
                 <div className="mb-6">
                   <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Question</div>
-                  {!isSentenceCompletion && (
+                  {!isSentenceCompletion && !isStructuredCompletion && (
                     <p className="text-lg text-gray-900 leading-relaxed">
                       {item.title}
                     </p>
