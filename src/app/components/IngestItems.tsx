@@ -438,6 +438,7 @@ const buildPreviewItem = (
     status: 'Draft',
     options,
     audioAsset: item.skill === 'Listening' ? item.audioAsset : undefined,
+    audioTitle: item.skill === 'Listening' ? (item.passageTitle || undefined) : undefined,
     passage: item.passage || undefined,
     passageTitle: item.passageTitle || undefined,
     instructions: item.instructions || undefined,
